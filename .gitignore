@@ -1,0 +1,16 @@
+*.pyc
+*.fits
+*.fit
+*.hdf5
+*.swp
+.DS_Store
+*.tar
+*.gz
+*.bz2
+**.png
+legacy/
+**spec1d_IRAF/
+**pyraf/
+*.ps
+*.txt
+*.reg
