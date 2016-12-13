@@ -1,0 +1,23 @@
+# Default configuration file for STIFF 1.12
+# EB 2009-05-13
+#
+OUTFILE_NAME    stiff.tif               # Name of the output file
+BINNING         1                       # Binning factor for the data
+GAMMA           2.0                     # Display gamma
+GAMMA_FAC       1.0                     # Luminance gamma correction factor
+COLOUR_SAT      1.5                     # Colour saturation (0.0 = B&W)
+NEGATIVE        N                       # Make negative of the image
+ 
+#------------------------------- Dynamic range ------------------------------
+ 
+SKY_TYPE        AUTO                    # Sky-level: "AUTO" or "MANUAL"
+SKY_LEVEL       0.0                     # Background level for each image
+MIN_TYPE        GREYLEVEL               # Min-level: "QUANTILE", "MANUAL"
+                                        # or "GREYLEVEL"
+MIN_LEVEL       0.005                   # Minimum value or quantile
+MAX_TYPE        QUANTILE                # Max-level: "QUANTILE" or "MANUAL"
+MAX_LEVEL       0.995                   # Maximum value or quantile
+ 
+#------------------------------ Miscellaneous ---------------------------------
+ 
+VERBOSE_TYPE    NORMAL                  # "QUIET","NORMAL" or "FULL"
