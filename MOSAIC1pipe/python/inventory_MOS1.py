@@ -27,14 +27,14 @@ EXPTIME = {}
 AIRMASS = {}
 tiles = []
 
-print >> sys.stderr, "Found %s files, please wait... this will take a while" % len(
-    full_list)
+print("Found %s files, please wait... this will take a while" % len(
+    full_list), file=sys.stderr)
 
 counter = 1
 for file in full_list:
 
-    print >> sys.stderr, "Reading %-45s ... (%4s/%4s)" % (file, counter,
-                                                          len(full_list))
+    print("Reading %-45s ... (%4s/%4s)" % (file, counter,
+                                                          len(full_list)), file=sys.stderr)
 
     header = getheader(file)
     counter = counter + 1
@@ -43,14 +43,14 @@ for file in full_list:
         if header['OBSTYPE'] != 'object':
             continue
     except:
-        print "# OBSTYPE not present for %s" % file
+        print("# OBSTYPE not present for %s" % file)
         pass
 
     # Keep the values
     try:
         OBJECT = header['OBJECT']  #[:-1]
     except:
-        print "OBJECT KEY NOT FOUND FOR:", file
+        print("OBJECT KEY NOT FOUND FOR:", file)
         OBJECT = header['FILENAME'][0:11]
 
     TILE = OBJECT[0:-1]
@@ -87,18 +87,18 @@ for file in full_list:
     header = None
 
 # Write them out
-print >> sys.stderr, " Will write results to: %s" % outdir
+print(" Will write results to: %s" % outdir, file=sys.stderr)
 os.chdir(outdir)
 objects.sort()
 for TILE in tiles:
 
     o = open(TILE + ".assoc", "w")
-    print "# %s" % TILE
-    filters = imalist[TILE].keys()
+    print("# %s" % TILE)
+    filters = list(imalist[TILE].keys())
     filters.sort()
     for filter in filters:
         for file in imalist[TILE][filter]:
-            print file, filter, EXPTIME[file], AIRMASS[file]
+            print(file, filter, EXPTIME[file], AIRMASS[file])
             o.write("%s %s %s %s\n" %
                     (file, filter, EXPTIME[file], AIRMASS[file]))
     o.close()

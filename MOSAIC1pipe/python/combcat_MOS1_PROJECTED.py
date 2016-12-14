@@ -74,7 +74,7 @@ class combcat:
         # The the DQmaks files
         self.dqmask = {}
 
-        print "# Will read %s" % self.assocfile
+        print("# Will read %s" % self.assocfile)
 
         # Read in the assoc file
         for line in open(self.assocfile).readlines():
@@ -89,7 +89,7 @@ class combcat:
             self.exptime[fname] = float(vals[2])
             self.airmass[fname] = float(vals[3])
 
-            print fname, self.filter[fname]
+            print(fname, self.filter[fname])
 
             # Figure out the infile
             nid = int(os.path.splitext(fname)[0][2:]) + 1
@@ -149,7 +149,7 @@ class combcat:
         self.exptime = {}
         self.airmass = {}
 
-        print "# Will read %s" % self.assocfile
+        print("# Will read %s" % self.assocfile)
 
         # Read in the assoc file
         for line in open(self.assocfile).readlines():
@@ -191,7 +191,7 @@ class combcat:
                 if filter == self.filter[file]:
                     self.exptimes[filter].append(self.exptime[file])
 
-            print "# %s %s" % (filter, self.files[filter])
+            print("# %s %s" % (filter, self.files[filter]))
 
         return
 
@@ -206,12 +206,12 @@ class combcat:
         # Go to the directory
         os.chdir(self.outdir)
 
-        print >> sys.stderr, "We are in:", self.outdir
+        print("We are in:", self.outdir, file=sys.stderr)
 
         for file in self.infiles:
             cmd1 = "rsync -av -e ssh --progress %s ." % os.path.join(
                 self.datapath, file)
-            print cmd1
+            print(cmd1)
             if copy:
                 os.system(cmd1)
 
@@ -236,12 +236,12 @@ class combcat:
 
         #cmd  = "swarp %s*[0-9][0-9][0-9].fits -c %s " % (self.tilename,center_conf)
         cmd = "swarp %s -c %s " % (string.join(self.filelist), center_conf)
-        for param, value in opts.items():
+        for param, value in list(opts.items()):
             cmd = cmd + "-%s %s " % (param, value)
 
-        print cmd
+        print(cmd)
         if not self.dryrun:
-            print >> sys.stderr, "Centering mosaic"
+            print("Centering mosaic", file=sys.stderr)
             os.system(cmd)
 
         # Read in the header
@@ -254,8 +254,8 @@ class combcat:
         x_center = dec2sex(x_center / 15)
         y_center = dec2sex(y_center)
 
-        print "\tImage Size:  %s x %s" % (nx, ny)
-        print "\tCentered on: %s   %s" % (x_center, y_center)
+        print("\tImage Size:  %s x %s" % (nx, ny))
+        print("\tCentered on: %s   %s" % (x_center, y_center))
 
         self.nx = nx
         self.ny = ny
@@ -269,7 +269,7 @@ class combcat:
 
     def get_FLXSCALE(self, magbase=30):
 
-        print "# Computing FLXSCALE for magbase=%s" % magbase
+        print("# Computing FLXSCALE for magbase=%s" % magbase)
 
         self.magbase = magbase
         self.flxscale = {}
@@ -325,7 +325,7 @@ class combcat:
 
         # The options
         opts = ""
-        for param, value in pars.items():
+        for param, value in list(pars.items()):
             opts = opts + "-%s %s " % (param, value)
 
         self.combima = {}
@@ -358,10 +358,10 @@ class combcat:
             cmd = cmd + opts
 
             if not dryrun:
-                print "# Will run:\n\t%s" % cmd
+                print("# Will run:\n\t%s" % cmd)
                 os.system(cmd)
             else:
-                print cmd
+                print(cmd)
 
         return
 
@@ -377,8 +377,8 @@ class combcat:
         for filter in filters:
 
             if len(self.files[filter]) < 2:
-                print "Only one frame, no FLUX SCALE for %s %s filter" % (
-                    self.tilename, filter)
+                print("Only one frame, no FLUX SCALE for %s %s filter" % (
+                    self.tilename, filter))
                 continue
 
             # First Check if we should correct
@@ -392,8 +392,8 @@ class combcat:
 
                     # Skip when values are < dm
             if not self.do_level[filter]:
-                print >> sys.stderr, "# No need to correct frames %s for %s" % (
-                    self.tilename, filter)
+                print("# No need to correct frames %s for %s" % (
+                    self.tilename, filter), file=sys.stderr)
                 continue
 
             # Other wise call put_FSCALE
@@ -409,7 +409,7 @@ class combcat:
                      filters=None):
 
         if dryrun:
-            print "Skipping weight generation for %s" % self.tilename
+            print("Skipping weight generation for %s" % self.tilename)
             return
 
         # Get the dither centroid
@@ -430,7 +430,7 @@ class combcat:
 
         # The options
         opts = ""
-        for param, value in pars.items():
+        for param, value in list(pars.items()):
             opts = opts + "-%s %s " % (param, value)
         cmd = ""
 
@@ -455,16 +455,16 @@ class combcat:
             cmd = cmd + opts
 
             if not dryrun:
-                print cmd
+                print(cmd)
                 os.system(cmd)
                 chtype_fits(outimage, type='UInt8', verb=self.verb)
             else:
-                print cmd
+                print(cmd)
 
             # Clean up files
             os.system("rm %s" % outweight)
             for file in outfiles:
-                print "Removing %s" % file
+                print("Removing %s" % file)
                 os.system("rm %s" % file)
 
         return
@@ -480,11 +480,11 @@ class combcat:
             mask = self.mask[filter]
 
             if dryrun:
-                print >> sys.stderr, "# Skipping Mask Generation..."
+                print("# Skipping Mask Generation...", file=sys.stderr)
                 continue
 
-            print >> sys.stderr, "# Generating mask image from %s --> %s" % (
-                weight, mask)
+            print("# Generating mask image from %s --> %s" % (
+                weight, mask), file=sys.stderr)
             mask_from_weight(weight, mask, value=0)
 
         return
@@ -492,10 +492,10 @@ class combcat:
     # Generate the mask from the weight
     def make_swarp_input_weights(self, clobber=True):
 
-        for fname, dqmask in self.dqmask.items():
+        for fname, dqmask in list(self.dqmask.items()):
             outname = "%s.weight.fits" % os.path.splitext(fname)[0]
-            print >> sys.stderr, "# Generating weight image from %s --> %s" % (
-                dqmask, outname)
+            print("# Generating weight image from %s --> %s" % (
+                dqmask, outname), file=sys.stderr)
             weight_from_dqfile(dqmask, outname, clobber=clobber)
 
         return
@@ -507,8 +507,8 @@ class combcat:
         image = self.combima[filter] + ".fits"
         DetImage = "%s_detection.fits" % self.tilename
 
-        print >> sys.stderr, "# Generating Detection image for filter:%s" % filter
-        print >> sys.stderr, "# \t\t%s x %s --> %s" % (image, mask, DetImage)
+        print("# Generating Detection image for filter:%s" % filter, file=sys.stderr)
+        print("# \t\t%s x %s --> %s" % (image, mask, DetImage), file=sys.stderr)
 
         # Read in the mask and the data
         m_data, m_hdr = pyfits.getdata(mask, header=True)
@@ -553,11 +553,11 @@ class combcat:
         # The detection image that we'll use
         if self.DetImage:
             det_ima = self.DetImage
-            print >> sys.stderr, "# Will use default Detection Image:%s " % self.DetImage
+            print("# Will use default Detection Image:%s " % self.DetImage, file=sys.stderr)
         else:
             det_ima = self.combima[det_filter] + ".fits"
-            print >> sys.stderr, "# Will use %s band Detection Image:%s " % (
-                det_filter, det_ima)
+            print("# Will use %s band Detection Image:%s " % (
+                det_filter, det_ima), file=sys.stderr)
 
         self.getbpz = 1  # This var is not really used...
 
@@ -581,7 +581,7 @@ class combcat:
             cmd = "sex %s,%s -CATALOG_NAME %s -MAG_ZEROPOINT %s -c %s %s 1>&2" % (
                 det_ima, input, output, self.magbase, self.SExinpar, opts)
 
-            print cmd
+            print(cmd)
             if not self.dryrun:
                 os.system(cmd)
 
@@ -598,7 +598,7 @@ class combcat:
         self.colorCat = self.tilename + ".color"
         self.columnsFile = self.tilename + ".columns"
 
-        print >> sys.stderr, 'Processing catalogs... for: ', self.tilename
+        print('Processing catalogs... for: ', self.tilename, file=sys.stderr)
 
         flux = {}
         fluxerr = {}
@@ -664,7 +664,7 @@ class combcat:
             # Get the zero point for the final magnitudes
             zpoint = self.magbase
 
-            print filter, zpoint
+            print(filter, zpoint)
 
             flux[filter] = Numeric.clip(flux[filter], 1e-100, 1e100)
             m[filter] = Numeric.where(detected,
@@ -705,13 +705,13 @@ class combcat:
 
         variables = tuple(vars)
         format = '%i\t %10.2f %10.2f' + '%10.4f  ' * (len(variables) - 3)
-        print >> sys.stderr, 'Writing data to multicolor catalog...'
+        print('Writing data to multicolor catalog...', file=sys.stderr)
         tableio.put_data(self.colorCat,
                          variables,
                          header=header,
                          format=format,
                          append='no')
-        print >> sys.stderr, 'Multicolor catalog complete.'
+        print('Multicolor catalog complete.', file=sys.stderr)
 
         # And now write .columns file
         cfile = open(self.columnsFile, 'w')
@@ -740,7 +740,7 @@ class combcat:
     def runBPZ(self):
         """Runs BPZ on the multicolor catalog file using the .columns """
 
-        print >> sys.stderr, 'Starting photometric redshift determination...'
+        print('Starting photometric redshift determination...', file=sys.stderr)
         bpz = os.path.join(os.environ['P_BPZPATH'], 'bpz.py ')
         bpzcat = self.tilename + ".bpz"
         bpzprobs = self.tilename + ".probs"
@@ -751,12 +751,12 @@ class combcat:
         cmd = 'python ' + bpz + self.colorCat + ' -ZMAX 1.8 -VERBOSE no -INTERP 2 -DZ 0.01 -SPECTRA CWWSB_Benitez2003.list -PRIOR full -PROBS_LITE ' + bpzprobs
 
         if not self.dryrun:
-            print cmd
-            print >> sys.stderr, "Running full prior"
+            print(cmd)
+            print("Running full prior", file=sys.stderr)
             os.system(cmd)
-            print >> sys.stderr, "Photo-z ready"
+            print("Photo-z ready", file=sys.stderr)
         else:
-            print cmd
+            print(cmd)
         return
 
     def mean_airmass(self, filter):
@@ -802,7 +802,7 @@ def weight_from_dqfile(infile, outfile, clobber=False):
         if clobber:
             os.remove(outfile)
         else:
-            print "# Skipping creation, %s image exists" % outfile
+            print("# Skipping creation, %s image exists" % outfile)
             return
 
     inHDU = pyfits.open(infile, "readonly")
@@ -838,8 +838,8 @@ def replace_vals_image(infits, outfits, repval=1):
 
     hdulist = pyfits.open(infits)
     Nima = len(hdulist)
-    print >> sys.stderr, "Replacing with n=%s on %s images, %s --> %s" % (
-        repval, Nima - 1, infits, outfits)
+    print("Replacing with n=%s on %s images, %s --> %s" % (
+        repval, Nima - 1, infits, outfits), file=sys.stderr)
     for i in range(Nima)[1:]:
         hdulist[i].data = (hdulist[i].data * 0 + 1).astype('UInt8')
     hdulist.verify('fix')
@@ -866,8 +866,8 @@ def put_exptime(file, exptime):
     f = pyfits.open(file, mode="update")  # open a FITS file
     hdr = f[0].header  # the primary HDU header
 
-    print >> sys.stderr, "# Updating %s with EXPTIME=%s after SWarp" % (
-        file, exptime)
+    print("# Updating %s with EXPTIME=%s after SWarp" % (
+        file, exptime), file=sys.stderr)
     c = pyfits.Card("EXPTIME", exptime, "After SWarp equivalent exptime (sec)")
     c.verify()
     hdr.update('EXPTIME', c.value, c.comment)  #,after=after)
@@ -905,8 +905,8 @@ def put_zeropt(file, zeropt, photo='yes'):
     f = pyfits.open(file, mode="update")  # open a FITS file
     hdr = f[0].header  # the primary HDU header
 
-    print >> sys.stderr, "# Updating %s with ZP=%s as in SExtractor, photo:%s" % (
-        file, zeropt, photo)
+    print("# Updating %s with ZP=%s as in SExtractor, photo:%s" % (
+        file, zeropt, photo), file=sys.stderr)
 
     after = "DATE"
 
@@ -922,7 +922,7 @@ def put_zeropt(file, zeropt, photo='yes'):
         c['PHOTOM'] = pyfits.Card("PHOTOM", 0,
                                   "Photometric quality 1=photo/0=not")
 
-    for key in c.keys():
+    for key in list(c.keys()):
         c[key].verify()
         hdr.update(key, c[key].value, c[key].comment, after=after)
 
@@ -943,8 +943,8 @@ def chtype_replace_nonzero(infits, repval=1, out=None, verb=None):
     import numpy
 
     if verb:
-        print >> sys.stderr, "\tChange type UInt8 on %s --- Replacing pixels not eq 0  --> %s" % (
-            infits, repval)
+        print("\tChange type UInt8 on %s --- Replacing pixels not eq 0  --> %s" % (
+            infits, repval), file=sys.stderr)
 
     hdulist = pyfits.open(infits, mode='update')
     Nima = len(hdulist)
@@ -970,7 +970,7 @@ def chtype_fits(infits, type='UInt8', out=None, verb=None):
     import numpy
 
     if verb:
-        print >> sys.stderr, "\tChange type on %s to ---> %s" % (infits, type)
+        print("\tChange type on %s to ---> %s" % (infits, type), file=sys.stderr)
 
     hdulist = pyfits.open(infits, mode='update')
     Nima = len(hdulist)
@@ -993,12 +993,12 @@ def clean_FLXCORR(file, N=16):
     from pyraf import iraf
     from pyfits import getheader
 
-    print "Analizing %s ..." % file
+    print("Analizing %s ..." % file)
     header = getheader(file, 1)
 
     try:
         FLXCORR = header['FLXCORR']
-        print "Cleaning up %s" % file
+        print("Cleaning up %s" % file)
         for i in range(N):
             n = i + 1
             image = "%s[%s]" % (file, n)
@@ -1011,7 +1011,7 @@ def clean_FLXCORR(file, N=16):
             # Remove key from [0] extension
             #print image
     except:
-        print "NO FLXCORR key found"
+        print("NO FLXCORR key found")
 
     return
 
@@ -1025,9 +1025,9 @@ def check_exe(exe, verb="yes"):
         f = os.path.join(p, exe)
         if os.path.isfile(f):
             if verb:
-                print >> sys.stderr, "# Found %s in %s" % (exe, f)
+                print("# Found %s in %s" % (exe, f), file=sys.stderr)
             return f
-    print >> sys.stderr, "# ERROR: Couldn't find %s" % exe
+    print("# ERROR: Couldn't find %s" % exe, file=sys.stderr)
     return
 
 
@@ -1037,8 +1037,8 @@ def elapsed_time(t1, text=''):
     hh = int((t2 - t1) / 3600.)
     mm = int((t2 - t1) / 60 - hh * 60)
     ss = (t2 - t1) - 60 * mm - 3600 * hh
-    print "Elapsed time: %dh %dm %2.2fs %s" % (hh, mm, ss, text)
-    print >> sys.stderr, "Elapsed time: %dh %dm %2.2fs %s" % (hh, mm, ss, text)
+    print("Elapsed time: %dh %dm %2.2fs %s" % (hh, mm, ss, text))
+    print("Elapsed time: %dh %dm %2.2fs %s" % (hh, mm, ss, text), file=sys.stderr)
     #print >>sys.stderr,"Elapsed time: %dm %2.2fs" % ( int( (t2-t1)/60.), (t2-t1) - 60*int((t2-t1)/60.))
     return
 
@@ -1058,7 +1058,7 @@ def elapsed_time_str(t1):
 def SEx_head(catalog, verb='yes'):
 
     if verb:
-        print >> sys.stderr, "\r Parsing SEx head for:", catalog
+        print("\r Parsing SEx head for:", catalog, file=sys.stderr)
 
     # Dictionary with column numbers
     SExcols = {}
@@ -1066,7 +1066,7 @@ def SEx_head(catalog, verb='yes'):
     # Read the SExtractor catalog
     for line in open(catalog).readlines():
 
-        if line[0] <> '#':
+        if line[0] != '#':
             break
 
         if line[:2] == "##":
@@ -1079,7 +1079,7 @@ def SEx_head(catalog, verb='yes'):
             key = vals[2]
             SExcols[key] = int(col) - 1
             if verb:
-                print >> sys.stderr, "# %-20s %s" % (key, SExcols[key] + 1)
+                print("# %-20s %s" % (key, SExcols[key] + 1), file=sys.stderr)
         except:
             continue
 
@@ -1289,7 +1289,7 @@ def main():
     try:
         c.makeDetectionIma(filter='i')
     except:
-        print "# Could not make Detection image with i-band"
+        print("# Could not make Detection image with i-band")
 
     # Make the detection image
     if opt.useMask:

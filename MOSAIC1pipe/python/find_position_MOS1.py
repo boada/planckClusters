@@ -10,7 +10,7 @@ if os.environ['NUMERIX'] == 'numpy':
     float64 = numarray.float64
     int16 = numarray.int16
     nstr = numarray.char
-    print "Will use numpy"
+    print("Will use numpy")
 elif os.environ['NUMERIX'] == 'numarray':
     import numarray
     import numarray.random_array as nrandom
@@ -18,7 +18,7 @@ elif os.environ['NUMERIX'] == 'numarray':
     float64 = numarray.Float64
     int16 = numarray.Int16
     import numarray.strings as nstr
-    print "Will use numarray :("
+    print("Will use numarray :(")
 else:
     sys.exit("Must define NUMERIX")
 import glob
@@ -318,7 +318,7 @@ class finder:
                     zx = numarray.arange(z1, z2, dz)
                 continue
             ID = fields[0]
-            probs.append(numarray.asarray(map(float, fields[1:])))
+            probs.append(numarray.asarray(list(map(float, fields[1:]))))
 
         # Transform the list into an N array
         p_z = numarray.asarray(probs)
@@ -509,13 +509,13 @@ class finder:
         self.jpgfile = os.path.join(self.datapath, self.ctile,
                                     self.ctile + '.tiff')
         t0 = time.time()
-        print >> sys.stderr, "Reading %s" % self.jpgfile
+        print("Reading %s" % self.jpgfile, file=sys.stderr)
         #self.jpg_array  = pilutil.imread(self.jpgfile)
         self.jpg_array = sci_misc.imread(self.jpgfile)
-        print >> sys.stderr, "Done in %.3f sec." % (time.time() - t0)
+        print("Done in %.3f sec." % (time.time() - t0), file=sys.stderr)
 
         # Get the shape of the array
-        print self.jpg_array.shape
+        print(self.jpg_array.shape)
         (self.ny, self.nx, self.nz) = self.jpg_array.shape
 
         self.dx = self.nx / 2.0
@@ -589,7 +589,7 @@ class finder:
 
         # Measure time
         t0 = time.time()
-        print >> sys.stderr, "Displaying... be patient"
+        print("Displaying... be patient", file=sys.stderr)
         # Display
         self.ax = pylab.figure(1, figsize=(12, 12))
         #self.ax = pylab.figure(1,figsize=(9,9))
@@ -607,8 +607,8 @@ class finder:
                       transparent=True,
                       dpi=100,
                       bbox_inches='tight')
-        print >> sys.stderr, "Done in %s sec." % (time.time() - t0)
-        print >> sys.stderr, "Wrote Fig A, %s " % (self.figAname)
+        print("Done in %s sec." % (time.time() - t0), file=sys.stderr)
+        print("Wrote Fig A, %s " % (self.figAname), file=sys.stderr)
         # Draw the search zone
         self.draw_zone(n=8)
         # register this function with the event handler
@@ -664,11 +664,11 @@ class finder:
             z_cl, z_err = self.select_members_radius(
                 self.iclose, radius=radius, zo=z_cl)
             self.iBCG = self.iclose
-            print "\t Ngal: %d" % self.Ngal
-            print "\t z_cl: %.3f +/- %.3f" % (self.z_cl, self.z_clerr)
-            print "\t L   : %.3e [Lsun]" % self.Lsum
-            print "\t Mi  : %6.2f " % self.Mi[iclose]
-            print "\t Mr  : %6.2f " % self.Mr[iclose]
+            print("\t Ngal: %d" % self.Ngal)
+            print("\t z_cl: %.3f +/- %.3f" % (self.z_cl, self.z_clerr))
+            print("\t L   : %.3e [Lsun]" % self.Lsum)
+            print("\t Mi  : %6.2f " % self.Mi[iclose])
+            print("\t Mr  : %6.2f " % self.Mr[iclose])
             self.ellipse_members()
             return
 
@@ -855,7 +855,7 @@ class finder:
         DM = self.DM[i]
         ID_BCG = self.id[i]
         if zo:
-            print "Will use z:%.3f for cluster" % zo
+            print("Will use z:%.3f for cluster" % zo)
         else:
             zo = self.z_ph[i]
         # 1 - Select in position around ra0,dec0
@@ -913,8 +913,8 @@ class finder:
             #z_cl    = self.z_ph[idc].mean()
             #z_clrms = self.z_ph[idc].std()
 
-        print idc
-        print self.z_ph[idc]
+        print(idc)
+        print(self.z_ph[idc])
 
         # Compute the weighted average and rms
         dz = 0.5 * numarray.abs(self.z2[idc] - self.z1[idc])
@@ -1084,28 +1084,28 @@ class finder:
 
         ra = astrometry.dec2deg(self.ra[i] / 15.)
         dec = astrometry.dec2deg(self.dec[i])
-        print "-------------------------------"
-        print " Object %s" % self.ID
-        print " RA,DEC:%s %s" % (ra, dec)
-        print " T_B:   %6.3f " % self.t_b[i]
-        print " Z_B:   %6.3f (%.3f)" % (self.z_b[i], self.odds[i])
-        print " Z_ML:  %6.3f (%.3f)" % (self.z_ml[i], self.chi[i])
-        print " Mi:    %6.2f " % self.Mi[i]
-        print " Mr:    %6.2f " % self.Mr[i]
-        print " p_BCG: %6.3f " % self.p[i]
-        print " i :    %6.2f (%.3f) " % (self.i[i], self.i_err[i])
-        print " r :    %6.2f (%.3f) " % (self.r[i], self.r_err[i])
-        print " g :    %6.2f (%.3f) " % (self.g[i], self.g_err[i])
-        print " g-r:   %6.2f " % gr
-        print " r-i:   %6.2f " % ri
-        print "--------------------------------"
+        print("-------------------------------")
+        print(" Object %s" % self.ID)
+        print(" RA,DEC:%s %s" % (ra, dec))
+        print(" T_B:   %6.3f " % self.t_b[i])
+        print(" Z_B:   %6.3f (%.3f)" % (self.z_b[i], self.odds[i]))
+        print(" Z_ML:  %6.3f (%.3f)" % (self.z_ml[i], self.chi[i]))
+        print(" Mi:    %6.2f " % self.Mi[i])
+        print(" Mr:    %6.2f " % self.Mr[i])
+        print(" p_BCG: %6.3f " % self.p[i])
+        print(" i :    %6.2f (%.3f) " % (self.i[i], self.i_err[i]))
+        print(" r :    %6.2f (%.3f) " % (self.r[i], self.r_err[i]))
+        print(" g :    %6.2f (%.3f) " % (self.g[i], self.g_err[i]))
+        print(" g-r:   %6.2f " % gr)
+        print(" r-i:   %6.2f " % ri)
+        print("--------------------------------")
         return
 
     def write_info(self):
 
         filename = os.path.join(self.datapath, self.ctile,
                                 self.ctile + ".info")
-        print "Will write info to %s" % filename
+        print("Will write info to %s" % filename)
 
         i = self.iBCG
 
@@ -1134,14 +1134,14 @@ class finder:
         ximage = event.xdata
         yimage = self.ny - event.ydata
 
-        print 'you clicked', event.xdata, event.ydata
-        print 'xo,yo      ', xo, yo
-        print 'ximage,yimage', ximage, yimage
+        print('you clicked', event.xdata, event.ydata)
+        print('xo,yo      ', xo, yo)
+        print('ximage,yimage', ximage, yimage)
 
         ra, dec = astrometry.xy2rd(ximage, yimage, self.fitsfile)
         RA = astrometry.dec2deg(ra / 15)
         DEC = astrometry.dec2deg(dec)
-        print "ra,dec,filename", RA, DEC, self.fitsfile
+        print("ra,dec,filename", RA, DEC, self.fitsfile)
         return  #event.xdata,event.ydata
 
     def handle_ellipses(self, event, figure=1):
@@ -1178,7 +1178,7 @@ class finder:
             try:
                 del self.ellipse[i]
             except:
-                print "Ellipse for ID:%s is not defined" % ID
+                print("Ellipse for ID:%s is not defined" % ID)
             current_ell = None
         else:
             self.ellipse[i] = PEllipse((xo, yo), (a, b),
@@ -1193,7 +1193,7 @@ class finder:
                                    edgecolor="white")
 
         # Draw all ellipses in list
-        for id in self.ellipse.keys():
+        for id in list(self.ellipse.keys()):
             if id == i:
                 continue
             ax.add_patch(self.ellipse[id])
@@ -1211,7 +1211,7 @@ class finder:
 
         filename = os.path.join(self.datapath, self.ctile,
                                 self.ctile + ".redshifts")
-        print "Will write redshits to %s" % filename
+        print("Will write redshits to %s" % filename)
 
         # The BCG redshift interval
         iBCG = self.iBCG
@@ -1298,7 +1298,7 @@ class finder:
         filename = os.path.join(self.datapath, self.ctile,
                                 self.ctile + ".members")
         m = open(filename, "w")
-        print "Will write members to %s" % filename
+        print("Will write members to %s" % filename)
 
         head = "# %-23s %15s %15s  %6s %6s %6s %6s %6s  %6s  %6s  %6s  %6s  %6s \n" % (
             "ID", "RA", "DEC", "ZB", "TB", "ZML", "TML", "g_mag", "g_err",
@@ -1432,7 +1432,9 @@ import math
 Polygon = matplotlib.patches.Polygon
 
 
-def PEllipse((xo, yo), (A, B), resolution=100, angle=0.0, **kwargs):
+def PEllipse(xxx_todo_changeme, xxx_todo_changeme1, resolution=100, angle=0.0, **kwargs):
+    (xo, yo) = xxx_todo_changeme
+    (A, B) = xxx_todo_changeme1
     pi = math.pi
     cos = math.cos
     sin = math.sin
@@ -1444,13 +1446,14 @@ def PEllipse((xo, yo), (A, B), resolution=100, angle=0.0, **kwargs):
 
     x = xtmp * cos(angle) - ytmp * sin(angle) + xo
     y = xtmp * sin(angle) + ytmp * cos(angle) + yo
-    return Polygon(zip(x, y), **kwargs)
+    return Polygon(list(zip(x, y)), **kwargs)
 
 
 ##############################
 # A circle as a polygon too
 ###############################
-def PCircle((xo, yo), radius, resolution=100, **kwargs):
+def PCircle(xxx_todo_changeme2, radius, resolution=100, **kwargs):
+    (xo, yo) = xxx_todo_changeme2
     pi = math.pi
     cos = math.cos
     sin = math.sin
@@ -1459,7 +1462,7 @@ def PCircle((xo, yo), radius, resolution=100, **kwargs):
     ytmp = radius * numarray.sin(t)
     x = xtmp + xo
     y = ytmp + yo
-    return Polygon(zip(x, y), **kwargs)
+    return Polygon(list(zip(x, y)), **kwargs)
 
 
 def cmdline():
@@ -1498,8 +1501,8 @@ def main():
 
     opt, arg = cmdline()
 
-    print opt
-    print arg
+    print(opt)
+    print(arg)
 
     ctile = arg[0]
     radius = float(opt.radius)

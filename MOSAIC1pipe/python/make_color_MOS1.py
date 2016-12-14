@@ -7,7 +7,7 @@ import time
 tstart = time.time()
 
 if len(sys.argv) < 2:
-    print "usage: %s <tilename> <path>" % sys.argv[0]
+    print("usage: %s <tilename> <path>" % sys.argv[0])
     sys.exit(2)
 
 tilename = sys.argv[1]
@@ -32,13 +32,13 @@ else:
     MOSAIC1pipe = os.environ['MOSAIC1pipe']
     conf = os.path.join(MOSAIC1pipe, 'LIB/pars/stiff_MOS1.conf')
 
-print "Will use conf: %s" % conf
+print("Will use conf: %s" % conf)
 outtiff = "%s.tiff " % os.path.join(path, tilename, tilename)
 outjpeg = "%s.jpg " % os.path.join(path, tilename, tilename)
 cmd = cmd + "-c %s -OUTFILE_NAME %s" % (conf, outtiff)
-print cmd
+print(cmd)
 os.system(cmd)
-print "# Done %s" % tilename
+print("# Done %s" % tilename)
 
 #cmd = "convert -quality 100 %s %s" % (outtiff,outjpeg)
 #print cmd

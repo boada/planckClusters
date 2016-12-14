@@ -14,7 +14,7 @@ def main(tile, path):
 
     # Go for each tile, read and print
     header = 1
-    print >> sys.stderr, "Doing tile: %s" % tile
+    print("Doing tile: %s" % tile, file=sys.stderr)
     read_cats(tile, path, det_filter='i', header=header)
     return
 
@@ -36,7 +36,7 @@ def read_cats(tilename, path, det_filter='i', header=None):
 
     IDsel = []
     zp = []
-    for ID in c.cat['i']['SHAPE'].keys():
+    for ID in list(c.cat['i']['SHAPE'].keys()):
 
         IDname = "%s_%s" % (tilename, ID)
 

@@ -17,10 +17,10 @@ try:
     assocfile = sys.argv[1]
     newassocfile = sys.argv[2]
 except:
-    print "%s <assocfile> <newassocfile>" % sys.argv[0]
+    print("%s <assocfile> <newassocfile>" % sys.argv[0])
     sys.exit()
 
-print >> sys.stderr, "# Will read %s" % assocfile
+print("# Will read %s" % assocfile, file=sys.stderr)
 
 # Read in the assoc file
 for line in open(assocfile).readlines():
@@ -67,7 +67,7 @@ for fname in filelist:
 
         # Now print all of the new information
 
-print "# Will write new assocfile to %s" % (newassocfile)
+print("# Will write new assocfile to %s" % (newassocfile))
 onew = open(newassocfile, 'w')
 
 for filtername in newfilters:
