@@ -167,7 +167,7 @@ class finder:
          r,
          r_err,  #r_sn,
          i,
-         i_err,  #i_sn,
+         i_err,  #i_sn, 
          g_bpz,
          g_berr,
          r_bpz,
@@ -199,25 +199,25 @@ class finder:
         star_lim = 0.80
 
         # Clean up according to BPZ
-        #sout.write( "# Avoiding magnitudes -99 and 99 in BPZ \n")
+        #sout.write( "# Avoiding magnitudes -99 and 99 in BPZ \n") 
         #g_mask   = numarray.where(lor( g_bpz == 99,g_bpz == -99),0,1)
         #r_mask   = numarray.where(lor( r_bpz == 99,r_bpz == -99),0,1)
         #i_mask   = numarray.where(lor( i_bpz == 99,i_bpz == -99),0,1)
         #bpz_mask = g_mask*r_mask*i_mask
 
         # Clean up to avoid 99 values and very faint i_mag values
-        #sout.write( "# Avoiding magnitudes 99 in MAG_AUTO \n")
+        #sout.write( "# Avoiding magnitudes 99 in MAG_AUTO \n") 
         #g_mask = numarray.where( g >= 99,    0 , 1)
         #r_mask = numarray.where( r >= 99,    0 , 1)
         #i_mask = numarray.where( i >= i_lim, 0 , 1)
         #sout.write( "# Avoiding magnitudes i > %s in MAG_AUTO \n" % i_lim)
 
         # Clean by class_star
-        #sout.write( "# Avoiding CLASS_STAR > %s \n" % star_lim)
+        #sout.write( "# Avoiding CLASS_STAR > %s \n" % star_lim) 
         #mask_star = numarray.where( class_star > star_lim, 0 , 1)
 
         # Clean up by odds
-        #sout.write( "# Avoiding ODDS < %s in BPZ \n" % odds_lim)
+        #sout.write( "# Avoiding ODDS < %s in BPZ \n" % odds_lim) 
         #odds_mask = numarray.where( odds > odds_lim, 1, 0)
 
         # Avoid z> zlim objects too.
@@ -385,8 +385,8 @@ class finder:
         self.Msun['i'] = 4.54
 
         # Mags k-corrected to z=0.25 as done in Reyes el al 2009
-        #Mg = self.g - self.DM  -  k['g'](self.z_ph) + k['g'](0.25)
-        #Mr = self.r - self.DM  -  k['r'](self.z_ph) + k['r'](0.25)
+        #Mg = self.g - self.DM  -  k['g'](self.z_ph) + k['g'](0.25) 
+        #Mr = self.r - self.DM  -  k['r'](self.z_ph) + k['r'](0.25) 
         #Mi = self.i - self.DM  -  k['i'](self.z_ph) + k['i'](0.25)
 
         # Mags k-corrected
@@ -457,7 +457,7 @@ class finder:
         # Select the candidates now
         idx = numarray.where(self.mask_BCG == 1)
 
-        # And pass up to to class
+        # And pass up to to class        
         # The index number
         self.idx_BCG = idx
         self.ra_BCG = self.ra[idx]
@@ -528,7 +528,7 @@ class finder:
         # Select the limits of the image to display
         #self.dx = dx
         #self.dy = dy
-        #yo = self.yo
+        #yo = self.yo 
         #xo = self.xo
         #x1 = int(xo - dx)
         #x2 = int(xo + dx)
@@ -617,7 +617,7 @@ class finder:
         return
 
     #####################################
-    # Draw the zone where to select
+    # Draw the zone where to select 
     ######################################
     def draw_zone(self, n=8):
         # Draw the region to select from
@@ -1394,7 +1394,7 @@ def F_BCG(x, b=0.4, zp=0.5):
     return phi
 
 
-#######################################################################
+#######################################################################    
 # Modified Schechter magnitude function from Postman et al (2001)
 # uses alpha+2 rather than alpha+1 because of the extra 10^-0.4(m-m*)
 # phi = (10^(-0.4(m-m*)))^(alpha+1) * exp[-10^(-0.4(m-m*))]
