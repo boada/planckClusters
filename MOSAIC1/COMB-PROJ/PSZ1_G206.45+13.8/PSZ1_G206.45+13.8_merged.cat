@@ -1,0 +1,37 @@
+#   1  IDNAME           
+#   2  RA (degrees)     
+#   3  DEC(degress)     
+#   4  g MAG_AUTO     
+#   5  g MAGERR_AUTO  
+#   6  g S/N  
+#   7  r MAG_AUTO     
+#   8  r MAGERR_AUTO  
+#   9  r S/N  
+#  10  i MAG_AUTO     
+#  11  i MAGERR_AUTO  
+#  12  i S/N  
+#  13  z MAG_AUTO     
+#  14  z MAGERR_AUTO  
+#  15  z S/N  
+#  16  g MAG_BPZ       
+#  17  g MAG_BPZERR    
+#  18  r MAG_BPZ       
+#  19  r MAG_BPZERR    
+#  20  i MAG_BPZ       
+#  21  i MAG_BPZERR    
+#  22  z MAG_BPZ       
+#  23  z MAG_BPZERR    
+#  24  Z_B      Bayesian photo-z   
+#  25  Z_B_MIN  Min photo-z   
+#  26  Z_B_MAX  Max photo-z   
+#  27  T_B      Bayesian Spectral Type   
+#  28  ODDS     Odds   
+#  29  Z_ML     Likelihood photo-z   
+#  30  T_ML     Likelihood Spectral Type   
+#  31  CHI-SQUARED   
+#  32  CLASS_STAR (1=star, 0=galaxy)   
+#  33  A_IMAGE x KRON_RADIUS (pixels)   
+#  34  B_IMAGE x KRON_RADIUS (pixels)   
+#  35  THETA_IMAGE (degrees)   
+#  36  X_IMAGE (pix)   
+#  37  Y_IMAGE (pix)   

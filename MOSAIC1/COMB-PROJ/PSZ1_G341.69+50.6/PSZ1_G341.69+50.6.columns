@@ -1,0 +1,9 @@
+## Mon Sep 29 19:17:13 2014
+## BPZ .columns file for Observation: PSZ1_G341.69+50.6
+## (This file was generated automatically by the BCS Rutgers pipeline)
+##
+g_MOSAIC1	 4,5	 AB	 0.05	 0.00
+i_MOSAIC1	 6,7	 AB	 0.05	 0.00
+r_MOSAIC1	 8,9	 AB	 0.05	 0.00
+z_MOSAIC1	 10,11	 AB	 0.05	 0.00
+M_0	6

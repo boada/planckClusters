@@ -1,0 +1,15 @@
+combcat_MOS1_PROJECTED.py ~/KittPeak-data/MOSAIC1/inventory_PROJ/PSZ1_G031.91+67.9.assoc ~/KittPeak-data/MOSAIC1/PROJECTED ~/KittPeak-data/MOSAIC1/COMB-PROJ    --noCopy
+combcat_MOS1_PROJECTED.py ~/KittPeak-data/MOSAIC1/inventory_PROJ/PSZ1_G118.06+31.1.assoc ~/KittPeak-data/MOSAIC1/PROJECTED ~/KittPeak-data/MOSAIC1/COMB-PROJ    --noCopy
+combcat_MOS1_PROJECTED.py ~/KittPeak-data/MOSAIC1/inventory_PROJ/PSZ1_G137.56+53.8.assoc ~/KittPeak-data/MOSAIC1/PROJECTED ~/KittPeak-data/MOSAIC1/COMB-PROJ    --noCopy
+combcat_MOS1_PROJECTED.py ~/KittPeak-data/MOSAIC1/inventory_PROJ/PSZ1_G142.17+37.2.assoc ~/KittPeak-data/MOSAIC1/PROJECTED ~/KittPeak-data/MOSAIC1/COMB-PROJ    --noCopy
+combcat_MOS1_PROJECTED.py ~/KittPeak-data/MOSAIC1/inventory_PROJ/PSZ1_G142.38+22.8.assoc ~/KittPeak-data/MOSAIC1/PROJECTED ~/KittPeak-data/MOSAIC1/COMB-PROJ    --noCopy
+combcat_MOS1_PROJECTED.py ~/KittPeak-data/MOSAIC1/inventory_PROJ/PSZ1_G148.20+23.4.assoc ~/KittPeak-data/MOSAIC1/PROJECTED ~/KittPeak-data/MOSAIC1/COMB-PROJ    --noCopy
+combcat_MOS1_PROJECTED.py ~/KittPeak-data/MOSAIC1/inventory_PROJ/PSZ1_G153.41+36.5.assoc ~/KittPeak-data/MOSAIC1/PROJECTED ~/KittPeak-data/MOSAIC1/COMB-PROJ    --noCopy
+combcat_MOS1_PROJECTED.py ~/KittPeak-data/MOSAIC1/inventory_PROJ/PSZ1_G153.56+36.3.assoc ~/KittPeak-data/MOSAIC1/PROJECTED ~/KittPeak-data/MOSAIC1/COMB-PROJ    --noCopy
+combcat_MOS1_PROJECTED.py ~/KittPeak-data/MOSAIC1/inventory_PROJ/PSZ1_G185.93-31.2.assoc ~/KittPeak-data/MOSAIC1/PROJECTED ~/KittPeak-data/MOSAIC1/COMB-PROJ    --noCopy
+combcat_MOS1_PROJECTED.py ~/KittPeak-data/MOSAIC1/inventory_PROJ/PSZ1_G206.45+13.8.assoc ~/KittPeak-data/MOSAIC1/PROJECTED ~/KittPeak-data/MOSAIC1/COMB-PROJ    --noCopy
+combcat_MOS1_PROJECTED.py ~/KittPeak-data/MOSAIC1/inventory_PROJ/PSZ1_G224.82+13.6.assoc ~/KittPeak-data/MOSAIC1/PROJECTED ~/KittPeak-data/MOSAIC1/COMB-PROJ    --noCopy
+combcat_MOS1_PROJECTED.py ~/KittPeak-data/MOSAIC1/inventory_PROJ/PSZ1_G249.01+73.7.assoc ~/KittPeak-data/MOSAIC1/PROJECTED ~/KittPeak-data/MOSAIC1/COMB-PROJ    --noCopy
+combcat_MOS1_PROJECTED.py ~/KittPeak-data/MOSAIC1/inventory_PROJ/PSZ1_G286.25+62.6.assoc ~/KittPeak-data/MOSAIC1/PROJECTED ~/KittPeak-data/MOSAIC1/COMB-PROJ    --noCopy
+combcat_MOS1_PROJECTED.py ~/KittPeak-data/MOSAIC1/inventory_PROJ/PSZ1_G318.61+83.8.assoc ~/KittPeak-data/MOSAIC1/PROJECTED ~/KittPeak-data/MOSAIC1/COMB-PROJ    --noCopy
+combcat_MOS1_PROJECTED.py ~/KittPeak-data/MOSAIC1/inventory_PROJ/PSZ1_G341.69+50.6.assoc ~/KittPeak-data/MOSAIC1/PROJECTED ~/KittPeak-data/MOSAIC1/COMB-PROJ    --noCopy

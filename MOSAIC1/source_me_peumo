@@ -1,0 +1,8 @@
+#setup -v swarp 2.38.0+0E 
+setup -v swarp 
+setup -v stiff
+
+setenv MOSAIC1pipe ${HOME}/MOSAIC1pipe 
+setenv PATH ${PATH}:${MOSAIC1pipe}/python
+setenv PYTHONPATH ${PYTHONPATH}:${MOSAIC1pipe}/python
+

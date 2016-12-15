@@ -1,0 +1,1210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="file:///Users/felipe/EUPS_DESDM/eups/packages/DarwinX86/swarp/2.36.2+2/share/swarp/swarp.xsl"?>
+<VOTABLE xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.ivoa.net/xml/VOTable/v1.1">
+<DESCRIPTION>produced by SWarp</DESCRIPTION>
+<!-- VOTable description at http://www.ivoa.net/Documents/latest/VOT.html -->
+<RESOURCE ID="SWarp" name="SWarp-PSZ1_G031.91+67.9-center.fits">
+ <DESCRIPTION>Data related to SWarp</DESCRIPTION>
+ <INFO name="QUERY_STATUS" value="OK" />
+ <COOSYS ID="J2000" equinox="J2000" epoch="J2000" system="ICRS"/>
+ <RESOURCE ID="MetaData" name="MetaData">
+  <DESCRIPTION>SWarp meta-data</DESCRIPTION>
+  <INFO name="QUERY_STATUS" value="OK" />
+  <PARAM name="Software" datatype="char" arraysize="*" ucd="meta.title;meta.software" value="SWarp"/>
+  <PARAM name="Version" datatype="char" arraysize="*" ucd="meta.version;meta.software" value="2.36.2"/>
+  <PARAM name="Soft_URL" datatype="char" arraysize="*" ucd="meta.ref.url;meta.software" value="http://astromatic.net/software/swarp/"/>
+  <PARAM name="Soft_Auth" datatype="char" arraysize="*" ucd="meta.bib.author;meta.software" value="Emmanuel Bertin"/>
+  <PARAM name="Soft_Ref" datatype="char" arraysize="*" ucd="meta.bib.bibcode;meta.software" value="2002ASPC..281..228B"/>
+  <PARAM name="NThreads" datatype="int" ucd="meta.number;meta.software" value="8"/>
+  <PARAM name="Date" datatype="char" arraysize="*" ucd="time.event.end;meta.software" value="2014-09-09"/>
+  <PARAM name="Time" datatype="char" arraysize="*" ucd="time.event.end;meta.software" value="17:33:27"/>
+  <PARAM name="Duration" datatype="float" ucd="time.event;meta.software" value="404.93" unit="s"/>
+  <PARAM name="User" datatype="char" arraysize="*" ucd="meta.curation" value="felipe"/>
+  <PARAM name="Host" datatype="char" arraysize="*" ucd="meta.curation" value="(null)"/>
+  <PARAM name="Path" datatype="char" arraysize="*" ucd="meta.dataset" value="/Users/felipe/Kitt-Peak/MOSAIC1/COMB/PSZ1_G031.91+67.9"/>
+  <PARAM name="Image_Name" datatype="char" arraysize="*" ucd="obs.image;meta.fits" value="/Users/felipe/Kitt-Peak/MOSAIC1/COMB/PSZ1_G031.91+67.9/SWarp-PSZ1_G031.91+67.9-center.fits"/>
+  <PARAM name="Weight_Name" datatype="char" arraysize="*" ucd="obs.image;meta.fits" value="coadd.weight.fits"/>
+  <PARAM name="NOverlap_Max" datatype="int" ucd="meta.number;stat.max;obs.image" value="15"/>
+  <PARAM name="ExpTime_Max" datatype="float" ucd="time.expo;stat.max;obs.image" value="0" unit="s"/>
+  <PARAM name="Gain_Max" datatype="float" ucd="instr.calib;stat.max;obs.image" value="5.44056" unit="photon/ADU"/>
+  <TABLE ID="Input_Image_Data" name="Input_Image_Data">
+   <DESCRIPTION>Data gathered by SWarp for every FITS input image</DESCRIPTION>
+   <!-- NFrames may be 0 if an error occurred early in the processing -->
+   <PARAM name="NFrames" datatype="int" ucd="meta.number;meta.dataset" value="120"/>
+   <!-- CurrFrame may differ from NFrames if an error occurred -->
+   <PARAM name="CurrFrame" datatype="int" ucd="meta.number;meta.dataset" value="120"/>
+   <FIELD name="Frame_Index" datatype="int" ucd="meta.record"/>
+   <FIELD name="Image_Name" datatype="char" arraysize="*" ucd="obs.image;meta.fits"/>
+   <FIELD name="Weight_Name" datatype="char" arraysize="*" ucd="obs.image;meta.fits"/>
+   <FIELD name="External_Header" datatype="boolean" ucd="meta.code;obs.param"/>
+   <FIELD name="Image_Ident" datatype="char" arraysize="*" ucd="meta.id;obs"/>
+   <FIELD name="Extension" datatype="int" ucd="meta.record"/>
+   <FIELD name="Date" datatype="char" arraysize="*" ucd="meta.record;time.event.end"/>
+   <FIELD name="Time" datatype="char" arraysize="*" ucd="meta.record;time.event.end"/>
+   <FIELD name="Duration" datatype="float" ucd="meta.record;time.event.end" unit="s"/>
+   <FIELD name="Background_Mean" datatype="float" ucd="instr.skyLevel;obs.image;stat.median" unit="adu"/>
+   <FIELD name="Background_StDev" datatype="float" ucd="stat.stdev;obs.image;stat.median" unit="adu"/>
+   <FIELD name="Subtract_Back" datatype="boolean" ucd="meta.code;obs.param"/>
+   <FIELD name="Back_Type" datatype="char" arraysize="*" ucd="meta.code;obs.param"/>
+   <FIELD name="Back_Size" datatype="int" ucd="obs.param" unit="pix"/>
+   <FIELD name="Back_FilterSize" datatype="int" ucd="obs.param" unit="pix"/>
+   <FIELD name="Back_Default" datatype="float" ucd="obs.param" unit="adu"/>
+   <FIELD name="Weight_Type" datatype="boolean" arraysize="*" ucd="stat.weight;meta.code"/>
+   <FIELD name="Rescale_Weights" datatype="char" arraysize="*" ucd="stat.weight;meta.code"/>
+   <FIELD name="Weight_Thresh" datatype="float" ucd="instr.sensitivity;obs.param" unit="adu"/>
+   <FIELD name="Weight_Scaling" datatype="float" ucd="arith.factor;obs.image;stat.median"/>
+   <FIELD name="Interpolate" datatype="boolean" ucd="meta.code;obs.param"/>
+   <FIELD name="Gain" datatype="float" ucd="instr.calib;obs.image" unit="photon/adu"/>
+   <FIELD name="Saturation" datatype="float" ucd="instr.calib;obs.image" unit="adu"/>
+   <FIELD name="ExpTime" datatype="float" ucd="time.expo;obs.image" unit="s"/>
+   <FIELD name="Photometric_Flux_Scaling" datatype="float" ucd="phot.calib;obs.image"/>
+   <FIELD name="Astrometric_Flux_Scaling" datatype="float" ucd="phot.calib;obs.image"/>
+   <FIELD name="Field_Coordinates" datatype="double" arraysize="2" ucd="pos.eq;obs.image" unit="pix"/>
+   <FIELD name="Pixel_Scale" datatype="float" ucd="instr.pixel;obs.image;stat.mean" unit="arcsec"/>
+   <FIELD name="ObsDate" datatype="double" ucd="time.start;obs" unit="yr"/>
+   <FIELD name="Equinox" datatype="double" ucd="time.equinox;obs" unit="yr"/>
+   <FIELD name="Epoch" datatype="double" ucd="time.epoch;obs" unit="yr"/>
+   <FIELD name="COOSYS" datatype="char" arraysize="*" ucd="meta.code;pos"/>
+   <DATA><TABLEDATA>
+    <TR>
+     <TD>1</TD><TD>tu2205620.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:26:43</TD><TD>1.00</TD>
+     <TD>27.7111</TD><TD>0.634119</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>T</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.11</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.998798</TD><TD>217.436971 24.88504412</TD><TD>0.261747</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>2</TD><TD>tu2205620.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:26:44</TD><TD>1.00</TD>
+     <TD>27.714</TD><TD>0.632282</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>T</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.1</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999443</TD><TD>217.4362745 24.73028587</TD><TD>0.26175</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>3</TD><TD>tu2205620.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:26:46</TD><TD>1.00</TD>
+     <TD>27.7136</TD><TD>0.632973</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>T</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.1</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999732</TD><TD>217.4358197 24.57559855</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>4</TD><TD>tu2205620.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:26:47</TD><TD>1.00</TD>
+     <TD>27.6233</TD><TD>0.645102</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>T</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.14</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999956</TD><TD>217.4352062 24.42087581</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>5</TD><TD>tu2205620.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:26:48</TD><TD>1.00</TD>
+     <TD>27.7602</TD><TD>0.638528</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>T</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.11</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00001</TD><TD>217.1046694 24.8856805</TD><TD>0.261747</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>6</TD><TD>tu2205620.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:26:50</TD><TD>1.00</TD>
+     <TD>27.8244</TD><TD>0.632522</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>T</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.16</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00049</TD><TD>217.1044645 24.73113928</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>7</TD><TD>tu2205620.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:26:51</TD><TD>1.00</TD>
+     <TD>27.928</TD><TD>0.635024</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>T</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.17</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.0009</TD><TD>217.1043802 24.57645127</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>8</TD><TD>tu2205620.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:26:52</TD><TD>1.00</TD>
+     <TD>27.8813</TD><TD>0.639705</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>T</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.06</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00108</TD><TD>217.103777 24.42183618</TD><TD>0.261749</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>9</TD><TD>tu2205630.fits</TD><TD>Weightmap</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:26:53</TD><TD>1.00</TD>
+     <TD>29.2549</TD><TD>0.649948</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.11</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.998793</TD><TD>217.41552 24.84340606</TD><TD>0.261749</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>10</TD><TD>tu2205630.fits</TD><TD>Weightmap</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:26:55</TD><TD>1.00</TD>
+     <TD>29.2365</TD><TD>0.648609</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.1</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999461</TD><TD>217.4148103 24.68864699</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>11</TD><TD>tu2205630.fits</TD><TD>Weightmap</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:26:56</TD><TD>1.00</TD>
+     <TD>29.229</TD><TD>0.647538</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.1</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999775</TD><TD>217.4143423 24.53399585</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>12</TD><TD>tu2205630.fits</TD><TD>Weightmap</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:26:57</TD><TD>1.00</TD>
+     <TD>29.101</TD><TD>0.660606</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.14</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999929</TD><TD>217.4137555 24.37923713</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>13</TD><TD>tu2205630.fits</TD><TD>Weightmap</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:26:58</TD><TD>1.00</TD>
+     <TD>29.3383</TD><TD>0.656145</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.11</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00003</TD><TD>217.0832891 24.84406778</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>14</TD><TD>tu2205630.fits</TD><TD>Weightmap</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:00</TD><TD>1.00</TD>
+     <TD>29.4078</TD><TD>0.649158</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.16</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00049</TD><TD>217.0830707 24.689526</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>15</TD><TD>tu2205630.fits</TD><TD>Weightmap</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:01</TD><TD>1.00</TD>
+     <TD>29.5201</TD><TD>0.65382</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.17</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00089</TD><TD>217.083013 24.53480175</TD><TD>0.26175</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>16</TD><TD>tu2205630.fits</TD><TD>Weightmap</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:03</TD><TD>1.00</TD>
+     <TD>29.3949</TD><TD>0.656997</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.06</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00106</TD><TD>217.0824363 24.38026001</TD><TD>0.261747</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>17</TD><TD>tu2205636.fits</TD><TD>filename</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:04</TD><TD>1.00</TD>
+     <TD>32.197</TD><TD>0.681038</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.11</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.998828</TD><TD>217.426284 24.86440724</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>18</TD><TD>tu2205636.fits</TD><TD>filename</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:05</TD><TD>1.00</TD>
+     <TD>32.1145</TD><TD>0.679662</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.1</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999455</TD><TD>217.4255609 24.70964858</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>19</TD><TD>tu2205636.fits</TD><TD>filename</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:08</TD><TD>2.00</TD>
+     <TD>32.0319</TD><TD>0.679071</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.1</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999771</TD><TD>217.4251194 24.55499748</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>20</TD><TD>tu2205636.fits</TD><TD>filename</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:10</TD><TD>2.00</TD>
+     <TD>31.8577</TD><TD>0.691267</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.14</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999914</TD><TD>217.4245193 24.40027491</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>21</TD><TD>tu2205636.fits</TD><TD>filename</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:11</TD><TD>1.00</TD>
+     <TD>32.3319</TD><TD>0.687713</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.11</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00005</TD><TD>217.0939973 24.86505633</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>22</TD><TD>tu2205636.fits</TD><TD>filename</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:12</TD><TD>1.00</TD>
+     <TD>32.3626</TD><TD>0.678422</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.16</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00048</TD><TD>217.0938456 24.71051488</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>23</TD><TD>tu2205636.fits</TD><TD>filename</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:14</TD><TD>1.00</TD>
+     <TD>32.4272</TD><TD>0.68415</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.17</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00089</TD><TD>217.0937745 24.5558269</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>24</TD><TD>tu2205636.fits</TD><TD>filename</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:15</TD><TD>1.00</TD>
+     <TD>32.2395</TD><TD>0.685425</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.06</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00112</TD><TD>217.0931445 24.40124842</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>25</TD><TD>tu2206086.fits</TD><TD>if</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:17</TD><TD>1.00</TD>
+     <TD>61.4673</TD><TD>0.535331</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.11</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.998566</TD><TD>217.4371701 24.8841714</TD><TD>0.261747</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>26</TD><TD>tu2206086.fits</TD><TD>if</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:18</TD><TD>1.00</TD>
+     <TD>61.4834</TD><TD>0.525985</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.1</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999516</TD><TD>217.4364334 24.72941318</TD><TD>0.26175</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>27</TD><TD>tu2206086.fits</TD><TD>if</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:19</TD><TD>1.00</TD>
+     <TD>61.3948</TD><TD>0.528298</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.1</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999854</TD><TD>217.4359784 24.57476221</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>28</TD><TD>tu2206086.fits</TD><TD>if</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:21</TD><TD>2.00</TD>
+     <TD>61.2285</TD><TD>0.541201</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.14</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999702</TD><TD>217.4353647 24.42000314</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>29</TD><TD>tu2206086.fits</TD><TD>if</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:24</TD><TD>2.00</TD>
+     <TD>61.1633</TD><TD>0.53104</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.11</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999812</TD><TD>217.1048307 24.88488089</TD><TD>0.261747</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>30</TD><TD>tu2206086.fits</TD><TD>if</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:25</TD><TD>1.00</TD>
+     <TD>61.2178</TD><TD>0.521327</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.16</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00049</TD><TD>217.1046257 24.7303033</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>31</TD><TD>tu2206086.fits</TD><TD>if</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:27</TD><TD>1.00</TD>
+     <TD>61.414</TD><TD>0.533516</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.17</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00082</TD><TD>217.1045412 24.57561529</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>32</TD><TD>tu2206086.fits</TD><TD>if</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:28</TD><TD>1.00</TD>
+     <TD>61.355</TD><TD>0.547708</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.06</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00073</TD><TD>217.1039377 24.42103656</TD><TD>0.261749</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>33</TD><TD>tu2206096.fits</TD><TD>suffix</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:29</TD><TD>1.00</TD>
+     <TD>79.4845</TD><TD>0.619052</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.11</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.998542</TD><TD>217.4157998 24.84289682</TD><TD>0.261749</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>34</TD><TD>tu2206096.fits</TD><TD>suffix</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:30</TD><TD>1.00</TD>
+     <TD>79.6749</TD><TD>0.611697</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.1</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999481</TD><TD>217.4150898 24.68813775</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>35</TD><TD>tu2206096.fits</TD><TD>suffix</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:31</TD><TD>1.00</TD>
+     <TD>79.7132</TD><TD>0.613273</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.1</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999865</TD><TD>217.4146214 24.53348661</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>36</TD><TD>tu2206096.fits</TD><TD>suffix</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:33</TD><TD>1.00</TD>
+     <TD>79.5728</TD><TD>0.629471</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.14</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999706</TD><TD>217.4139944 24.37872794</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>37</TD><TD>tu2206096.fits</TD><TD>suffix</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:35</TD><TD>1.00</TD>
+     <TD>78.9762</TD><TD>0.616482</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.11</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999838</TD><TD>217.0836103 24.84359556</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>38</TD><TD>tu2206096.fits</TD><TD>suffix</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:36</TD><TD>1.00</TD>
+     <TD>79.3</TD><TD>0.606258</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.16</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00047</TD><TD>217.0833916 24.68901742</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>39</TD><TD>tu2206096.fits</TD><TD>suffix</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:37</TD><TD>1.00</TD>
+     <TD>79.7449</TD><TD>0.621435</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.17</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00082</TD><TD>217.0832934 24.53436583</TD><TD>0.26175</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>40</TD><TD>tu2206096.fits</TD><TD>suffix</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:39</TD><TD>1.00</TD>
+     <TD>79.6207</TD><TD>0.633841</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.06</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00073</TD><TD>217.0827164 24.37975139</TD><TD>0.261747</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>41</TD><TD>tu2206102.fits</TD><TD>not</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:40</TD><TD>1.00</TD>
+     <TD>50.4212</TD><TD>0.49609</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.11</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.998529</TD><TD>217.4265634 24.86360715</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>42</TD><TD>tu2206102.fits</TD><TD>not</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:43</TD><TD>2.00</TD>
+     <TD>50.4142</TD><TD>0.489085</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.1</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999446</TD><TD>217.4257999 24.70884853</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>43</TD><TD>tu2206102.fits</TD><TD>not</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:45</TD><TD>2.00</TD>
+     <TD>50.4209</TD><TD>0.48998</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.1</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999864</TD><TD>217.4253182 24.55419747</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>44</TD><TD>tu2206102.fits</TD><TD>not</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:46</TD><TD>1.00</TD>
+     <TD>50.3787</TD><TD>0.504981</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.14</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999684</TD><TD>217.4247178 24.39943856</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>45</TD><TD>tu2206102.fits</TD><TD>not</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:48</TD><TD>1.00</TD>
+     <TD>50.1942</TD><TD>0.493301</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.11</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999783</TD><TD>217.0942387 24.86432953</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>46</TD><TD>tu2206102.fits</TD><TD>not</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:49</TD><TD>1.00</TD>
+     <TD>50.2739</TD><TD>0.485046</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.16</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00049</TD><TD>217.0940467 24.70975166</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>47</TD><TD>tu2206102.fits</TD><TD>not</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:51</TD><TD>2.00</TD>
+     <TD>50.511</TD><TD>0.499354</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.17</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00082</TD><TD>217.0939753 24.55510004</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>48</TD><TD>tu2206102.fits</TD><TD>not</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:53</TD><TD>2.00</TD>
+     <TD>50.5085</TD><TD>0.508175</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.06</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00073</TD><TD>217.0933451 24.40048522</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>49</TD><TD>tu2206108.fits</TD><TD>used</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:55</TD><TD>1.00</TD>
+     <TD>50.7219</TD><TD>0.497218</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.11</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.998553</TD><TD>217.4415091 24.83592481</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>50</TD><TD>tu2206108.fits</TD><TD>used</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:27:57</TD><TD>2.00</TD>
+     <TD>50.7041</TD><TD>0.490716</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.1</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999473</TD><TD>217.4407672 24.68112958</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>51</TD><TD>tu2206108.fits</TD><TD>used</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:28:00</TD><TD>2.00</TD>
+     <TD>50.6963</TD><TD>0.491635</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.1</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999846</TD><TD>217.4402671 24.5264787</TD><TD>0.26175</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>52</TD><TD>tu2206108.fits</TD><TD>used</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:28:02</TD><TD>2.00</TD>
+     <TD>50.6483</TD><TD>0.506252</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.14</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999671</TD><TD>217.4396883 24.37179303</TD><TD>0.261747</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>53</TD><TD>tu2206108.fits</TD><TD>used</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:28:05</TD><TD>2.00</TD>
+     <TD>50.4689</TD><TD>0.495548</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.11</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999827</TD><TD>217.1092982 24.836644</TD><TD>0.261749</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>54</TD><TD>tu2206108.fits</TD><TD>used</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:28:07</TD><TD>2.00</TD>
+     <TD>50.555</TD><TD>0.486701</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.16</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00045</TD><TD>217.1090877 24.68206568</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>55</TD><TD>tu2206108.fits</TD><TD>used</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:28:09</TD><TD>1.00</TD>
+     <TD>50.7947</TD><TD>0.502714</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.17</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00081</TD><TD>217.1089977 24.52741399</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>56</TD><TD>tu2206108.fits</TD><TD>used</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:28:11</TD><TD>1.00</TD>
+     <TD>50.7473</TD><TD>0.509006</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.06</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00071</TD><TD>217.1083491 24.37279957</TD><TD>0.261747</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>57</TD><TD>tu2206450.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:28:12</TD><TD>1.00</TD>
+     <TD>41.4387</TD><TD>0.677844</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.11</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.998902</TD><TD>217.4369693 24.88388081</TD><TD>0.261747</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>58</TD><TD>tu2206450.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:28:14</TD><TD>1.00</TD>
+     <TD>41.3944</TD><TD>0.665977</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.1</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.99961</TD><TD>217.4362328 24.72912258</TD><TD>0.26175</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>59</TD><TD>tu2206450.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:28:16</TD><TD>1.00</TD>
+     <TD>41.4002</TD><TD>0.663362</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.1</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00003</TD><TD>217.4357782 24.57450796</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>60</TD><TD>tu2206450.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:28:18</TD><TD>1.00</TD>
+     <TD>41.3429</TD><TD>0.676866</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.14</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00004</TD><TD>217.4351648 24.41974889</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>61</TD><TD>tu2206450.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:28:19</TD><TD>1.00</TD>
+     <TD>41.618</TD><TD>0.673264</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.11</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00009</TD><TD>217.1046708 24.88455354</TD><TD>0.261747</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>62</TD><TD>tu2206450.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:28:21</TD><TD>1.00</TD>
+     <TD>41.5884</TD><TD>0.662941</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.16</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00057</TD><TD>217.1044659 24.7300123</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>63</TD><TD>tu2206450.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:28:22</TD><TD>1.00</TD>
+     <TD>41.7859</TD><TD>0.672885</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.17</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.0012</TD><TD>217.1043816 24.57536064</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>64</TD><TD>tu2206450.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:28:24</TD><TD>1.00</TD>
+     <TD>41.7086</TD><TD>0.683373</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.06</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00112</TD><TD>217.1037784 24.42074557</TD><TD>0.261749</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>65</TD><TD>tu2206460.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:28:25</TD><TD>1.00</TD>
+     <TD>30.8617</TD><TD>0.586517</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.11</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.998932</TD><TD>217.4153982 24.84206109</TD><TD>0.261749</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>66</TD><TD>tu2206460.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:28:27</TD><TD>1.00</TD>
+     <TD>30.8533</TD><TD>0.576863</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.1</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999649</TD><TD>217.4146887 24.68733835</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>67</TD><TD>tu2206460.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:28:29</TD><TD>2.00</TD>
+     <TD>30.8587</TD><TD>0.574542</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.1</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00001</TD><TD>217.4141808 24.53268725</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>68</TD><TD>tu2206460.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:28:32</TD><TD>2.00</TD>
+     <TD>30.7972</TD><TD>0.586162</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.14</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00003</TD><TD>217.4136343 24.37796487</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>69</TD><TD>tu2206460.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:28:34</TD><TD>2.00</TD>
+     <TD>30.7757</TD><TD>0.581443</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.11</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00009</TD><TD>217.0832109 24.84275895</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>70</TD><TD>tu2206460.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:28:36</TD><TD>1.00</TD>
+     <TD>30.7835</TD><TD>0.572419</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.16</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00055</TD><TD>217.0829926 24.68821715</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>71</TD><TD>tu2206460.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:28:38</TD><TD>1.00</TD>
+     <TD>31.0049</TD><TD>0.584477</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.17</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00114</TD><TD>217.0829349 24.53352925</TD><TD>0.26175</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>72</TD><TD>tu2206460.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:28:40</TD><TD>1.00</TD>
+     <TD>30.9271</TD><TD>0.589534</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.06</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00109</TD><TD>217.0823184 24.37895114</TD><TD>0.261747</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>73</TD><TD>tu2206466.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:28:42</TD><TD>2.00</TD>
+     <TD>31.8676</TD><TD>0.595315</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.11</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.998924</TD><TD>217.4261619 24.86298958</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>74</TD><TD>tu2206466.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:28:43</TD><TD>1.00</TD>
+     <TD>31.8802</TD><TD>0.587182</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.1</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999645</TD><TD>217.425479 24.7082672</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>75</TD><TD>tu2206466.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:28:45</TD><TD>1.00</TD>
+     <TD>31.9084</TD><TD>0.584033</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.1</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999997</TD><TD>217.4249977 24.55361615</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>76</TD><TD>tu2206466.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:28:47</TD><TD>1.00</TD>
+     <TD>31.845</TD><TD>0.595991</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.14</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00001</TD><TD>217.4243578 24.39889363</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>77</TD><TD>tu2206466.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:28:49</TD><TD>2.00</TD>
+     <TD>31.7951</TD><TD>0.589708</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.11</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00009</TD><TD>217.093919 24.86371116</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>78</TD><TD>tu2206466.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:28:51</TD><TD>2.00</TD>
+     <TD>31.8223</TD><TD>0.582392</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.16</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00053</TD><TD>217.0937274 24.70916964</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>79</TD><TD>tu2206466.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:28:53</TD><TD>2.00</TD>
+     <TD>32.0588</TD><TD>0.592861</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.17</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00113</TD><TD>217.0936564 24.55448166</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>80</TD><TD>tu2206466.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:28:55</TD><TD>1.00</TD>
+     <TD>32.0194</TD><TD>0.600025</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.06</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00112</TD><TD>217.0930266 24.3999032</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>81</TD><TD>tu2206472.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:28:57</TD><TD>1.00</TD>
+     <TD>41.0645</TD><TD>0.674721</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.11</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.998914</TD><TD>217.4263234 24.86389824</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>82</TD><TD>tu2206472.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:28:59</TD><TD>1.00</TD>
+     <TD>41.0671</TD><TD>0.664542</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.1</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.99963</TD><TD>217.4255602 24.70917598</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>83</TD><TD>tu2206472.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:00</TD><TD>1.00</TD>
+     <TD>41.1432</TD><TD>0.659721</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.1</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00004</TD><TD>217.4250389 24.55452496</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>84</TD><TD>tu2206472.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:02</TD><TD>1.00</TD>
+     <TD>41.1543</TD><TD>0.676015</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.14</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00001</TD><TD>217.4243989 24.39980243</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>85</TD><TD>tu2206472.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:03</TD><TD>1.00</TD>
+     <TD>40.8934</TD><TD>0.669834</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.11</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00006</TD><TD>217.0940779 24.86469289</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>86</TD><TD>tu2206472.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:06</TD><TD>2.00</TD>
+     <TD>40.9592</TD><TD>0.658619</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.16</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00056</TD><TD>217.0938061 24.71015129</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>87</TD><TD>tu2206472.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:08</TD><TD>2.00</TD>
+     <TD>41.2407</TD><TD>0.672054</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.17</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00115</TD><TD>217.093695 24.55546327</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>88</TD><TD>tu2206472.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:10</TD><TD>1.00</TD>
+     <TD>41.3018</TD><TD>0.683802</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.06</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00108</TD><TD>217.0930652 24.4008848</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>89</TD><TD>tu2206886.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:12</TD><TD>2.00</TD>
+     <TD>77.0825</TD><TD>0.605842</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.11</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.998582</TD><TD>217.4374906 24.88409832</TD><TD>0.261747</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>90</TD><TD>tu2206886.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:13</TD><TD>1.00</TD>
+     <TD>77.0341</TD><TD>0.591083</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.1</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999544</TD><TD>217.4367134 24.72934015</TD><TD>0.26175</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>91</TD><TD>tu2206886.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:15</TD><TD>1.00</TD>
+     <TD>76.8704</TD><TD>0.587427</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.1</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.99995</TD><TD>217.4362182 24.57468923</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>92</TD><TD>tu2206886.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:17</TD><TD>2.00</TD>
+     <TD>76.7892</TD><TD>0.606015</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.14</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999806</TD><TD>217.4356042 24.41993016</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>93</TD><TD>tu2206886.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:20</TD><TD>2.00</TD>
+     <TD>76.9193</TD><TD>0.601048</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.11</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999909</TD><TD>217.1051514 24.88484487</TD><TD>0.261747</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>94</TD><TD>tu2206886.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:22</TD><TD>2.00</TD>
+     <TD>76.8499</TD><TD>0.584643</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.16</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00054</TD><TD>217.1049459 24.73026728</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>95</TD><TD>tu2206886.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:24</TD><TD>1.00</TD>
+     <TD>76.9797</TD><TD>0.594086</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.17</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00092</TD><TD>217.104861 24.57561562</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>96</TD><TD>tu2206886.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:25</TD><TD>1.00</TD>
+     <TD>76.9518</TD><TD>0.604572</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.06</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00085</TD><TD>217.1042173 24.4210005</TD><TD>0.261749</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>97</TD><TD>tu2206896.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:27</TD><TD>1.00</TD>
+     <TD>81.749</TD><TD>0.623681</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.11</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.998621</TD><TD>217.4157189 24.84224253</TD><TD>0.261749</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>98</TD><TD>tu2206896.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:29</TD><TD>1.00</TD>
+     <TD>81.7799</TD><TD>0.606722</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.1</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999547</TD><TD>217.4149689 24.68744714</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>99</TD><TD>tu2206896.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:30</TD><TD>1.00</TD>
+     <TD>81.6862</TD><TD>0.604283</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.1</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999935</TD><TD>217.4144608 24.53286874</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>100</TD><TD>tu2206896.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:31</TD><TD>1.00</TD>
+     <TD>81.5931</TD><TD>0.625035</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.14</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999791</TD><TD>217.413834 24.37811008</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>101</TD><TD>tu2206896.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:33</TD><TD>2.00</TD>
+     <TD>81.426</TD><TD>0.61799</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.11</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999874</TD><TD>217.0835311 24.84297745</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>102</TD><TD>tu2206896.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:35</TD><TD>1.00</TD>
+     <TD>81.4793</TD><TD>0.601155</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.16</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00057</TD><TD>217.0832724 24.68843561</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>103</TD><TD>tu2206896.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:36</TD><TD>1.00</TD>
+     <TD>81.617</TD><TD>0.611486</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.17</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00086</TD><TD>217.0831744 24.53374766</TD><TD>0.26175</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>104</TD><TD>tu2206896.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:38</TD><TD>1.00</TD>
+     <TD>81.5272</TD><TD>0.620428</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.06</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00079</TD><TD>217.0825576 24.37916955</TD><TD>0.261747</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>105</TD><TD>tu2206902.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:39</TD><TD>1.00</TD>
+     <TD>78.5808</TD><TD>0.610727</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.11</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.998626</TD><TD>217.4264023 24.86295296</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>106</TD><TD>tu2206902.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:40</TD><TD>1.00</TD>
+     <TD>78.6802</TD><TD>0.596033</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.1</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999529</TD><TD>217.4256389 24.70815797</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>107</TD><TD>tu2206902.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:41</TD><TD>1.00</TD>
+     <TD>78.6359</TD><TD>0.594697</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.1</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999978</TD><TD>217.4251175 24.55354331</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>108</TD><TD>tu2206902.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:42</TD><TD>1.00</TD>
+     <TD>78.5593</TD><TD>0.612908</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.14</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999763</TD><TD>217.4244775 24.3988208</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>109</TD><TD>tu2206902.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:44</TD><TD>1.00</TD>
+     <TD>78.3134</TD><TD>0.605467</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.11</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999886</TD><TD>217.0941193 24.86367503</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>110</TD><TD>tu2206902.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:45</TD><TD>1.00</TD>
+     <TD>78.4522</TD><TD>0.591428</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.16</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00053</TD><TD>217.0938875 24.70913346</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>111</TD><TD>tu2206902.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:46</TD><TD>1.00</TD>
+     <TD>78.641</TD><TD>0.599045</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.17</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00088</TD><TD>217.0937763 24.5544818</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>112</TD><TD>tu2206902.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:48</TD><TD>1.00</TD>
+     <TD>78.5946</TD><TD>0.608929</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.06</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00081</TD><TD>217.0931464 24.39986698</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>113</TD><TD>tu2206908.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:50</TD><TD>1.00</TD>
+     <TD>81.0101</TD><TD>0.620015</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.11</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.998618</TD><TD>217.4417481 24.83501567</TD><TD>0.261748</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>114</TD><TD>tu2206908.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:51</TD><TD>1.00</TD>
+     <TD>81.1068</TD><TD>0.605943</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.1</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999547</TD><TD>217.441006 24.68025679</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>115</TD><TD>tu2206908.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:53</TD><TD>1.00</TD>
+     <TD>81.0325</TD><TD>0.600655</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.1</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999937</TD><TD>217.4404656 24.52560596</TD><TD>0.26175</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>116</TD><TD>tu2206908.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:54</TD><TD>1.00</TD>
+     <TD>80.9393</TD><TD>0.622357</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.14</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999753</TD><TD>217.4398466 24.37084765</TD><TD>0.261747</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>117</TD><TD>tu2206908.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:56</TD><TD>1.00</TD>
+     <TD>80.7837</TD><TD>0.615335</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.11</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>0.999894</TD><TD>217.1095797 24.83577179</TD><TD>0.261749</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>118</TD><TD>tu2206908.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:29:57</TD><TD>1.00</TD>
+     <TD>80.9092</TD><TD>0.599597</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.16</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00056</TD><TD>217.1093288 24.68119342</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>119</TD><TD>tu2206908.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:30:00</TD><TD>2.00</TD>
+     <TD>81.0656</TD><TD>0.608704</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.17</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00091</TD><TD>217.1092385 24.52654173</TD><TD>0.261751</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+    <TR>
+     <TD>120</TD><TD>tu2206908.fits</TD><TD>(null)</TD><TD>F</TD><TD>PSZ1_G031.91+67.94</TD>
+     <TD>0</TD><TD>2014-09-09</TD><TD>17:30:02</TD><TD>2.00</TD>
+     <TD>80.9555</TD><TD>0.618842</TD><TD>T</TD><TD>AUTO</TD><TD>128</TD><TD>3</TD><TD>0</TD>
+     <TD>NONE</TD><TD>F</TD><TD>0</TD><TD>1</TD><TD>F</TD>
+     <TD>1.06</TD><TD>50000</TD><TD>0</TD><TD>1</TD>
+     <TD>1.00083</TD><TD>217.1085896 24.37192732</TD><TD>0.261747</TD><TD>0</TD><TD>2000</TD><TD>2000</TD>
+     <TD>ICRS</TD>
+    </TR>
+   </TABLEDATA></DATA>
+  </TABLE>
+  <TABLE ID="Warnings" name="Warnings">
+   <DESCRIPTION>SWarp warnings (limited to the last 1000)</DESCRIPTION>
+   <FIELD name="Date" datatype="char" arraysize="*" ucd="meta;time.event.end"/>
+   <FIELD name="Time" datatype="char" arraysize="*" ucd="meta;time.event.end"/>
+   <FIELD name="Msg" datatype="char" arraysize="*" ucd="meta"/>
+   <DATA><TABLEDATA>
+    <TR><TD>2014-09-09</TD><TD>17:26:42</TD><TD>/home/felipe/BCSPIPE/LIB/pars/SWarp-center.conf not found, using internal defaults</TD></TR>
+    <TR><TD>2014-09-09</TD><TD>17:26:42</TD><TD>NOPENFILES_MAX larger than the system limit currently set at 256</TD></TR>
+   </TABLEDATA></DATA>
+  </TABLE>
+  <RESOURCE ID="Config" name="Config">
+   <DESCRIPTION>SWarp configuration</DESCRIPTION>
+   <PARAM name="Command_Line" datatype="char" arraysize="*" ucd="obs.param" value="swarp tu2205620.fits tu2205630.fits tu2205636.fits tu2206086.fits tu2206096.fits tu2206102.fits tu2206108.fits tu2206450.fits tu2206460.fits tu2206466.fits tu2206472.fits tu2206886.fits tu2206896.fits tu2206902.fits tu2206908.fits -c /home/felipe/BCSPIPE/LIB/pars/SWarp-center.conf -PIXEL_SCALE 0.2666 -RESAMPLING_TYPE LANCZOS3 -IMAGEOUT_NAME /Users/felipe/Kitt-Peak/MOSAIC1/COMB/PSZ1_G031.91+67.9/SWarp-PSZ1_G031.91+67.9-center.fits -CENTER_TYPE ALL"/>
+   <PARAM name="Prefs_Name" datatype="char" arraysize="*" ucd="obs.param;meta.file" value="/home/felipe/BCSPIPE/LIB/pars/SWarp-center.conf"/>
+   <PARAM name="ImageOut_Name" datatype="char" arraysize="*" ucd="meta.dataset;meta.file" value="/Users/felipe/Kitt-Peak/MOSAIC1/COMB/PSZ1_G031.91+67.9/SWarp-PSZ1_G031.91+67.9-center.fits"/>
+   <PARAM name="WeightOut_Name" datatype="char" arraysize="*" ucd="meta.dataset;meta.file" value="coadd.weight.fits"/>
+   <PARAM name="Header_Only" datatype="boolean" ucd="meta.code;obs.param" value="F"/>
+   <PARAM name="Header_Suffix" datatype="char" arraysize="*" ucd="meta.dataset;meta.file" value=".head"/>
+   <PARAM name="Weight_Suffix" datatype="char" arraysize="*" ucd="meta.dataset;meta.file" value=".weight.fits"/>
+   <PARAM name="Combine" datatype="boolean" ucd="meta.code" value="T"/>
+   <PARAM name="Combine_Type" datatype="char" arraysize="*" ucd="meta.code;obs.param" value="MEDIAN"/>
+   <PARAM name="Blank_BadPixels" datatype="boolean" ucd="meta.code;obs.param" value="F"/>
+   <PARAM name="Celestial_Type" datatype="char" arraysize="*" ucd="meta;pos;obs.param" value="NATIVE"/>
+   <PARAM name="Projection_Type" datatype="char" arraysize="*" ucd="meta;pos;obs.param" value="TAN"/>
+   <PARAM name="Projection_Err" datatype="float" arraysize="1" ucd="pos.angDistance;stat.max;obs.param" value="0.001" unit="pix"/>
+   <PARAM name="Center_Type" datatype="char" arraysize="*" ucd="meta.code;pos;obs.param" value="ALL"/>
+   <PARAM name="Center" datatype="double" arraysize="2" ucd="pos;obs.param" value="    217.2625251      24.6280845" unit="pix"/>
+   <PARAM name="PixelScale_Type" datatype="char" arraysize="*" ucd="meta.code;pos;obs.param" value="MEDIAN"/>
+   <PARAM name="Pixel_Scale" datatype="float" arraysize="1" ucd="instr.scale;instr.pixel;obs.param" value="0.2666"/>
+   <PARAM name="Image_Size" datatype="int" arraysize="1" ucd="instr.scale;instr.pixel;obs.param" value="0"/>
+   <PARAM name="Resample" datatype="boolean" ucd="meta.code" value="T"/>
+   <PARAM name="Resample_Dir" datatype="char" arraysize="*" ucd="meta.dataset" value="."/>
+   <PARAM name="Resample_Suffix" datatype="char" arraysize="*" ucd="meta.dataset;meta.file" value=".resamp.fits"/>
+   <PARAM name="Resampling_Type" datatype="char" arraysize="*" ucd="meta.code;pos;obs.param" value="LANCZOS3"/>
+   <PARAM name="Oversampling" datatype="int" arraysize="1" ucd="arith.factor;instr.pixel;obs.param" value="1"/>
+   <PARAM name="FScalAstro_Type" datatype="char" arraysize="*" ucd="phot.calib;obs.param" value="FIXED"/>
+   <PARAM name="FScale_Keyword" datatype="char" arraysize="*" ucd="meta.code;phot.calib;obs.param" value="FLXSCALE"/>
+   <PARAM name="FScale_Default" datatype="float" ucd="phot.calib;obs.param" value="1"/>
+   <PARAM name="Gain_Keyword" datatype="char" arraysize="*" ucd="meta.code;phot.calib;obs.param" value="GAIN"/>
+   <PARAM name="Gain_Default" datatype="float" ucd="phot.calib;obs.param" value="0"/>
+   <PARAM name="SatLev_Keyword" datatype="char" arraysize="*" ucd="meta.code;instr.saturation;obs.param" value="SATURATE"/>
+   <PARAM name="SatLev_Default" datatype="float" ucd="instr.saturation;obs.param" value="50000"/>
+   <PARAM name="Subtract_Back" datatype="boolean" ucd="meta.code" value="T"/>
+   <PARAM name="Back_Type" datatype="char" arraysize="*" ucd="meta.code;obs.param" value="NONE"/>
+   <PARAM name="Back_Size" datatype="int" ucd="obs.param" value="128"/>
+   <PARAM name="Back_FilterSize" datatype="int" ucd="obs.param" value="3"/>
+   <PARAM name="Back_Default" datatype="float" ucd="obs.param" value="0" unit="adu"/>
+   <PARAM name="Back_FiltThresh" datatype="float" ucd="phot.count;arith.ratio;obs.param" value="0"/>
+   <PARAM name="VMem_Dir" datatype="char" arraysize="*" ucd="meta" value="."/>
+   <PARAM name="VMem_Max" datatype="int" ucd="meta.number;stat.max" value="2047" unit="Mbyte"/>
+   <PARAM name="Mem_Max" datatype="int" ucd="meta.number;stat.max" value="256" unit="Mbyte"/>
+   <PARAM name="Combine_BufSize" datatype="int" ucd="meta.number;stat.max" value="256" unit="Mbyte"/>
+   <PARAM name="Delete_TmpFiles" datatype="boolean" ucd="meta.code" value="T"/>
+   <PARAM name="Copy_Keywords" datatype="char" arraysize="*" ucd="meta;meta.fits" value="OBJECT  "/>
+   <PARAM name="Write_FileInfo" datatype="boolean" ucd="meta.code" value="F"/>
+   <PARAM name="Verbose_Type" datatype="char" arraysize="*" ucd="meta.code" value="NORMAL"/>
+  </RESOURCE>
+ </RESOURCE>
+</RESOURCE>
+</VOTABLE>
