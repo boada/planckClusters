@@ -1,15 +1,14 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-import os, sys
+import os
+import sys
 import tableio
-from pyfits import getheader, getval
-import numpy as numpy
+import numpy as np
 from math import log10
 import time
-import Numeric
-import pyfits
 import string
-
+from astropy.io import fits
+from astropy.io.fits import getheader
 
 class combcat:
     ''' Combine, swarp and get catalogs '''
@@ -35,7 +34,8 @@ class combcat:
 
         # Check for environ vars
         if not os.getenv('BCSPIPE'):
-            os.environ['BCSPIPE'] = os.path.join(os.environ['HOME'], 'BCSPIPE')
+            os.environ['BCSPIPE'] = os.path.join(os.environ['HOME'],
+                                                 'BCSPIPE')
         self.BCSPIPE = os.getenv('BCSPIPE')
 
         # Set the dust_directory
@@ -209,7 +209,7 @@ class combcat:
         print("We are in:", self.outdir, file=sys.stderr)
 
         for file in self.infiles:
-            cmd1 = "rsync -av -e ssh --progress %s ." % os.path.join(
+            cmd1 = "rsync -avhP -e ssh %s ." % os.path.join(
                 self.datapath, file)
             print(cmd1)
             if copy:
@@ -235,16 +235,18 @@ class combcat:
         opts["NTHREADS"] = "0"
 
         #cmd  = "swarp %s*[0-9][0-9][0-9].fits -c %s " % (self.tilename,center_conf)
-        cmd = "swarp %s -c %s " % (string.join(self.filelist), center_conf)
+        cmd = "swarp %s -c %s " % (' '.join(self.filelist), center_conf)
         for param, value in list(opts.items()):
             cmd = cmd + "-%s %s " % (param, value)
 
         print(cmd)
         if not self.dryrun:
+            print(os.getcwd())
             print("Centering mosaic", file=sys.stderr)
             os.system(cmd)
 
         # Read in the header
+        print(opts['IMAGEOUT_NAME'])
         header = getheader(opts["IMAGEOUT_NAME"])
         nx = header["NAXIS1"]
         ny = header["NAXIS2"]
@@ -511,15 +513,15 @@ class combcat:
         print("# \t\t%s x %s --> %s" % (image, mask, DetImage), file=sys.stderr)
 
         # Read in the mask and the data
-        m_data, m_hdr = pyfits.getdata(mask, header=True)
-        i_data, i_hdr = pyfits.getdata(image, header=True)
+        m_data, m_hdr = fits.getdata(mask, header=True)
+        i_data, i_hdr = fits.getdata(image, header=True)
 
         # Multiply to get the detection
         d_data = m_data * i_data
 
         # Make a fits file out of it
-        newfits = pyfits.HDUList()
-        hdu = pyfits.PrimaryHDU()
+        newfits = fits.HDUList()
+        hdu = fits.PrimaryHDU()
         hdu.data = d_data
         hdu.header = i_hdr
 
@@ -573,13 +575,14 @@ class combcat:
                 opts = " -CHECKIMAGE_TYPE BACKGROUND_RMS -CHECKIMAGE_NAME %s " % backima
 
             #opts = opts + ' -GAIN %s ' % header['GAIN']
-            opts = opts + ' -WEIGHT_TYPE MAP_WEIGHT,BACKGROUND '  # weight map for detection, and BACKGROUND for meassurement
+            # weight map for detection, and BACKGROUND for meassurement
+            opts = opts + ' -WEIGHT_TYPE MAP_WEIGHT,BACKGROUND '
             opts = opts + ' -WEIGHT_IMAGE %s%s_weight.fits ' % (self.tilename,
                                                                 det_filter)
 
             # Do the SEx
-            cmd = "sex %s,%s -CATALOG_NAME %s -MAG_ZEROPOINT %s -c %s %s 1>&2" % (
-                det_ima, input, output, self.magbase, self.SExinpar, opts)
+            cmd = "sex %s,%s -CATALOG_NAME %s -MAG_ZEROPOINT %s -c %s %s 1>&2"\
+                % (det_ima, input, output, self.magbase, self.SExinpar, opts)
 
             print(cmd)
             if not self.dryrun:
@@ -644,45 +647,45 @@ class combcat:
             # is interpreted by BPZ as a nondetection with zero flux and 1-sigma error
             # equal to the limiting magnitude
 
-            nondetected = Numeric.less_equal(
-                flux[filter], 0.0) * Numeric.greater(fluxerr[filter], 0.0)
+            nondetected = np.less_equal(
+                flux[filter], 0.0) * np.greater(fluxerr[filter], 0.0)
 
             # Those objects with error flux and flux equal to 0 are assigned a magnitude of -99
             # and a flux of 0, which is interpreted by SExtractor as a non-observed object
 
-            nonobserved = Numeric.less_equal(fluxerr[filter], 0.0)
+            nonobserved = np.less_equal(fluxerr[filter], 0.0)
 
             # When flux error > 100*(flux), mark as nonobserved (Benitez, 24-Oct-03).
 
             # Fix for fc11 -- y[:] has change meaning
-            #nonobserved = Numeric.where(fluxerr[filter] > 100*(abs(flux[filter])),1.0,nonobserved[:])
-            nonobserved = Numeric.where(fluxerr[filter] > 100 *
+            #nonobserved = np.where(fluxerr[filter] > 100*(abs(flux[filter])),1.0,nonobserved[:])
+            nonobserved = np.where(fluxerr[filter] > 100 *
                                         (abs(flux[filter])), 1.0, nonobserved)
 
-            detected = Numeric.logical_not(nonobserved + nondetected)
+            detected = np.logical_not(nonobserved + nondetected)
 
             # Get the zero point for the final magnitudes
             zpoint = self.magbase
 
             print(filter, zpoint)
 
-            flux[filter] = Numeric.clip(flux[filter], 1e-100, 1e100)
-            m[filter] = Numeric.where(detected,
-                                      -2.5 * Numeric.log10(abs(flux[filter])) +
+            flux[filter] = np.clip(flux[filter], 1e-100, 1e100)
+            m[filter] = np.where(detected,
+                                      -2.5 * np.log10(abs(flux[filter])) +
                                       zpoint - self.XCorr[filter], m[filter])
-            m[filter] = Numeric.where(nondetected, 99.0, m[filter])
-            m[filter] = Numeric.where(nonobserved, -99.0, m[filter])
+            m[filter] = np.where(nondetected, 99.0, m[filter])
+            m[filter] = np.where(nonobserved, -99.0, m[filter])
 
             # clip values from being too small or large, i.e. 0 or inf.
-            fluxerr[filter] = Numeric.clip(fluxerr[filter], 1e-100, 1e100)
-            em[filter] = Numeric.where(
+            fluxerr[filter] = np.clip(fluxerr[filter], 1e-100, 1e100)
+            em[filter] = np.where(
                 detected,
-                2.5 * Numeric.log10(1.0 + abs(fluxerr[filter] / flux[filter]))
-                + self.XCorrError[filter], em[filter])
-            em[filter] = Numeric.where(
+                2.5 * np.log10(1.0 + abs(fluxerr[filter] / flux[filter])) +
+                self.XCorrError[filter], em[filter])
+            em[filter] = np.where(
                 nondetected,
-                2.5 * Numeric.log10(abs(fluxerr[filter])) - zpoint, em[filter])
-            em[filter] = Numeric.where(nonobserved, 0.0, em[filter])
+                2.5 * np.log10(abs(fluxerr[filter])) - zpoint, em[filter])
+            em[filter] = np.where(nonobserved, 0.0, em[filter])
 
             #outColumns.append(filter +'_SDSS_MAG_ISO')
             #outColumns.append(filter +'_SDSS_MAGERR_ISO')
@@ -765,20 +768,19 @@ class combcat:
         for file in self.files[filter]:
             #print file,self.airmass[file]
             x.append(self.airmass[file])
-        x = numpy.asarray(x)
+        x = np.asarray(x)
         return x.mean()
 
 
 # Create a mask file from the weights
 def mask_from_weight(infile, outfile, value=0):
-    import pyfits
 
     (data, hdr) = rfits(infile)
 
-    newdata = numpy.where(data > 0, 1, 0)
+    newdata = np.where(data > 0, 1, 0)
 
-    newfits = pyfits.HDUList()
-    hdu = pyfits.PrimaryHDU()
+    newfits = fits.HDUList()
+    hdu = fits.PrimaryHDU()
     #hdu.data   = newdata.astype("Int16") # Just as integer
     hdu.data = newdata.astype("UInt8")  # Just as ushort integer
     hdu.header = hdr
@@ -795,7 +797,6 @@ def mask_from_weight(infile, outfile, value=0):
 
 # Create a mask file from the weights
 def weight_from_dqfile(infile, outfile, clobber=False):
-    import pyfits
 
     # Remove old version of file before
     if os.path.isfile(outfile):
@@ -805,11 +806,11 @@ def weight_from_dqfile(infile, outfile, clobber=False):
             print("# Skipping creation, %s image exists" % outfile)
             return
 
-    inHDU = pyfits.open(infile, "readonly")
+    inHDU = fits.open(infile, "readonly")
     data = inHDU[1].data
-    newdata = numpy.where(data > 0, 0, 1)
+    newdata = np.where(data > 0, 0, 1)
     inHDU[1].data = newdata.astype("UInt8")  # Just as ushort integer
-    newhdu = pyfits.HDUList()
+    newhdu = fits.HDUList()
     newhdu.append(inHDU[1])
     newhdu.writeto(outfile, clobber=clobber)
     newhdu.close()
@@ -819,10 +820,10 @@ def weight_from_dqfile(infile, outfile, clobber=False):
     # ########################################
     # (data,hdr) = rfits(infile,hdu=1)
 
-    # newdata    = numpy.where(data > 0, 0, 1)
-    # newfits    = pyfits.HDUList()
-    # nhdu       = pyfits.PrimaryHDU()
-    # #nhdu.data   = newdata.astype(numpy.int8) # Just as ushort integer
+    # newdata    = np.where(data > 0, 0, 1)
+    # newfits    = fits.HDUList()
+    # nhdu       = fits.PrimaryHDU()
+    # #nhdu.data   = newdata.astype(np.int8) # Just as ushort integer
     # nhdu.data   = newdata.astype("UInt8") # Just as ushort integer
     # newfits.append(nhdu)
     # newfits.writeto(outfile)
@@ -834,9 +835,7 @@ def replace_vals_image(infits, outfits, repval=1):
     # Replace all values in MOSAIC multi-extension fits file by
     # repvalue
 
-    import pyfits
-
-    hdulist = pyfits.open(infits)
+    hdulist = fits.open(infits)
     Nima = len(hdulist)
     print("Replacing with n=%s on %s images, %s --> %s" % (
         repval, Nima - 1, infits, outfits), file=sys.stderr)
@@ -850,9 +849,8 @@ def replace_vals_image(infits, outfits, repval=1):
 
 def add_airmass(filename, airmass):
 
-    import pyfits
-    c = pyfits.Card("AIRMASS", airmass, "Computed Stacked Mean Airmass")
-    f = pyfits.open(filename, mode="update")
+    c = fits.Card("AIRMASS", airmass, "Computed Stacked Mean Airmass")
+    f = fits.open(filename, mode="update")
     #f[0].header.ascardlist().append(c)
     f[0].header.update(c.key, c.value, c.comment)
     f.close()
@@ -860,17 +858,15 @@ def add_airmass(filename, airmass):
 
 def put_exptime(file, exptime):
 
-    import pyfits
-
     # Open the file, update mode
-    f = pyfits.open(file, mode="update")  # open a FITS file
+    f = fits.open(file, mode="update")  # open a FITS file
     hdr = f[0].header  # the primary HDU header
 
     print("# Updating %s with EXPTIME=%s after SWarp" % (
         file, exptime), file=sys.stderr)
-    c = pyfits.Card("EXPTIME", exptime, "After SWarp equivalent exptime (sec)")
+    c = fits.Card("EXPTIME", exptime, "After SWarp equivalent exptime (sec)")
     c.verify()
-    hdr.update('EXPTIME', c.value, c.comment)  #,after=after)
+    hdr.update('EXPTIME', c.value, c.comment)  # ,after=after)
 
     # Close the file
     f.verify('fix')
@@ -880,17 +876,15 @@ def put_exptime(file, exptime):
 
 def put_scaled_head(file):
 
-    import pyfits
-
     # Open the file, update mode
-    f = pyfits.open(file, mode="update")  # open a FITS file
+    f = fits.open(file, mode="update")  # open a FITS file
     hdr = f[0].header  # the primary HDU header
 
     #print >>sys.stderr,"# Updating %s with EXPTIME=%s after SWarp" % (file,exptime)
-    c = pyfits.Card("FSCALED", True,
+    c = fits.Card("FSCALED", True,
                     "Has the flux been scaled in individual frames")
     c.verify()
-    hdr.update('FSCALED', c.value, c.comment)  #,after=after)
+    hdr.update('FSCALED', c.value, c.comment)  # ,after=after)
 
     # Close the file
     f.verify('fix')
@@ -899,10 +893,9 @@ def put_scaled_head(file):
 
 
 def put_zeropt(file, zeropt, photo='yes'):
-    import pyfits
 
     # Open thr child info, update mode
-    f = pyfits.open(file, mode="update")  # open a FITS file
+    f = fits.open(file, mode="update")  # open a FITS file
     hdr = f[0].header  # the primary HDU header
 
     print("# Updating %s with ZP=%s as in SExtractor, photo:%s" % (
@@ -912,14 +905,14 @@ def put_zeropt(file, zeropt, photo='yes'):
 
     c = {}
     if photo == 'yes':
-        c['ZEROPT'] = pyfits.Card("ZEROPT", zeropt,
+        c['ZEROPT'] = fits.Card("ZEROPT", zeropt,
                                   "Computed ZEROPOINT AB mags/sec")
-        c['PHOTOM'] = pyfits.Card("PHOTOM", 1,
+        c['PHOTOM'] = fits.Card("PHOTOM", 1,
                                   "Photometric quality 1=photo/0=not")
     else:
-        c['ZEROPT'] = pyfits.Card("ZEROPT", zeropt,
+        c['ZEROPT'] = fits.Card("ZEROPT", zeropt,
                                   "Non-photo ZEROPOINT AB mags/sec")
-        c['PHOTOM'] = pyfits.Card("PHOTOM", 0,
+        c['PHOTOM'] = fits.Card("PHOTOM", 0,
                                   "Photometric quality 1=photo/0=not")
 
     for key in list(c.keys()):
@@ -939,23 +932,20 @@ def chtype_replace_nonzero(infits, repval=1, out=None, verb=None):
     # Replace all values in !=0 in fits file to 1
     # certain value file by repvalue and changes the type to UInt8
 
-    import pyfits
-    import numpy
-
     if verb:
         print("\tChange type UInt8 on %s --- Replacing pixels not eq 0  --> %s" % (
             infits, repval), file=sys.stderr)
 
-    hdulist = pyfits.open(infits, mode='update')
+    hdulist = fits.open(infits, mode='update')
     Nima = len(hdulist)
     if Nima == 1:
         ima = hdulist[0].data
-        ima = numpy.where(ima != 0, repval, ima).astype('UInt8')
+        ima = np.where(ima != 0, repval, ima).astype('UInt8')
         hdulist[0].data = ima
     else:
         for i in range(Nima)[1:]:
             ima = hdulist[i].data
-            ima = numpy.where(ima != 0, repval, ima).astype('UInt8')
+            ima = np.where(ima != 0, repval, ima).astype('UInt8')
             hdulist[i].data = ima
     hdulist.verify('silentfix')
     hdulist.flush()
@@ -965,14 +955,10 @@ def chtype_replace_nonzero(infits, repval=1, out=None, verb=None):
 
 def chtype_fits(infits, type='UInt8', out=None, verb=None):
 
-    # Change type of fits file
-    import pyfits
-    import numpy
-
     if verb:
         print("\tChange type on %s to ---> %s" % (infits, type), file=sys.stderr)
 
-    hdulist = pyfits.open(infits, mode='update')
+    hdulist = fits.open(infits, mode='update')
     Nima = len(hdulist)
     if Nima == 1:
         ima = (hdulist[0].data).astype(type)
@@ -991,7 +977,7 @@ def chtype_fits(infits, type='UInt8', out=None, verb=None):
 def clean_FLXCORR(file, N=16):
 
     from pyraf import iraf
-    from pyfits import getheader
+    from astropy.io.fits import getheader
 
     print("Analizing %s ..." % file)
     header = getheader(file, 1)
@@ -1092,10 +1078,8 @@ def SEx_head(catalog, verb='yes'):
 
 # To read in simple fits file
 def rfits(filename, hdu=0):
-    import pyfits
-    import numpy
 
-    ff = pyfits.open(filename, "readonly")
+    ff = fits.open(filename, "readonly")
     data = ff[hdu].data
     hdr = ff[hdu].header
     ff.close()
@@ -1104,11 +1088,10 @@ def rfits(filename, hdu=0):
 
 # To write in a simple file
 def writefits(array, filename):
-    import numpy
-    import pyfits, os
+    import os
     # Writes fits files of a given array
-    newfits = pyfits.HDUList()
-    hdu = pyfits.PrimaryHDU()
+    newfits = fits.HDUList()
+    hdu = fits.PrimaryHDU()
     hdu.data = array
     newfits.append(hdu)
 
@@ -1242,13 +1225,10 @@ def dec2sex(hms):
     return "%s:%s:%s" % (hh, mm, ss)
 
 # Taken from APSIS fUtil
-import Numeric
-
-
 def deNAN(a, value=0.0):
-    nans = Numeric.logical_not(Numeric.less(a, 0.0) + Numeric.greater_equal(
+    nans = np.logical_not(np.less(a, 0.0) + np.greater_equal(
         a, 0.0))
-    return Numeric.where(nans, value, a)
+    return np.where(nans, value, a)
 
 
 def main():
@@ -1284,7 +1264,7 @@ def main():
     # SWarp
     c.swarp_files(dryrun=opt.noSWarp,
                   conf="SWarp-common.conf",
-                  combtype=opt.combtype)  #,filters=opt.frames_filters)
+                  combtype=opt.combtype)  # ,filters=opt.frames_filters)
 
     try:
         c.makeDetectionIma(filter='i')

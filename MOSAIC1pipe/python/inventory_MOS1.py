@@ -1,8 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-import glob, os, sys
-import string
-from pyfits import getheader
+import glob
+import os
+import sys
+from astropy.io.fits import getheader
 
 USAGE = "usage:  " + os.path.split(sys.argv[0])[1] + " <rawdir> <outdir>"
 try:
@@ -13,11 +14,17 @@ except:
 
 pattern = "*.fits"
 
+# get the cwd
+cwd = os.getcwd()
+
 # Go to the directory
 os.chdir(rawdir)
 
 # Make the fits files data inventory
 full_list = glob.glob(pattern)
+if not len(full_list) > 0:
+    pattern = '*.fz'
+    full_list = glob.glob(pattern)
 
 filters = ('z', 'i', 'r', 'g')
 objects = []
@@ -27,14 +34,14 @@ EXPTIME = {}
 AIRMASS = {}
 tiles = []
 
-print("Found %s files, please wait... this will take a while" % len(
-    full_list), file=sys.stderr)
+print("Found %s files, please wait... this will take a while" % len(full_list),
+      file=sys.stderr)
 
 counter = 1
 for file in full_list:
 
-    print("Reading %-45s ... (%4s/%4s)" % (file, counter,
-                                                          len(full_list)), file=sys.stderr)
+    print("Reading %-45s ... (%4s/%4s)" % (file, counter, len(full_list)),
+          file=sys.stderr)
 
     header = getheader(file)
     counter = counter + 1
@@ -42,13 +49,21 @@ for file in full_list:
     try:
         if header['OBSTYPE'] != 'object':
             continue
-    except:
+    except KeyError:
         print("# OBSTYPE not present for %s" % file)
-        pass
+        print("# Trying next extention")
+        try:
+            header = getheader(file, ext=1)
+            if header['OBSTYPE'] != 'object':
+                continue
+        except KeyError:
+            print("# OBSTYPE not present for %s" % file)
+        except IndexError:
+            print("# %s only has a single extention" % file)
 
     # Keep the values
     try:
-        OBJECT = header['OBJECT']  #[:-1]
+        OBJECT = header['OBJECT']  # [:-1]
     except:
         print("OBJECT KEY NOT FOUND FOR:", file)
         OBJECT = header['FILENAME'][0:11]
