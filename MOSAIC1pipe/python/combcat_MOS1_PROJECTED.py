@@ -198,6 +198,12 @@ class combcat:
     def copyfiles(self, copy="yes"):
         ''' Copy files from the remote location to the current dir'''
 
+        if not copy:
+            self.outdir = os.path.join(self.outpath, self.tilename)
+            if not os.path.exists(self.outdir):
+                os.mkdir(self.outdir)
+            return
+
         # Fits make sure that the output dir exists
         self.outdir = os.path.join(self.outpath, self.tilename)
         if not os.path.exists(self.outdir):
@@ -230,7 +236,8 @@ class combcat:
         opts["IMAGEOUT_NAME"] = os.path.join(
             self.outdir, "SWarp-%s-center.fits" % (self.tilename))
         opts["PIXEL_SCALE"] = self.pixscale
-        opts["RESAMPLING_TYPE"] = "LANCZOS3"
+        #opts["RESAMPLING_TYPE"] = "LANCZOS3"
+        opts["RESAMPLING_TYPE"] = "LANCZOS2"
         opts["CENTER_TYPE"] = "ALL"
         opts["NTHREADS"] = "0"
 
@@ -308,9 +315,9 @@ class combcat:
         self.get_FLXSCALE(magbase=26)
 
         # Keys to keep
-        #keywords = "OBJECT,EXPTIME,AIRMASS,TIMESYS,DATE-OBS,TIME-OBS,OBSTYPE,OBSERVAT,TELESCOP,HA,ZD,DETECTOR,DARKTIME"
+        #keywords = "OBJECT, EXPTIME, AIRMASS, TIMESYS, DATE-OBS, TIME-OBS,
+        #OBSTYPE, OBSERVAT, TELESCOP,HA, ZD, DETECTOR, DARKTIME"
         keywords = "OBJECT,OBSTYPE"
-        keys = keywords.split(",")
 
         common_conf = os.path.join(self.BCSPIPE, 'LIB/pars', conf)
         pars = {}
@@ -350,11 +357,15 @@ class combcat:
             self.weightima[filter] = "%s%s_weight.fits" % (self.tilename,
                                                            filter)
 
-            filelist = string.join(self.files[filter])
-            cmd = "swarp %s -c %s -IMAGEOUT_NAME %s -WEIGHTOUT_NAME %s " % (
-                filelist, common_conf, outimage, outweight)
-            cmd = cmd + " -WEIGHT_IMAGE %s " % (
-                ",".join(self.files_weight[filter]))
+            filelist = ' '.join(self.files[filter])
+            #cmd = "swarp %s -c %s -IMAGEOUT_NAME %s -WEIGHTOUT_NAME %s " %\
+            #    (filelist, common_conf, outimage, outweight)
+
+            cmd = "swarp %s -IMAGEOUT_NAME %s -WEIGHTOUT_NAME %s " %\
+                (filelist, outimage, outweight)
+#            cmd = cmd + " -WEIGHT_IMAGE %s " % (
+#                ",".join(self.files_weight[filter]))
+            cmd += " -WEIGHT_SUFFIX .weight.fits'[0]'"
             cmd = cmd + " -FSCALE_DEFAULT %s " % (
                 ",".join(map(str, self.flxscale[filter])))
             cmd = cmd + opts
@@ -509,8 +520,10 @@ class combcat:
         image = self.combima[filter] + ".fits"
         DetImage = "%s_detection.fits" % self.tilename
 
-        print("# Generating Detection image for filter:%s" % filter, file=sys.stderr)
-        print("# \t\t%s x %s --> %s" % (image, mask, DetImage), file=sys.stderr)
+        print("# Generating Detection image for filter:%s" % filter,
+              file=sys.stderr)
+        print("# \t\t%s x %s --> %s" % (image, mask, DetImage),
+              file=sys.stderr)
 
         # Read in the mask and the data
         m_data, m_hdr = fits.getdata(mask, header=True)
@@ -555,7 +568,8 @@ class combcat:
         # The detection image that we'll use
         if self.DetImage:
             det_ima = self.DetImage
-            print("# Will use default Detection Image:%s " % self.DetImage, file=sys.stderr)
+            print("# Will use default Detection Image:%s " % self.DetImage,
+                  file=sys.stderr)
         else:
             det_ima = self.combima[det_filter] + ".fits"
             print("# Will use %s band Detection Image:%s " % (
@@ -577,12 +591,14 @@ class combcat:
             #opts = opts + ' -GAIN %s ' % header['GAIN']
             # weight map for detection, and BACKGROUND for meassurement
             opts = opts + ' -WEIGHT_TYPE MAP_WEIGHT,BACKGROUND '
-            opts = opts + ' -WEIGHT_IMAGE %s%s_weight.fits ' % (self.tilename,
-                                                                det_filter)
+            opts = opts + ' -WEIGHT_IMAGE %s%s_weight.fits ' % \
+                (self.tilename, det_filter)
 
             # Do the SEx
-            cmd = "sex %s,%s -CATALOG_NAME %s -MAG_ZEROPOINT %s -c %s %s 1>&2"\
-                % (det_ima, input, output, self.magbase, self.SExinpar, opts)
+            cmd = "sex %s,%s -CATALOG_NAME %s" +\
+                "-MAG_ZEROPOINT %s -c %s %s1>&2"\
+                % (det_ima, input, output, self.magbase, self.SExinpar,
+                   opts)
 
             print(cmd)
             if not self.dryrun:
@@ -618,7 +634,8 @@ class combcat:
             detectionList.append(detcols[key])
         detectionColumns = tuple(
             detectionList)  # the get_data function requires a tuple
-        detection_variables = tableio.get_data(detCatalog, detectionColumns)
+        detection_variables = tableio.get_data(detCatalog,
+                                               detectionColumns)
 
         # Read in the MAG_ISO and MAG_ISOERR from each catalog
         for filter in self.filters:
@@ -642,25 +659,31 @@ class combcat:
             # Fix the NAN values
             flux[filter] = deNAN(flux[filter])
 
-            # Those objects with flux equal or less than 0 are assigned a magnitude of 99
-            # and a limiting magnitude equal to their SExtractor photometric error. This
-            # is interpreted by BPZ as a nondetection with zero flux and 1-sigma error
-            # equal to the limiting magnitude
+            # Those objects with flux equal or less than 0 are assigned a
+            # magnitude of 99 and a limiting magnitude equal to their
+            # SExtractor photometric error. This is interpreted by BPZ as a
+            # nondetection with zero flux and 1-sigma error equal to the
+            # limiting magnitude
 
             nondetected = np.less_equal(
                 flux[filter], 0.0) * np.greater(fluxerr[filter], 0.0)
 
-            # Those objects with error flux and flux equal to 0 are assigned a magnitude of -99
-            # and a flux of 0, which is interpreted by SExtractor as a non-observed object
+            # Those objects with error flux and flux equal to 0 are assigned a
+            # magnitude of -99
+            # and a flux of 0, which is interpreted by SExtractor as a
+            # non-observed object
 
             nonobserved = np.less_equal(fluxerr[filter], 0.0)
 
-            # When flux error > 100*(flux), mark as nonobserved (Benitez, 24-Oct-03).
+            # When flux error > 100*(flux), mark as nonobserved (Benitez,
+            # 24-Oct-03).
 
             # Fix for fc11 -- y[:] has change meaning
-            #nonobserved = np.where(fluxerr[filter] > 100*(abs(flux[filter])),1.0,nonobserved[:])
+            #nonobserved = np.where(fluxerr[filter] >
+            #100*(abs(flux[filter])),1.0,nonobserved[:])
             nonobserved = np.where(fluxerr[filter] > 100 *
-                                        (abs(flux[filter])), 1.0, nonobserved)
+                                        (abs(flux[filter])), 1.0,
+                                   nonobserved)
 
             detected = np.logical_not(nonobserved + nondetected)
 
@@ -672,7 +695,8 @@ class combcat:
             flux[filter] = np.clip(flux[filter], 1e-100, 1e100)
             m[filter] = np.where(detected,
                                       -2.5 * np.log10(abs(flux[filter])) +
-                                      zpoint - self.XCorr[filter], m[filter])
+                                      zpoint - self.XCorr[filter],
+                                 m[filter])
             m[filter] = np.where(nondetected, 99.0, m[filter])
             m[filter] = np.where(nonobserved, -99.0, m[filter])
 
@@ -694,9 +718,11 @@ class combcat:
 
         # Prepare the header
         header = \
-               '## ' + time.ctime() + '\n'+\
-               '## BPZ Catalog file for Observation: ' + self.tilename + '\n'+\
-               '## (This file was generated automatically by the BCS Rutgers pipeline)\n##\n'
+               '## ' + time.ctime() + '\n' + \
+               '## BPZ Catalog file for Observation: ' + self.tilename + \
+                '\n' + \
+                '## (This file was generated automatically by' + \
+                'the BCS Rutgers pipeline)\n##\n'
         for i in range(len(outColumns)):
             header = header + '# ' + str(i + 1) + '\t' + outColumns[i] + '\n'
 
@@ -729,8 +755,6 @@ class combcat:
 
             if filter == 'i':
                 n_mo = str(i + 1)
-            colmag = i + 1
-            colmagerr = i + 2
             cfile.write('%s_MOSAICII\t %s,%s\t AB\t %.2f\t 0.0\n' %
                         (filter, i + 1, i + 2, zp_error))
             i = i + 2
@@ -745,13 +769,17 @@ class combcat:
 
         print('Starting photometric redshift determination...', file=sys.stderr)
         bpz = os.path.join(os.environ['P_BPZPATH'], 'bpz.py ')
-        bpzcat = self.tilename + ".bpz"
+        #bpzcat = self.tilename + ".bpz"
         bpzprobs = self.tilename + ".probs"
 
-        #cmd = 'python ' + bpz + self.colorCat + ' -ZMAX 6.0 -VERBOSE no -INTERP 2 -DZ 0.005 -SPECTRA CWWSB_Benitez2003.list'
-        #cmd = 'python ' + bpz + self.colorCat + ' -ZMAX 6.0 -VERBOSE no -INTERP 0 -DZ 0.01 -SPECTRA CWWSB_Benitez2003.list'
-        #cmd = 'python ' + bpz + self.colorCat + ' -ZMAX 1.8 -VERBOSE no -INTERP 2 -DZ 0.01 -SPECTRA CWWSB_Benitez2003.list -PRIOR hdfn'
-        cmd = 'python ' + bpz + self.colorCat + ' -ZMAX 1.8 -VERBOSE no -INTERP 2 -DZ 0.01 -SPECTRA CWWSB_Benitez2003.list -PRIOR full -PROBS_LITE ' + bpzprobs
+        #cmd = 'python ' + bpz + self.colorCat + \
+        #' -ZMAX 6.0 -VERBOSE no -INTERP 2 -DZ 0.005 -SPECTRA CWWSB_Benitez2003.list'
+        #cmd = 'python ' + bpz + self.colorCat + \
+        #' -ZMAX 6.0 -VERBOSE no -INTERP 0 -DZ 0.01 -SPECTRA CWWSB_Benitez2003.list'
+        #cmd = 'python ' + bpz + self.colorCat + \
+        #' -ZMAX 1.8 -VERBOSE no -INTERP 2 -DZ 0.01 -SPECTRA CWWSB_Benitez2003.list -PRIOR hdfn'
+        cmd = 'python ' + bpz + self.colorCat + \
+            ' -ZMAX 1.8 -VERBOSE no -INTERP 2 -DZ 0.01 -SPECTRA CWWSB_Benitez2003.list -PRIOR full -PROBS_LITE ' + bpzprobs
 
         if not self.dryrun:
             print(cmd)
@@ -977,13 +1005,12 @@ def chtype_fits(infits, type='UInt8', out=None, verb=None):
 def clean_FLXCORR(file, N=16):
 
     from pyraf import iraf
-    from astropy.io.fits import getheader
 
     print("Analizing %s ..." % file)
-    header = getheader(file, 1)
+    #header = getheader(file, 1)
 
     try:
-        FLXCORR = header['FLXCORR']
+        #FLXCORR = header['FLXCORR']
         print("Cleaning up %s" % file)
         for i in range(N):
             n = i + 1
@@ -1244,7 +1271,8 @@ def main():
     outpath = arg[2]
 
     # Read in the command line options
-    #USAGE = " usage:\t"+os.path.split(sys.argv[0])[1]+" <assoc> <in_datapath> <out_datapath> [dryrun]"
+    #USAGE = " usage:\t"+os.path.split(sys.argv[0])[1]+" <assoc> <in_datapath>
+    #<out_datapath> [dryrun]"
     # Example
     # ./combcat.py ~/bcs-inventory/BCS0519-5448.assoc ~/PROC ~/BCS/PROC
 
