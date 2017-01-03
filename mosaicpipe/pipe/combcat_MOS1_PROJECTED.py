@@ -114,10 +114,6 @@ class combcat:
                             os.path.splitext(fname)[0])
                 self.exptimes[filtername].append(self.exptime[fname])
 
-            print(self.filters, end='\n\n')
-            print(self.files, end='\n\n')
-            print(self.files_weight, end='\n\n')
-            print(self.exptimes, end='\n\n')
         return
 
     def copyfiles(self, copy="yes"):
@@ -327,7 +323,6 @@ class combcat:
             filters = self.filters
 
         for filter in filters:
-
             if len(self.files[filter]) < 2:
                 print("Only one frame, no FLUX SCALE for %s %s filter" % (
                     self.tilename, filter))
@@ -336,7 +331,6 @@ class combcat:
             # First Check if we should correct
             self.do_level[filter] = False
             for file in self.files[filter]:
-
                 if abs(2.5 * log10(self.FS_MAG[file])) >= 0.05:
                     #if self.MCorr[file] > dm:
                     self.do_level[filter] = True
@@ -450,7 +444,6 @@ class combcat:
             print("# Generating weight image from %s --> %s" % (
                 dqmask, outname), file=sys.stderr)
             weight_from_dqfile(dqmask, outname, clobber=clobber)
-            #weight_from_dqfile_all(dqmask, outname, clobber=clobber)
         return
 
     # Make the detection Image using the mask
@@ -787,30 +780,6 @@ def weight_from_dqfile(infile, outfile, clobber=False):
     newhdu.close()
     inHDU.close()
     return
-
-# Create a mask file from the weights
-def weight_from_dqfile_all(infile, outfile, clobber=False):
-    # Remove old version of file before
-    if os.path.isfile(outfile):
-        if clobber:
-            os.remove(outfile)
-        else:
-            print("# Skipping creation, %s image exists" % outfile)
-            return
-    with fits.open(infile, 'readonly') as inHDU:
-        print(len(inHDU))
-        newhdu = fits.HDUList()
-        for i, hdu in enumerate(inHDU):
-            if not i:
-                newhdu.append(fits.PrimaryHDU())
-            else:
-                newdata = np.where(hdu.data > 0, 0, 1)
-                hdu.data = newdata.astype("UInt8")  # Just as ushort integer
-                newhdu.append(hdu)
-        print(len(newhdu))
-        newhdu.writeto(outfile, clobber=clobber)
-        newhdu.close()
-        return
 
 def replace_vals_image(infits, outfits, repval=1):
     # Replace all values in MOSAIC multi-extension fits file by
