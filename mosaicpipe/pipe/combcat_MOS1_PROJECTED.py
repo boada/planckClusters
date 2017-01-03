@@ -23,7 +23,6 @@ class combcat:
 
         self.assocfile = assocfile
         self.datapath = datapath
-        #self.tilename  = os.path.basename(assocfile).split('.')[0]
         self.tilename = os.path.basename(os.path.splitext(assocfile)[0])
         self.outpath = outpath
         self.dryrun = dryrun
@@ -43,6 +42,8 @@ class combcat:
 
         # Set the pixel scale
         self.pixscale = pixscale
+
+        # Read the association file
         self.read_assoc()
 
         # Initialize and set to zero the dust exctiction corrections
@@ -61,7 +62,6 @@ class combcat:
         self.filelist = []
         self.infiles = []
 
-        self.filter = {}
         self.exptime = {}
         self.airmass = {}
 
@@ -76,123 +76,48 @@ class combcat:
 
         print("# Will read %s" % self.assocfile)
 
-        # Read in the assoc file
-        for line in open(self.assocfile).readlines():
+        with open(self.assocfile, 'r') as assocfile:
+            lines = assocfile.readlines()
+            for line in lines:
+                if line[0] == "#":
+                    continue
 
-            if line[0] == "#":
-                continue
+                vals = line.split()
+                fname = os.path.basename(vals[0])
+                filtername = vals[1]
+                self.exptime[fname] = float(vals[2])
+                self.airmass[fname] = float(vals[3])
 
-            vals = line.split()
-            fname = os.path.basename(vals[0])
-            infile = vals[0]
-            self.filter[fname] = vals[1]
-            self.exptime[fname] = float(vals[2])
-            self.airmass[fname] = float(vals[3])
+                # Figure out the dqmask
+                nid = int(os.path.splitext(fname)[0][2:]) + 1
+                ext = os.path.splitext(fname)[1]
+                pre = fname[0:2]
+                dqmask = "%s%s%s" % (pre, nid, ext)
 
-            print(fname, self.filter[fname])
+                # make a list of the file names
+                self.filelist.append(fname)
+                self.dqmask[fname] = dqmask
+                # this is just a list of all files used
+                self.infiles.append(fname)
+                self.infiles.append(dqmask)
 
-            # Figure out the infile
-            nid = int(os.path.splitext(fname)[0][2:]) + 1
-            ext = os.path.splitext(fname)[1]
-            pre = fname[0:2]
-            dqmask = "%s%s%s" % (pre, nid, ext)
+                # update the list of filters
+                if filtername not in self.filters:
+                    self.filters.append(vals[1])
+                    self.files[filtername] = []
+                    self.files_weight[filtername] = []
+                    self.exptimes[filtername] = []
 
-            # A list of the files
-            self.filelist.append(fname)
-            self.infiles.append(infile)
-            self.infiles.append(dqmask)
-            self.dqmask[fname] = dqmask
+                # append the filename to the right filter
+                self.files[filtername].append(fname)
+                self.files_weight[filtername].append("%s.weight.fits'[0]'" %
+                            os.path.splitext(fname)[0])
+                self.exptimes[filtername].append(self.exptime[fname])
 
-            if vals[1] not in self.filters:
-                self.filters.append(vals[1])
-
-        self.filters.sort()
-        for filter in self.filters:
-            self.files[filter] = []
-            self.files_weight[filter] = []
-            self.exptimes[filter] = []
-
-        # Read in the assoc file
-        for line in open(self.assocfile).readlines():
-
-            if line[0] == "#":
-                continue
-            vals = line.split()
-            fname = os.path.basename(vals[0])
-            infile = vals[0]
-            filtername = vals[1]
-
-            # Figure out the dqmask
-            nid = int(os.path.splitext(fname)[0][2:]) + 1
-            ext = os.path.splitext(fname)[1]
-            pre = fname[0:2]
-            dqmask = "%s%s%s" % (pre, nid, ext)
-
-            # Loop over filters
-            for filter in self.filters:
-                if filter == filtername:
-                    self.files[filter].append(fname)
-                    self.files_weight[filter].append(
-                        "%s.weight.fits'[0]'" % os.path.splitext(fname)[0])
-                    self.exptimes[filter].append(self.exptime[fname])
-
-        return
-
-    def read_assoc_old(self):
-        ''' Read the association files for a given tile'''
-
-        self.filters = []
-        self.filelist = []
-        self.infiles = []
-
-        self.filter = {}
-        self.exptime = {}
-        self.airmass = {}
-
-        print("# Will read %s" % self.assocfile)
-
-        # Read in the assoc file
-        for line in open(self.assocfile).readlines():
-
-            if line[0] == "#":
-                continue
-
-            vals = line.split()
-            fname = os.path.basename(vals[0])
-            infile = vals[0]
-            self.filter[fname] = vals[1]
-            self.exptime[fname] = float(vals[2])
-            self.airmass[fname] = float(vals[3])
-
-            # A list of the files
-            self.filelist.append(fname)
-            self.infiles.append(infile)
-            if vals[1] not in self.filters:
-                self.filters.append(vals[1])
-
-        self.filters.sort()
-
-        # Make image list per filter
-        self.files = {}
-
-        # Exptimes per filter
-        self.exptimes = {}
-
-        for filter in self.filters:
-
-            self.files[filter] = []
-            self.exptimes[filter] = []
-
-            for file in self.filelist:
-
-                if filter == self.filter[file]:
-                    self.files[filter].append(file)
-
-                if filter == self.filter[file]:
-                    self.exptimes[filter].append(self.exptime[file])
-
-            print("# %s %s" % (filter, self.files[filter]))
-
+            print(self.filters, end='\n\n')
+            print(self.files, end='\n\n')
+            print(self.files_weight, end='\n\n')
+            print(self.exptimes, end='\n\n')
         return
 
     def copyfiles(self, copy="yes"):
@@ -223,6 +148,21 @@ class combcat:
 
         return
 
+    def update_header_projection(self, proj='TAN'):
+        for fname in self.infiles:
+            print('# Updating {} '.format(fname), end='...')
+            with fits.open(fname, mode='update') as hdulist:
+                for i, hdu in enumerate(hdulist):
+                    if not i:
+                        continue
+                    elif proj in hdu.header['CTYPE1']:
+                        continue
+                    else:
+                        hdu.header['CTYPE1'] = 'RA---{}'.format(proj)
+                        hdu.header['CTYPE2'] = 'DEC--{}'.format(proj)
+            print(' to {}'.format(proj))
+        return
+
     def center_dither(self, conf="SWarp-center.conf"):
         ''' Center the dither pattern for SWARP '''
 
@@ -236,15 +176,13 @@ class combcat:
         opts["IMAGEOUT_NAME"] = os.path.join(
             self.outdir, "SWarp-%s-center.fits" % (self.tilename))
         opts["PIXEL_SCALE"] = self.pixscale
-        #opts["RESAMPLING_TYPE"] = "LANCZOS3"
-        opts["RESAMPLING_TYPE"] = "LANCZOS2"
+        opts["RESAMPLING_TYPE"] = "LANCZOS3"
         opts["CENTER_TYPE"] = "ALL"
         opts["NTHREADS"] = "0"
 
-        #cmd  = "swarp %s*[0-9][0-9][0-9].fits -c %s " % (self.tilename,center_conf)
         cmd = "swarp %s -c %s " % (' '.join(self.filelist), center_conf)
         for param, value in list(opts.items()):
-            cmd = cmd + "-%s %s " % (param, value)
+            cmd += "-%s %s " % (param, value)
 
         print(cmd)
         if not self.dryrun:
@@ -305,12 +243,13 @@ class combcat:
         if not filters:
             filters = self.filters
 
+        # update the projections
+        #self.update_header_projection()
         # Get the dither centroid
         if not self.centered:
             self.center_dither()
 
         self.make_swarp_input_weights(clobber=False)
-
         self.combtype = combtype
         self.get_FLXSCALE(magbase=26)
 
@@ -363,9 +302,9 @@ class combcat:
 
             cmd = "swarp %s -IMAGEOUT_NAME %s -WEIGHTOUT_NAME %s " %\
                 (filelist, outimage, outweight)
-#            cmd = cmd + " -WEIGHT_IMAGE %s " % (
-#                ",".join(self.files_weight[filter]))
-            cmd += " -WEIGHT_SUFFIX .weight.fits'[0]'"
+            cmd += " -WEIGHT_IMAGE %s " % (
+                ",".join(self.files_weight[filter]))
+            #cmd += " -WEIGHT_SUFFIX .weight.fits'[0]'"
             cmd = cmd + " -FSCALE_DEFAULT %s " % (
                 ",".join(map(str, self.flxscale[filter])))
             cmd = cmd + opts
@@ -504,13 +443,14 @@ class combcat:
 
     # Generate the mask from the weight
     def make_swarp_input_weights(self, clobber=True):
+        ''' Generate the masks from the weight images provided by the VO '''
 
         for fname, dqmask in list(self.dqmask.items()):
             outname = "%s.weight.fits" % os.path.splitext(fname)[0]
             print("# Generating weight image from %s --> %s" % (
                 dqmask, outname), file=sys.stderr)
             weight_from_dqfile(dqmask, outname, clobber=clobber)
-
+            #weight_from_dqfile_all(dqmask, outname, clobber=clobber)
         return
 
     # Make the detection Image using the mask
@@ -595,10 +535,9 @@ class combcat:
                 (self.tilename, det_filter)
 
             # Do the SEx
-            cmd = "sex %s,%s -CATALOG_NAME %s" +\
-                "-MAG_ZEROPOINT %s -c %s %s1>&2"\
-                % (det_ima, input, output, self.magbase, self.SExinpar,
-                   opts)
+            cmd = "sex {},{} -CATALOG_NAME {}".format(det_ima, input, output)
+            cmd += " -MAG_ZEROPOINT {} -c {} {}1>&2".format(self.magbase,
+                                                    self.SExinpar, opts)
 
             print(cmd)
             if not self.dryrun:
@@ -767,19 +706,24 @@ class combcat:
     def runBPZ(self):
         """Runs BPZ on the multicolor catalog file using the .columns """
 
-        print('Starting photometric redshift determination...', file=sys.stderr)
+        print('Starting photometric redshift determination...',
+              file=sys.stderr)
         bpz = os.path.join(os.environ['P_BPZPATH'], 'bpz.py ')
         #bpzcat = self.tilename + ".bpz"
         bpzprobs = self.tilename + ".probs"
 
         #cmd = 'python ' + bpz + self.colorCat + \
-        #' -ZMAX 6.0 -VERBOSE no -INTERP 2 -DZ 0.005 -SPECTRA CWWSB_Benitez2003.list'
+        #' -ZMAX 6.0 -VERBOSE no -INTERP 2 -DZ 0.005 -SPECTRA
+        #CWWSB_Benitez2003.list'
         #cmd = 'python ' + bpz + self.colorCat + \
-        #' -ZMAX 6.0 -VERBOSE no -INTERP 0 -DZ 0.01 -SPECTRA CWWSB_Benitez2003.list'
+        #' -ZMAX 6.0 -VERBOSE no -INTERP 0 -DZ 0.01 -SPECTRA
+        #CWWSB_Benitez2003.list'
         #cmd = 'python ' + bpz + self.colorCat + \
-        #' -ZMAX 1.8 -VERBOSE no -INTERP 2 -DZ 0.01 -SPECTRA CWWSB_Benitez2003.list -PRIOR hdfn'
+        #' -ZMAX 1.8 -VERBOSE no -INTERP 2 -DZ 0.01 -SPECTRA
+        #CWWSB_Benitez2003.list -PRIOR hdfn'
         cmd = 'python ' + bpz + self.colorCat + \
-            ' -ZMAX 1.8 -VERBOSE no -INTERP 2 -DZ 0.01 -SPECTRA CWWSB_Benitez2003.list -PRIOR full -PROBS_LITE ' + bpzprobs
+            ' -ZMAX 1.8 -VERBOSE no -INTERP 2 -DZ 0.01 -SPECTRA ' + \
+            'CWWSB_Benitez2003.list -PRIOR full -PROBS_LITE ' + bpzprobs
 
         if not self.dryrun:
             print(cmd)
@@ -825,7 +769,6 @@ def mask_from_weight(infile, outfile, value=0):
 
 # Create a mask file from the weights
 def weight_from_dqfile(infile, outfile, clobber=False):
-
     # Remove old version of file before
     if os.path.isfile(outfile):
         if clobber:
@@ -845,19 +788,29 @@ def weight_from_dqfile(infile, outfile, clobber=False):
     inHDU.close()
     return
 
-    # ########################################
-    # (data,hdr) = rfits(infile,hdu=1)
-
-    # newdata    = np.where(data > 0, 0, 1)
-    # newfits    = fits.HDUList()
-    # nhdu       = fits.PrimaryHDU()
-    # #nhdu.data   = newdata.astype(np.int8) # Just as ushort integer
-    # nhdu.data   = newdata.astype("UInt8") # Just as ushort integer
-    # newfits.append(nhdu)
-    # newfits.writeto(outfile)
-    # newfits.close
-    # return
-
+# Create a mask file from the weights
+def weight_from_dqfile_all(infile, outfile, clobber=False):
+    # Remove old version of file before
+    if os.path.isfile(outfile):
+        if clobber:
+            os.remove(outfile)
+        else:
+            print("# Skipping creation, %s image exists" % outfile)
+            return
+    with fits.open(infile, 'readonly') as inHDU:
+        print(len(inHDU))
+        newhdu = fits.HDUList()
+        for i, hdu in enumerate(inHDU):
+            if not i:
+                newhdu.append(fits.PrimaryHDU())
+            else:
+                newdata = np.where(hdu.data > 0, 0, 1)
+                hdu.data = newdata.astype("UInt8")  # Just as ushort integer
+                newhdu.append(hdu)
+        print(len(newhdu))
+        newhdu.writeto(outfile, clobber=clobber)
+        newhdu.close()
+        return
 
 def replace_vals_image(infits, outfits, repval=1):
     # Replace all values in MOSAIC multi-extension fits file by
