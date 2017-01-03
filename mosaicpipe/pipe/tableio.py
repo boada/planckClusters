@@ -1,6 +1,6 @@
 import string
 import numpy
-import types
+
 """ A collection of scripts to read and write very simple ascii tables.
     Collected by F.Menanteau.
 """
@@ -39,13 +39,13 @@ def get_str(file, cols=0, nrows='all', sep=None):
     """
         Reads strings from a file
         Usage:
-	     x,y,z=get_str('myfile.cat',(0,1,2))
+         x,y,z=get_str('myfile.cat',(0,1,2))
         x,y,z are returned as string lists
     """
     # Modified to be feed a buffer as well as a file
     # F. Menanteau
 
-    if type(cols) == type(0):
+    if isinstance(cols, int):
         cols = (cols, )
         nvar = 1
     else:
@@ -67,9 +67,9 @@ def get_str(file, cols=0, nrows='all', sep=None):
         if counter >= nrows:
             break
         if sep:
-            pieces = string.split(lines, sep)
+            pieces = lines.split(sep)
         else:
-            pieces = string.split(lines)
+            pieces = lines.split()
 
         if len(pieces) == 0:
             continue
@@ -87,9 +87,9 @@ def get_str(file, cols=0, nrows='all', sep=None):
 def put_str(file, tupla):
     """ Writes tuple of string lists to a file
         Usage:
-	  put_str(file,(x,y,z))
+      put_str(file,(x,y,z))
     """
-    if type(tupla) != type((2, )):
+    if not isinstance(tupla, tuple):
         raise 'Need a tuple of variables'
 
     f = open(file, 'w')
@@ -111,7 +111,8 @@ def get_data(file, cols=0, nrows='all', sep=None):
     """ Returns data in the columns defined by the tuple
     (or single integer) cols as a tuple of float arrays
     (or a single float array)"""
-    if type(cols) == type(0):
+
+    if isinstance(cols, int):
         cols = (cols, )
         nvar = 1
     else:
@@ -131,12 +132,12 @@ def get_data(file, cols=0, nrows='all', sep=None):
 def put_data(file, variables, header='', format='', append='no'):
     """ Writes tuple of float variables to a file
         Usage:
-	  put_data(file,(x,y,z),header,format)
-	where header is any string
+      put_data(file,(x,y,z),header,format)
+    where header is any string
         and format is a string of the type:
            '%f %f %i '
     """
-    if type(variables) != type((2, )):
+    if not isinstance(variables, tuple):
         raise 'Need a tuple of variables'
     if format == '': format = '%.8e  ' * len(variables)
     if append == 'yes': f = open(file, 'a')
@@ -163,9 +164,9 @@ def rcols(file, cols=None, nrows='all'):
     (or single integer) cols as a tuple of float arrays
     (or a single float array)"""
 
-    if cols == None:
+    if cols is None:
         nvar = 0
-    elif type(cols) == type(0):
+    elif isinstance(cols, int):
         cols = (cols, )
         nvar = 1
     else:
@@ -187,7 +188,7 @@ def get_string(file, cols=None, nrows='all', buffer=None):
     """
         Reads strings from a file
         Usage:
-	     x,y,z=get_str('myfile.cat',(0,1,2))
+         x,y,z=get_str('myfile.cat',(0,1,2))
         x,y,z are returned as string lists
 
         Modified to read from buffer, F. Menanteau
@@ -213,12 +214,12 @@ def get_string(file, cols=None, nrows='all', buffer=None):
             continue
 
     # Decide how many columns to read
-        if nvar == None:
+        if nvar is None:
 
-            if cols == None:
+            if cols is None:
                 nvar = len(pieces)
                 cols = tuple(range(nvar))
-            elif type(cols) == type(0):
+            elif isinstance(cols, int):
                 cols = (cols, )
                 nvar = 1
             else:
@@ -244,7 +245,7 @@ def get_datarray(file, cols=0, nrows='all', buffer=None):
 
     Modified to read from buffer, F. Menanteau"""
 
-    if type(cols) == type(0):
+    if isinstance(cols, int):
         cols = (cols, )
         nvar = 1
     else:
@@ -300,7 +301,7 @@ def put_2Darray(file, array, header='', format='', append='no'):
     index changes along the lines and the second along
     the columns
     Usage: put_2Darray(file,a,header,format)
-	where header is any string
+    where header is any string
         and format is a string of the type:
            '%f %f %i '
     """
