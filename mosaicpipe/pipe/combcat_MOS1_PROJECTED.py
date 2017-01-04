@@ -84,15 +84,23 @@ class combcat:
 
                 vals = line.split()
                 fname = os.path.basename(vals[0])
+
+                # hack to deal with compressed files in the association
+                if '.fz' in fname:
+                    fname = fname.rstrip('.fz')
+
                 filtername = vals[1]
                 self.exptime[fname] = float(vals[2])
                 self.airmass[fname] = float(vals[3])
 
                 # Figure out the dqmask
-                nid = int(os.path.splitext(fname)[0][2:]) + 1
-                ext = os.path.splitext(fname)[1]
-                pre = fname[0:2]
-                dqmask = "%s%s%s" % (pre, nid, ext)
+                if 'tu' in fname:
+                    nid = int(os.path.splitext(fname)[0][2:]) + 1
+                    ext = os.path.splitext(fname)[1]
+                    pre = fname[0:2]
+                    dqmask = "%s%s%s" % (pre, nid, ext)
+                elif 'k4' in fname:
+                    dqmask = fname.replace('opi', 'opd')
 
                 # make a list of the file names
                 self.filelist.append(fname)
@@ -736,6 +744,22 @@ class combcat:
         x = np.asarray(x)
         return x.mean()
 
+    def cleanup_files(self):
+        ''' Removes all of the intermediate files created during the
+        processing. Basically that is every file in the association file.
+
+        '''
+
+        print('cleaning up files', end='.')
+        for f in self.infiles:
+                print('', end='.')
+                os.remove(f)
+        for filtername in self.filters:
+            for f in self.files_weight[filtername]:
+                print('', end='.')
+                os.remove(f.rstrip("'[0]'"))
+        print('')
+        return
 
 # Create a mask file from the weights
 def mask_from_weight(infile, outfile, value=0):
@@ -1129,6 +1153,12 @@ def cmdline():
                       default='MEDIAN',
                       help="SWarp COMBINE TYPE")
 
+    parser.add_option("--noCleanUP",
+                      action='store_true',
+                      dest='noCleanUP',
+                      default=0,
+                      help='Whether or to remove uncompressed files')
+
     (options, args) = parser.parse_args()
 
     if len(args) < 3:
@@ -1216,15 +1246,11 @@ def main():
                   conf="SWarp-common.conf",
                   combtype=opt.combtype)  # ,filters=opt.frames_filters)
 
-    try:
-        c.makeDetectionIma(filter='i')
-    except:
-        print("# Could not make Detection image with i-band")
-
     # Make the detection image
     if opt.useMask:
         # Make the mask from the weights
         c.generate_masks(filters=('i', ), dryrun=opt.noMask)
+        c.makeDetectionIma(filter='i')
 
     # SExtractor
     if not opt.noSEx:
@@ -1239,6 +1265,11 @@ def main():
         if c.getbpz and not opt.noBPZ:
             c.BuildColorCat()
             c.runBPZ()
+
+    if opt.noCleanUP:
+        pass
+    else:
+        c.cleanup_files()
 
     elapsed_time(tstart, c.tilename)
     return
