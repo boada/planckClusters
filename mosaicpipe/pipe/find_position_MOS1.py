@@ -661,8 +661,9 @@ class finder:
             z_cl, z_err = self.select_members_radius(self.iclose,
                                                      radius=radius,
                                                      zo=self.zo)
-            z_cl, z_err = self.select_members_radius(
-                self.iclose, radius=radius, zo=z_cl)
+            z_cl, z_err = self.select_members_radius(self.iclose,
+                                                     radius=radius,
+                                                     zo=z_cl)
             self.iBCG = self.iclose
             print("\t Ngal: %d" % self.Ngal)
             print("\t z_cl: %.3f +/- %.3f" % (self.z_cl, self.z_clerr))
@@ -741,9 +742,11 @@ class finder:
         r1Mpc = astrometry.kpc2arc(zo, R1Mpc,
                                    self.cosmo) / 3600.  # in degrees.
         rcore = r1Mpc / 2.0
-        dist = astrometry.circle_distance(
-            ra0, dec0, self.ra, self.dec,
-            units='deg')
+        dist = astrometry.circle_distance(ra0,
+                                          dec0,
+                                          self.ra,
+                                          self.dec,
+                                          units='deg')
         mask_R1Mpc = numarray.where(dist <= r1Mpc, 1, 0)
         mask_rcore = numarray.where(dist <= rcore, 1, 0)
         arcmin2Mpc = astrometry.arc2kpc(
@@ -863,9 +866,11 @@ class finder:
         R = radius  # in kpc
         r = astrometry.kpc2arc(zo, R, self.cosmo) / 3600.  # in degrees.
         rcore = r / 2.0
-        dist = astrometry.circle_distance(
-            ra0, dec0, self.ra, self.dec,
-            units='deg')
+        dist = astrometry.circle_distance(ra0,
+                                          dec0,
+                                          self.ra,
+                                          self.dec,
+                                          units='deg')
         mask_R = numarray.where(dist <= r, 1, 0)
         mask_rcore = numarray.where(dist <= rcore, 1, 0)
         arcmin2Mpc = astrometry.arc2kpc(
@@ -1432,7 +1437,11 @@ import math
 Polygon = matplotlib.patches.Polygon
 
 
-def PEllipse(xxx_todo_changeme, xxx_todo_changeme1, resolution=100, angle=0.0, **kwargs):
+def PEllipse(xxx_todo_changeme,
+             xxx_todo_changeme1,
+             resolution=100,
+             angle=0.0,
+             **kwargs):
     (xo, yo) = xxx_todo_changeme
     (A, B) = xxx_todo_changeme1
     pi = math.pi
