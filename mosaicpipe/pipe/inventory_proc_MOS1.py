@@ -21,7 +21,7 @@ dirs = [dirs for _, dirs, _ in os.walk('./')][0] # only want top level
 cwd = os.getcwd()
 for d in dirs:
     os.chdir(cwd)
-    rawdir = './{}/mosaic/reprojected'.format(d)
+    rawdir = './{}/mosaic/resampled'.format(d)
     outdir = '.'
 
     pattern = "*.fits"
@@ -47,14 +47,14 @@ for d in dirs:
     AIRMASS = {}
     tiles = []
 
-    print("Found %s files, please wait... this will take a while" % len(full_list),
-        file=sys.stderr)
+    print("Found %s files, please wait... this will take a while" %
+          len(full_list), file=sys.stderr)
 
     counter = 1
     for file in full_list:
 
         # make sure we are only working on mosaic data
-        if not 'mosaic' and 'reprojected' in file:
+        if not 'mosaic' and 'resampled' in file:
             continue
 
         print("Reading %-45s ... (%4s/%4s)" % (file, counter, len(full_list)),
@@ -64,7 +64,7 @@ for d in dirs:
         counter += 1
         # Weed out the calibration files we don't care about
         try:
-            if header['OBSTYPE'] != 'object':
+            if header['prodtype'] != 'image':
                 continue
         except KeyError:
             print("# OBSTYPE not present for %s" % file)
