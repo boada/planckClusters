@@ -262,7 +262,6 @@ class combcat:
         #OBSTYPE, OBSERVAT, TELESCOP,HA, ZD, DETECTOR, DARKTIME"
         keywords = "OBJECT,OBSTYPE"
 
-        common_conf = os.path.join(self.BCSPIPE, 'LIB/pars', conf)
         pars = {}
         pars["IMAGE_SIZE"] = "%s,%s" % (self.nx, self.ny)
         pars["CENTER_TYPE"] = "MANUAL"
@@ -762,6 +761,40 @@ class combcat:
         print('')
         return
 
+    def make_RGB(self):
+
+        try:
+            check_exe('stiff')
+        except FileNotFoundError:
+            return
+
+        # input files
+        red = './{}{}.fits'.format(self.tilename, 'i')
+        green = './{}{}.fits'.format(self.tilename, 'r')
+        blue = './{}{}.fits'.format(self.tilename, 'g')
+
+        # output file
+        output = '{}.tiff'.format(self.tilename)
+
+        # options
+        opts = ['-MIN_LEVEL', '0.001',
+                '-MAX_LEVEL', '0.999',
+                '-MAX_TYPE', 'QUANTILE',
+                '-DESCRIPTION', "'{} RGB'".format(self.tilename),
+                '-WRITE_XML', 'N',
+                '-COPYWRITE', "'Steven Boada'"]
+
+        # build the command -- a space is always last
+        cmd = 'stiff {} {} {} '.format(red, green, blue)
+        cmd += '-OUTFILE_NAME {} '.format(output)
+        # append the options
+        for opt in opts:
+            cmd += '{} '.format(opt)
+
+        print(cmd)
+        os.system(cmd)
+        return
+
 # Create a mask file from the weights
 def mask_from_weight(infile, outfile, value=0):
 
@@ -990,6 +1023,7 @@ def check_exe(exe, verb="yes"):
                 print("# Found %s in %s" % (exe, f), file=sys.stderr)
             return f
     print("# ERROR: Couldn't find %s" % exe, file=sys.stderr)
+    raise FileNotFoundError(exe)
     return
 
 
@@ -1164,7 +1198,13 @@ def cmdline():
                       action='store_true',
                       dest='noCleanUP',
                       default=0,
-                      help='Whether or to remove uncompressed files')
+                      help='Whether or not to remove uncompressed files')
+
+    parser.add_option("--noRGB",
+                      action='store_true',
+                      dest='noRGB',
+                      default=0,
+                      help='Whether or not to create RGB images from mosaics')
 
     (options, args) = parser.parse_args()
 
@@ -1273,9 +1313,16 @@ def main():
             c.BuildColorCat()
             c.runBPZ()
 
+    # make RGB images (pngs)
+    if not opt.noRGB:
+        print('make rgb')
+        c.make_RGB()
+
+    # cleanup
     if opt.noCleanUP:
         pass
     else:
+        print("CLEANUP!")
         c.cleanup_files()
 
     elapsed_time(tstart, c.tilename)
