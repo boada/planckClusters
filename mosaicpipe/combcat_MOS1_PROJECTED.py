@@ -320,6 +320,69 @@ class combcat:
 
         return
 
+    def swarp_newfirm(self):
+        ''' This runs swarp on the stacked newfirm images to make sure they are
+        in the same projection as the mosaic images. Right now, it needs to
+        have the stacked data from the VO. In the future,  I might create my
+        own stacks similar to the method above, but probably not. I think the
+        stacked images from the VO are good enough to do what we want. '''
+
+        from glob import glob
+
+        # get the center file created above
+        center = "{}/SWarp-{}-center.fits".format(self.outdir, self.tilename)
+
+        # link this file into the newfirm directory and change the name
+        # check first
+        newfirm_dir = '../../newfirm/stacked/'
+        if not os.path.isdir(newfirm_dir):
+            return
+
+        # make sure the images aren't compressed
+        imgs = glob('{}*.fz'.format(newfirm_dir))
+        if len(imgs) < 1:
+            # check for uncompressed images
+                imgs = glob('{}*.fits'.format(newfirm_dir))
+                if len(imgs) < 1:
+                    print('No NEWFIRM images found!')
+                    return
+        else:
+            for img in imgs:
+                with fits.open(img) as kimg:
+                    try:
+                        prod_type = kimg[0].header['proctype']
+                    except KeyError:
+                        try:
+                            prod_type = kimg[1].header['proctype']
+                        except KeyError:
+                            print('Something is wrong with the images!')
+                            return
+                if 'image' in prod_type:
+                    # use funpack to decompress items
+                    check_exe('funpack')
+                    os.system('funpack -v {}'.format(img))
+                else:
+                    continue
+
+            try:
+                os.symlink(center,
+                        '{}{}.head'.format(newfirm_dir, self.tilename))
+            except FileExistsError:
+                pass
+
+            # build the swarp command
+            check_exe('swarp')
+            cmd = 'swarp {}{} -IMAGEOUT_NAME {}{}k.fits '.format(newfirm_dir,
+                                                                 kimg) + \
+            '-SUBTRACT_BACK N -WRITE_XML N'.format(newfirm_dir, self.tilename)
+            print(cmd)
+            os.system(cmd)
+
+            # clean up decompressed files
+            #os.remove('{}'.format(img))
+
+        return
+
     # Put correction
     def header_FSCALE(self, filters=None, dm=0.05):
 
@@ -1294,7 +1357,7 @@ def main():
     if opt.Copy:
         c.copyfiles(copy=True)
     else:
-        pass
+        c.copyfiles(copy=False)
 
     # SWarp
     c.swarp_files(dryrun=opt.noSWarp,
@@ -1320,6 +1383,9 @@ def main():
         if c.getbpz and not opt.noBPZ:
             c.BuildColorCat()
             c.runBPZ()
+
+    # swarp NEWFIRM images (if they are there)
+    c.swarp_newfirm()
 
     # make RGB images (pngs)
     if not opt.noRGB:
