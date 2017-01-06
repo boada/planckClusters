@@ -124,7 +124,7 @@ class combcat:
 
         return
 
-    def copyfiles(self, copy="yes"):
+    def copyfiles(self, copy=False):
         ''' Copy files from the remote location to the current dir'''
 
         if not copy:
@@ -761,7 +761,7 @@ class combcat:
         print('')
         return
 
-    def make_RGB(self):
+    def make_RGB(self, red=None, green=None, blue=None):
 
         try:
             check_exe('stiff')
@@ -1129,11 +1129,11 @@ def cmdline():
 
     parser = OptionParser(usage=USAGE)
 
-    parser.add_option("--noCopy",
+    parser.add_option("--Copy",
                       action="store_true",
-                      dest="noCopy",
+                      dest="Copy",
                       default=0,
-                      help="No Copy files")
+                      help="Copy files")
 
     parser.add_option("--noSWarp",
                       action="store_true",
@@ -1213,7 +1213,7 @@ def cmdline():
 
     # Dry run turns off everything... almost
     if options.dryrun:
-        options.noCopy = 1
+        options.Copy = 0
         options.noSWarp = 1
         options.noBPZ = 1
         options.noMask = 1
@@ -1221,7 +1221,7 @@ def cmdline():
 
     # Same for WeightOnly
     if options.WeightOnly:
-        options.noCopy = 1
+        options.Copy = 0
         options.noSWarp = 1
         options.noBPZ = 1
         options.noMask = 1
@@ -1283,10 +1283,10 @@ def main():
                 dryrun=opt.dryrun)
 
     # Copy the files into dir
-    if opt.noCopy:
-        c.copyfiles(copy=None)
+    if opt.Copy:
+        c.copyfiles(copy=True)
     else:
-        c.copyfiles(copy='yes')
+        pass
 
     # SWarp
     c.swarp_files(dryrun=opt.noSWarp,
