@@ -9,7 +9,6 @@ from astropy.time import Time, TimeDelta
 from astropy import units as u
 import pandas as pd
 import numpy as np
-from astLib import astCoords
 
 
 def mst2utc(time):
