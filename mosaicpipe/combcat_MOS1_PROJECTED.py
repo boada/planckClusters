@@ -761,7 +761,7 @@ class combcat:
         print('')
         return
 
-    def make_RGB(self, red=None, green=None, blue=None):
+    def make_RGB(self, kband=False):
 
         try:
             check_exe('stiff')
@@ -769,9 +769,17 @@ class combcat:
             return
 
         # input files
-        red = './{}{}.fits'.format(self.tilename, 'i')
-        green = './{}{}.fits'.format(self.tilename, 'r')
-        blue = './{}{}.fits'.format(self.tilename, 'g')
+        if kband:
+            try:
+                red = '../../newfirm/stacked/{}{}'.format(self.tilename, 'k')
+            except FileNotFoundError:
+                print('k-band file not found, restoring defaults')
+            green = './{}{}.fits'.format(self.tilename, 'i')
+            blue = './{}{}.fits'.format(self.tilename, 'r')
+        else:
+            red = './{}{}.fits'.format(self.tilename, 'i')
+            green = './{}{}.fits'.format(self.tilename, 'r')
+            blue = './{}{}.fits'.format(self.tilename, 'g')
 
         # output file
         output = '{}.tiff'.format(self.tilename)
@@ -782,7 +790,7 @@ class combcat:
                 '-MAX_TYPE', 'QUANTILE',
                 '-DESCRIPTION', "'{} RGB'".format(self.tilename),
                 '-WRITE_XML', 'N',
-                '-COPYWRITE', "'Steven Boada'"]
+                '-COPYRIGHT', "'Steven Boada'"]
 
         # build the command -- a space is always last
         cmd = 'stiff {} {} {} '.format(red, green, blue)
@@ -1316,7 +1324,7 @@ def main():
     # make RGB images (pngs)
     if not opt.noRGB:
         print('make rgb')
-        c.make_RGB()
+        c.make_RGB(kband=True)
 
     # cleanup
     if opt.noCleanUP:
