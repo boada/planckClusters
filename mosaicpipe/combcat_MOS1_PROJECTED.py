@@ -88,6 +88,8 @@ class combcat:
                 # hack to deal with compressed files in the association
                 if '.fz' in fname:
                     fname = fname.rstrip('.fz')
+                    if not os.path.isfile(fname):
+                        os.system('funpack -v {}.fz'.format(fname))
 
                 filtername = vals[1]
                 self.exptime[fname] = float(vals[2])
@@ -99,8 +101,12 @@ class combcat:
                     ext = os.path.splitext(fname)[1]
                     pre = fname[0:2]
                     dqmask = "%s%s%s" % (pre, nid, ext)
+                    if not os.path.isfile(dqmask):
+                        os.system('funpack -v {}.fz'.format(dqmask))
                 elif 'k4' in fname:
                     dqmask = fname.replace('opi', 'opd')
+                    if not os.path.isfile(dqmask):
+                        os.system('funpack -v {}.fz'.format(dqmask))
 
                 # make a list of the file names
                 self.filelist.append(fname)
@@ -249,6 +255,7 @@ class combcat:
 
         # update the projections
         #self.update_header_projection()
+
         # Get the dither centroid
         if not self.centered:
             self.center_dither()
@@ -372,9 +379,11 @@ class combcat:
 
             # build the swarp command
             check_exe('swarp')
-            cmd = 'swarp {}{} -IMAGEOUT_NAME {}{}k.fits '.format(newfirm_dir,
-                                                                 kimg) + \
-            '-SUBTRACT_BACK N -WRITE_XML N'.format(newfirm_dir, self.tilename)
+            cmd = 'swarp {}{} '.format(newfirm_dir, kimg)
+            cmd += '-IMAGEOUT_NAME {}{}k.fits '.format(newfirm_dir,
+                                                       self.tilename)
+            cmd += '-SUBTRACT_BACK N -WRITE_XML N'
+
             print(cmd)
             os.system(cmd)
 
@@ -1385,12 +1394,12 @@ def main():
             c.runBPZ()
 
     # swarp NEWFIRM images (if they are there)
-    c.swarp_newfirm()
+    #c.swarp_newfirm()
 
     # make RGB images (pngs)
     if not opt.noRGB:
         print('make rgb')
-        c.make_RGB(kband=True)
+        c.make_RGB(kband=False)
 
     # cleanup
     if opt.noCleanUP:
