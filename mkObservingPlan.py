@@ -45,8 +45,8 @@ targets = [FixedTarget(name=name, coord=coor)
            for name, coor in zip(data['Name'], coords)]
 
 # make the observing time - Local time.
-start_time_mst = Time('2017-1-10 18:30')
-end_time_mst = Time('2017-1-12 06:00')
+start_time_mst = Time('2017-01-10 18:30')
+end_time_mst = Time('2017-01-12 06:00')
 night_time = end_time_mst - start_time_mst
 observable_time_mst = start_time_mst + night_time * np.linspace(0, 1, 75)
 
