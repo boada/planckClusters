@@ -19,6 +19,7 @@ class combcat:
                  outpath='',
                  pixscale=0.2666,
                  dryrun=None,
+                 noSWarp=False,
                  verb='yes'):
 
         self.assocfile = assocfile
@@ -26,6 +27,7 @@ class combcat:
         self.tilename = os.path.basename(os.path.splitext(assocfile)[0])
         self.outpath = outpath
         self.dryrun = dryrun
+        self.noSWarp = noSWarp
         self.verb = verb
         self.DetImage = None
         self.centered = None
@@ -88,7 +90,7 @@ class combcat:
                 # hack to deal with compressed files in the association
                 if '.fz' in fname:
                     fname = fname.rstrip('.fz')
-                    if not os.path.isfile(fname):
+                    if not os.path.isfile(fname) and not self.noSWarp:
                         os.system('funpack -v {}.fz'.format(fname))
 
                 filtername = vals[1]
@@ -101,11 +103,11 @@ class combcat:
                     ext = os.path.splitext(fname)[1]
                     pre = fname[0:2]
                     dqmask = "%s%s%s" % (pre, nid, ext)
-                    if not os.path.isfile(dqmask):
+                    if not os.path.isfile(dqmask) and not self.noSWarp:
                         os.system('funpack -v {}.fz'.format(dqmask))
                 elif 'k4' in fname:
                     dqmask = fname.replace('opi', 'opd')
-                    if not os.path.isfile(dqmask):
+                    if not os.path.isfile(dqmask) and not self.noSWarp:
                         os.system('funpack -v {}.fz'.format(dqmask))
 
                 # make a list of the file names
@@ -265,9 +267,11 @@ class combcat:
         self.get_FLXSCALE(magbase=26)
 
         # Keys to keep
-        #keywords = "OBJECT, EXPTIME, AIRMASS, TIMESYS, DATE-OBS, TIME-OBS,
-        #OBSTYPE, OBSERVAT, TELESCOP,HA, ZD, DETECTOR, DARKTIME"
-        keywords = "OBJECT,OBSTYPE"
+        keywords = ['OBJECT', 'EXPTIME', 'AIRMASS', 'TIMESYS', 'DATE-OBS',
+                    'TIME-OBS', 'OBSTYPE', 'OBSERVAT', 'TELESCOP', 'HA', 'ZD',
+                    'DETECTOR', 'DARKTIME', 'RA', 'DEC', 'MJD-OBS', 'INSTRUME',
+                    'FILTER']
+        #keywords = "OBJECT,OBSTYPE"
 
         pars = {}
         pars["IMAGE_SIZE"] = "%s,%s" % (self.nx, self.ny)
@@ -276,7 +280,7 @@ class combcat:
         pars["PIXEL_SCALE"] = self.pixscale
         pars["PIXELSCALE_TYPE"] = "MANUAL"
         #pars["FSCALE_KEYWORD"]  = "FLXSCALE"
-        pars["COPY_KEYWORDS"] = keywords
+        pars["COPY_KEYWORDS"] = ','.join(keywords)
         pars["COMBINE_TYPE"] = combtype
         pars["NTHREADS"] = "0"
         pars["WEIGHT_TYPE"] = "MAP_WEIGHT"
@@ -347,6 +351,7 @@ class combcat:
 
         # make sure the images aren't compressed
         imgs = glob('{}*.fz'.format(newfirm_dir))
+        print(imgs)
         if len(imgs) < 1:
             # check for uncompressed images
                 imgs = glob('{}*.fits'.format(newfirm_dir))
@@ -357,10 +362,10 @@ class combcat:
             for img in imgs:
                 with fits.open(img) as kimg:
                     try:
-                        prod_type = kimg[0].header['proctype']
+                        prod_type = kimg[0].header['prodtype']
                     except KeyError:
                         try:
-                            prod_type = kimg[1].header['proctype']
+                            prod_type = kimg[1].header['prodtype']
                         except KeyError:
                             print('Something is wrong with the images!')
                             return
@@ -372,23 +377,27 @@ class combcat:
                     continue
 
             try:
-                os.symlink(center,
+                relpath = os.path.relpath('./', newfirm_dir)
+                print(relpath)
+                os.symlink('{}/{}'.format(relpath, center),
                         '{}{}.head'.format(newfirm_dir, self.tilename))
             except FileExistsError:
                 pass
 
             # build the swarp command
             check_exe('swarp')
-            cmd = 'swarp {}{} '.format(newfirm_dir, kimg)
-            cmd += '-IMAGEOUT_NAME {}{}k.fits '.format(newfirm_dir,
-                                                       self.tilename)
-            cmd += '-SUBTRACT_BACK N -WRITE_XML N'
+            imgs = glob('{}*.fits'.format(newfirm_dir))
+            for img in imgs:
+                cmd = 'swarp {} '.format(img)
+                cmd += '-IMAGEOUT_NAME {}{}k.fits '.format(newfirm_dir,
+                                                        self.tilename)
+                cmd += '-SUBTRACT_BACK N -WRITE_XML N'
 
-            print(cmd)
-            os.system(cmd)
+                print(cmd)
+                os.system(cmd)
 
-            # clean up decompressed files
-            #os.remove('{}'.format(img))
+                # clean up decompressed files
+                os.remove('{}'.format(img))
 
         return
 
@@ -843,7 +852,7 @@ class combcat:
         # input files
         if kband:
             try:
-                red = '../../newfirm/stacked/{}{}'.format(self.tilename, 'k')
+                red = '../../newfirm/stacked/{}{}.fits'.format(self.tilename, 'k')
             except FileNotFoundError:
                 print('k-band file not found, restoring defaults')
             green = './{}{}.fits'.format(self.tilename, 'i')
@@ -1090,22 +1099,23 @@ def clean_FLXCORR(file, N=16):
 
     return
 
-
-# Checks if program is in PATH
 def check_exe(exe, verb="yes"):
+    ''' Checks to make sure we have the appropriate system command available.
+    If we don't it raises an exception.
+
+    '''
 
     path = os.environ['PATH'].split(':')
     for p in path:
-
         f = os.path.join(p, exe)
         if os.path.isfile(f):
             if verb:
                 print("# Found %s in %s" % (exe, f), file=sys.stderr)
-            return f
+            return True
+    # it wasn't found
     print("# ERROR: Couldn't find %s" % exe, file=sys.stderr)
     raise FileNotFoundError(exe)
-    return
-
+    return False
 
 def elapsed_time(t1, text=''):
     import time
@@ -1198,6 +1208,31 @@ def writefits(array, filename):
 
 wfits = writefits
 
+# Transform form Dec to Sexagesimal hh:mm:ss format
+def dec2sex(hms):
+
+    hh = int(hms)
+    mm = int((hms - hh) * 60)
+    ss = ((hms - hh) * 60 - mm) * 60
+
+    if abs(mm) < 10:
+        mm = "0%d" % abs(mm)
+    else:
+        mm = "%2d" % abs(mm)
+
+    if abs(ss) < 10:
+        ss = "0%.2f" % abs(ss)
+    else:
+        ss = "%5.2f" % abs(ss)
+
+        #return "%2d:%d:%.2f" % (hh,abs(mm),abs(ss))
+    return "%s:%s:%s" % (hh, mm, ss)
+
+# Taken from APSIS fUtil
+def deNAN(a, value=0.0):
+    nans = np.logical_not(np.less(a, 0.0) + np.greater_equal(
+        a, 0.0))
+    return np.where(nans, value, a)
 
 def cmdline():
 
@@ -1286,6 +1321,12 @@ def cmdline():
                       default=0,
                       help='Whether or not to create RGB images from mosaics')
 
+    parser.add_option("--noNEWFIRM",
+                      action='store_true',
+                      dest='noNEWFIRM',
+                      default=0,
+                      help='Whether or not to swarp the newfirm mosaic data.')
+
     (options, args) = parser.parse_args()
 
     if len(args) < 3:
@@ -1308,33 +1349,6 @@ def cmdline():
         options.Dust = 0
 
     return options, args
-
-
-# Transform form Dec to Sexagesimal hh:mm:ss format
-def dec2sex(hms):
-
-    hh = int(hms)
-    mm = int((hms - hh) * 60)
-    ss = ((hms - hh) * 60 - mm) * 60
-
-    if abs(mm) < 10:
-        mm = "0%d" % abs(mm)
-    else:
-        mm = "%2d" % abs(mm)
-
-    if abs(ss) < 10:
-        ss = "0%.2f" % abs(ss)
-    else:
-        ss = "%5.2f" % abs(ss)
-
-        #return "%2d:%d:%.2f" % (hh,abs(mm),abs(ss))
-    return "%s:%s:%s" % (hh, mm, ss)
-
-# Taken from APSIS fUtil
-def deNAN(a, value=0.0):
-    nans = np.logical_not(np.less(a, 0.0) + np.greater_equal(
-        a, 0.0))
-    return np.where(nans, value, a)
 
 
 def main():
@@ -1360,7 +1374,8 @@ def main():
                 datapath=inpath,
                 outpath=outpath,
                 verb='yes',
-                dryrun=opt.dryrun)
+                dryrun=opt.dryrun,
+                noSWarp=opt.noSWarp)
 
     # Copy the files into dir
     if opt.Copy:
@@ -1369,9 +1384,14 @@ def main():
         c.copyfiles(copy=False)
 
     # SWarp
-    c.swarp_files(dryrun=opt.noSWarp,
+    if not opt.noSWarp:
+        c.swarp_files(dryrun=opt.noSWarp,
                   conf="SWarp-common.conf",
-                  combtype=opt.combtype)  # ,filters=opt.frames_filters)
+                  combtype=opt.combtype)
+
+    # swarp NEWFIRM images (if they are there)
+    if not opt.noNEWFIRM:
+        c.swarp_newfirm()
 
     # Make the detection image
     if opt.useMask:
@@ -1393,13 +1413,10 @@ def main():
             c.BuildColorCat()
             c.runBPZ()
 
-    # swarp NEWFIRM images (if they are there)
-    #c.swarp_newfirm()
-
     # make RGB images (pngs)
     if not opt.noRGB:
         print('make rgb')
-        c.make_RGB(kband=False)
+        c.make_RGB(kband=True)
 
     # cleanup
     if opt.noCleanUP:
