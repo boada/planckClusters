@@ -7,20 +7,23 @@ import numpy as np
 import glob
 import time
 
+
 def filtercomment(sql):
     "Get rid of comments starting with --"
     fsql = ''
     for line in sql.split('\n'):
-        fsql += line.split('--')[0] + ' ' + os.linesep;
+        fsql += line.split('--')[0] + ' ' + os.linesep
     return fsql
 
+
 def query(sql):
-    url='http://skyserver.sdss3.org/public/en/tools/search/x_sql.aspx'
+    url = 'http://skyserver.sdss3.org/public/en/tools/search/x_sql.aspx'
     fmt = 'csv'
     "Run query and return file object"
     fsql = filtercomment(sql)
-    params = urllib.urlencode({'cmd':fsql, 'format': fmt})
-    return urllib.urlopen(url+'?%s' %params)
+    params = urllib.urlencode({'cmd': fsql, 'format': fmt})
+    return urllib.urlopen(url + '?%s' % params)
+
 
 def work(ra, dec, outfile):
     select = '''SELECT TOP 1000 G.objid,
@@ -47,7 +50,7 @@ def work(ra, dec, outfile):
     FROM = '''FROM   galaxy AS G
     '''
     join = '''
-       JOIN dbo.Fgetnearbyobjeq('''+str(ra)+','+str(dec)+''',4) AS GN
+       JOIN dbo.Fgetnearbyobjeq(''' + str(ra) + ',' + str(dec) + ''',4) AS GN
          ON G.objid = GN.objid
        LEFT JOIN photoz AS Pz
               ON G.objid = Pz.objid
@@ -57,9 +60,9 @@ def work(ra, dec, outfile):
     where = '''WHERE  G.r < 24
        AND clean = 1
        AND ( calibstatus_r & 1 ) != 0
-	'''
+    '''
 
-    sql = select+FROM+join+where
+    sql = select + FROM + join + where
 
     result = query(sql)
 
@@ -69,24 +72,22 @@ def work(ra, dec, outfile):
     else:
         ofp = open(outfile, 'wt')
         while line:
-            ofp.write(string.rstrip(line)+os.linesep)
+            ofp.write(string.rstrip(line) + os.linesep)
             line = result.readline()
         ofp.close()
-
 
 # get file data
 data =\
 np.genfromtxt('../../PSZ2_unconfirmed_catalog_4NOAO_2016A_newSwift-PSZ2_unconfirmed_catalog_4NOAO_.csv',
            delimiter=',', names=True, dtype=None)
 
-
-for i, (ra, dec, name) in enumerate(zip(data['RA'], data['Dec'], data['Name'])):
+for i, (ra, dec,
+        name) in enumerate(zip(data['RA'], data['Dec'], data['Name'])):
     if not data['SDSS_Footprint'][i] == 'TRUE':
         continue
     print(data['Name'][i])
     if not os.path.isdir(data['Name'][i]):
         os.mkdir(data['Name'][i])
-
 
     ra = astCoords.hms2decimal(ra, ':')
     dec = astCoords.dms2decimal(dec, ':')
