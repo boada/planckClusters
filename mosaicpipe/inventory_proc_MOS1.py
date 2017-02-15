@@ -85,7 +85,7 @@ for d in dirs:
             print("OBJECT KEY NOT FOUND FOR:", file)
             OBJECT = header['FILENAME'][0:11]
 
-        TILE = OBJECT[0:-1]
+        TILE = OBJECT[0:]
 
         try:
             FNAME = header['FILTER'][0]
