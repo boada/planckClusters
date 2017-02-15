@@ -227,9 +227,9 @@ class combcat:
         return
 
     def get_FLXSCALE(self, magbase=30):
+        ''' I don't really know what this function is supposed to do. '''
 
         print("# Computing FLXSCALE for magbase=%s" % magbase)
-
         self.magbase = magbase
         self.flxscale = {}
         for filter in self.filters:
@@ -251,6 +251,10 @@ class combcat:
                     combtype="MEDIAN",
                     reSWarp=None,
                     filters=None):
+        ''' SWARPS all the files given in the association file together to make
+        some moscaics.
+
+        '''
 
         if not filters:
             filters = self.filters
@@ -271,7 +275,6 @@ class combcat:
                     'TIME-OBS', 'OBSTYPE', 'OBSERVAT', 'TELESCOP', 'HA', 'ZD',
                     'DETECTOR', 'DARKTIME', 'RA', 'DEC', 'MJD-OBS', 'INSTRUME',
                     'FILTER']
-        #keywords = "OBJECT,OBSTYPE"
 
         pars = {}
         pars["IMAGE_SIZE"] = "%s,%s" % (self.nx, self.ny)
@@ -311,8 +314,6 @@ class combcat:
                                                            filter)
 
             filelist = ' '.join(self.files[filter])
-            #cmd = "swarp %s -c %s -IMAGEOUT_NAME %s -WEIGHTOUT_NAME %s " %\
-            #    (filelist, common_conf, outimage, outweight)
 
             cmd = "swarp %s -IMAGEOUT_NAME %s -WEIGHTOUT_NAME %s " %\
                 (filelist, outimage, outweight)
@@ -572,14 +573,43 @@ class combcat:
 
         return
 
+    def get_zeropt(self):
+        ''' This is going to call the photometrypipline script that lives in
+        the projects directory. It should both astrometrically correct the
+        mosaics and calculate the overall zeropoint of the mosaic. Currently,
+        this has only been tested on the MOSAIC camera, and should NOT work
+        with NEWFIRM, yet. It's on my TODO list.
+
+        '''
+
+        check_exe('pp_run')
+
+        for filter in self.filters:
+            mosaic = '{}.fits'.format(self.combima[filter])
+
+            cmd = 'pp_run {}'.format(mosaic)
+
+            print(cmd)
+            if not self.dryrun:
+                pass
+                os.system(cmd)
+
+            if os.path.isfile('photometry_control_star.dat'):
+                os.rename('photometry_control_star.dat',
+                          'photometry_control_star_{}.dat'.format(filter))
+            else:
+                print('Photometric calibration failed')
+
+        return
+
     # Run SExtractor
     def SEx(self, det_filter='i'):
+        ''' Runs SEXTRACTOR on the mosaicked images created by swarp. It should
+        use the zero point created by the photometrypipline.
+
+        '''
 
         check_exe("sex")
-
-        # Compare and get the effective/combined zeropt
-        #self.compare_zeropts()
-        #self.get_zeropt() # Maybe  we can run this at swarp time ?
 
         # list of output catalog names
         self.combcat = {}
@@ -598,11 +628,23 @@ class combcat:
 
         self.getbpz = 1  # This var is not really used...
 
+        # make the zeropoint files with PP.
+        self.get_zeropt()
+
         for filter in self.filters:
 
             self.combcat[filter] = self.combima[filter] + ".cat"
             input = self.combima[filter] + ".fits"
             output = self.combcat[filter]
+            photocal = 'photometry_control_star_{}.dat'.format(filter)
+            try:
+                _tmp = np.genfromtxt(photocal, names=True, dtype=None)
+                zeropt = _tmp['ZP']
+            except OSError:
+                print('WARNING!: Photometric calibration not set!')
+                zeropt = self.magbase
+
+            print(zeropt)
 
             opts = ''
             if filter == 'i':
@@ -610,15 +652,14 @@ class combcat:
                 opts = " -CHECKIMAGE_TYPE BACKGROUND_RMS"
                 opts += " -CHECKIMAGE_NAME {} ".format(backima)
 
-            #opts = opts + ' -GAIN %s ' % header['GAIN']
             # weight map for detection, and BACKGROUND for meassurement
-            opts = opts + ' -WEIGHT_TYPE MAP_WEIGHT,BACKGROUND '
-            opts = opts + ' -WEIGHT_IMAGE %s%s_weight.fits ' % \
-                (self.tilename, det_filter)
+            opts += ' -WEIGHT_TYPE MAP_WEIGHT,BACKGROUND '
+            opts += ' -WEIGHT_IMAGE %s%s_weight.fits ' % (self.tilename,
+                                                          det_filter)
 
             # Do the SEx
             cmd = "sex {},{} -CATALOG_NAME {}".format(det_ima, input, output)
-            cmd += " -MAG_ZEROPOINT {} -c {} {}1>&2".format(self.magbase,
+            cmd += " -MAG_ZEROPOINT {} -c {} {}1>&2".format(zeropt,
                                                     self.SExinpar, opts)
 
             print(cmd)
