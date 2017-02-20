@@ -600,6 +600,17 @@ class combcat:
             else:
                 print('Photometric calibration failed')
 
+            # correct the header information to make sure floats are floats and
+            # not strings
+            with fits.open('{}.fits'.format(self.combima[filter]),
+                                            mode='update') as f:
+                header = f[0].header
+                for key, val in list(header.items()):
+                    if 'CD1_' in key or 'CD2_' in key or \
+                        'CRVAL' in key or 'CRPIX' in key or \
+                            'EQUINOX' in key:
+                        f[0].header[key] = float(val)
+
         return
 
     # Run SExtractor
