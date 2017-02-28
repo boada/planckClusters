@@ -26,7 +26,6 @@ for d in dirs:
 
     pattern = "*.fits"
 
-
 # Go to the directory
     try:
         os.chdir(rawdir)
@@ -59,8 +58,12 @@ for d in dirs:
 
         print("Reading %-45s ... (%4s/%4s)" % (file, counter, len(full_list)),
             file=sys.stderr)
+        try:
+            header = getheader(file)
+        except FileNotFoundError:
+            counter += 1
+            continue
 
-        header = getheader(file)
         counter += 1
         # Weed out the calibration files we don't care about
         try:
@@ -99,15 +102,6 @@ for d in dirs:
         except:
             EXPTIME[file] = "undef"
 
-        # OBJECT list per filter
-        #if OBJECT not in objects:
-        #    objects.append(OBJECT)
-        #    imalist[OBJECT] = {}
-        #    for filter in filters:
-        #        imalist[OBJECT][filter] = []
-
-        #imalist[OBJECT][FNAME].append(file)
-
         # TILE list per filter
         if TILE not in tiles:
             tiles.append(TILE)
@@ -118,7 +112,7 @@ for d in dirs:
         imalist[TILE][FNAME].append(file)
         header = None
 
-# Write them out
+    # Write them out
     print(" Will write results to: %s" % outdir, file=sys.stderr)
     os.chdir(outdir)
     objects.sort()
@@ -135,9 +129,3 @@ for d in dirs:
                         (file, filter, EXPTIME[file], AIRMASS[file]))
         o.close()
 
-        #for OBJECT,filenames in imalist.items():
-        #    print OBJECT
-        #
-        #    for filter FILTER
-        #    for file in filenames:
-        #        print "\t %20s %s %s" % (file,FILTER[file],EXPTIME[file])

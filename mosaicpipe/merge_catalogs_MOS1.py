@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 
 from bcs_catalogs import *
-import os, sys
-import ds9
-import getopt, sys
+import os
+import sys
 import tableio
 
 
