@@ -869,6 +869,7 @@ class combcat:
         return
 
     def mean_airmass(self, filter):
+        ''' Calculates the mean airmass for a set of observations. '''
 
         x = []
         for file in self.files[filter]:
@@ -1024,6 +1025,7 @@ def put_exptime(file, exptime):
 
 
 def put_scaled_head(file):
+    ''' Currently not used. '''
 
     # Open the file, update mode
     f = fits.open(file, mode="update")  # open a FITS file
@@ -1043,6 +1045,7 @@ def put_scaled_head(file):
 
 
 def put_zeropt(file, zeropt, photo='yes'):
+    ''' Currently not used. '''
 
     # Open thr child info, update mode
     f = fits.open(file, mode="update")  # open a FITS file
@@ -1104,6 +1107,7 @@ def chtype_replace_nonzero(infits, repval=1, out=None, verb=None):
 
 
 def chtype_fits(infits, type='UInt8', out=None, verb=None):
+    ''' Don't really know what this is supposed to do. '''
 
     if verb:
         print("\tChange type on %s to ---> %s" % (infits, type),
@@ -1126,6 +1130,7 @@ def chtype_fits(infits, type='UInt8', out=None, verb=None):
 
 # Clean up the FLXCORR key in the fits header
 def clean_FLXCORR(file, N=16):
+    ''' Currently not used. '''
 
     from pyraf import iraf
 
