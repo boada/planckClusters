@@ -38,7 +38,7 @@ for d in dirs:
         pattern = '*.fz'
         full_list = glob.glob(pattern)
 
-    filters = ('z', 'i', 'r', 'g')
+    filters = ('z', 'i', 'r', 'g', 'I')
     objects = []
     imalist = {}
     FILTER = {}
@@ -75,6 +75,8 @@ for d in dirs:
             try:
                 header = getheader(file, ext=1)
                 if header['OBSTYPE'] != 'object':
+                    continue
+                if header['PRODTYPE'] != 'image':
                     continue
             except KeyError:
                 print("# OBSTYPE not present for %s" % file)
