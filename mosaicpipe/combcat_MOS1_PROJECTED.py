@@ -327,6 +327,11 @@ class combcat:
             if not dryrun:
                 print("# Will run:\n\t%s" % cmd)
                 os.system(cmd)
+                AM = self.calc_airmass(filter)
+                put_airmass(outimage, AM)
+                ET = self.calc_exptime(filter)
+                put_exptime(outimage, ET)
+
             else:
                 print(cmd)
 
@@ -868,7 +873,7 @@ class combcat:
             print(cmd)
         return
 
-    def mean_airmass(self, filter):
+    def calc_airmass(self, filter, combtype='median'):
         ''' Calculates the mean airmass for a set of observations. '''
 
         x = []
@@ -876,7 +881,29 @@ class combcat:
             #print file,self.airmass[file]
             x.append(self.airmass[file])
         x = np.asarray(x)
-        return x.mean()
+        if combtype == 'mean':
+            return x.mean()
+        elif combtype == 'median':
+            return np.median(x)
+        else:
+            print('combtype not understood. Check your call.')
+            raise TypeError
+
+    def calc_exptime(self, filter, combtype='median'):
+        ''' Calculates the mean airmass for a set of observations. '''
+
+        x = []
+        for file in self.files[filter]:
+            #print file,self.airmass[file]
+            x.append(self.exptime[file])
+        x = np.asarray(x)
+        if combtype == 'mean':
+            return x.mean()
+        elif combtype == 'median':
+            return np.median(x)
+        else:
+            print('combtype not understood. Check your call.')
+            raise TypeError
 
     def cleanup_files(self):
         ''' Removes all of the intermediate files created during the
@@ -971,11 +998,11 @@ def weight_from_dqfile(infile, outfile, clobber=False):
             return
 
     inHDU = fits.open(infile, "readonly")
-    data = inHDU[1].data
+    data = inHDU[-1].data
     newdata = np.where(data > 0, 0, 1)
-    inHDU[1].data = newdata.astype("UInt8")  # Just as ushort integer
+    inHDU[-1].data = newdata.astype("UInt8")  # Just as ushort integer
     newhdu = fits.HDUList()
-    newhdu.append(inHDU[1])
+    newhdu.append(inHDU[-1])
     newhdu.writeto(outfile, clobber=clobber)
     newhdu.close()
     inHDU.close()
@@ -997,32 +1024,34 @@ def replace_vals_image(infits, outfits, repval=1):
     return
 
 
-def add_airmass(filename, airmass):
-
-    c = fits.Card("AIRMASS", airmass, "Computed Stacked Mean Airmass")
-    f = fits.open(filename, mode="update")
-    #f[0].header.ascardlist().append(c)
-    f[0].header.update(c.key, c.value, c.comment)
-    f.close()
-
-
-def put_exptime(file, exptime):
+def put_airmass(filename, airmass):
 
     # Open the file, update mode
-    f = fits.open(file, mode="update")  # open a FITS file
-    hdr = f[0].header  # the primary HDU header
+    with fits.open(filename, mode="update") as f: # open a FITS file
+        hdr = f[0].header  # the primary HDU header
 
-    print("# Updating %s with EXPTIME=%s after SWarp" % (
-        file, exptime), file=sys.stderr)
-    c = fits.Card("EXPTIME", exptime, "After SWarp equivalent exptime (sec)")
-    c.verify()
-    hdr.update('EXPTIME', c.value, c.comment)  # ,after=after)
+        print("# Updating %s with AIRMASS=%s after SWarp" % (
+            filename, airmass), file=sys.stderr)
+        hdr['AIRMASS'] = (airmass, 'After SWarp equivalent airmass')
 
-    # Close the file
-    f.verify('fix')
-    f.close()
+        # check the file
+        f.verify('fix')
+
     return
 
+def put_exptime(filename, exptime):
+
+    # Open the file, update mode
+    with fits.open(filename, mode="update") as f: # open a FITS file
+        hdr = f[0].header  # the primary HDU header
+
+        print("# Updating %s with EXPTIME=%s after SWarp" % (
+            filename, exptime), file=sys.stderr)
+        hdr['EXPTIME'] = (exptime, 'After SWarp equivalent exptime (sec)')
+
+        # check the file
+        f.verify('fix')
+    return
 
 def put_scaled_head(file):
     ''' Currently not used. '''
