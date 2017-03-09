@@ -7,6 +7,8 @@ import numpy as np
 from math import log10
 import time
 import string
+import subprocess
+import shlex
 from astropy.io import fits
 from astropy.io.fits import getheader
 
@@ -17,7 +19,7 @@ class combcat:
                  assocfile,
                  datapath='',
                  outpath='',
-                 pixscale=0.2666,
+                 pixscale=0.25,
                  dryrun=None,
                  noSWarp=False,
                  verb='yes'):
@@ -175,7 +177,7 @@ class combcat:
             print(' to {}'.format(proj))
         return
 
-    def center_dither(self, conf="SWarp-center.conf"):
+    def center_dither(self, conf="SWarp-center.conf", filter=None):
         ''' Center the dither pattern for SWARP '''
 
         check_exe("swarp")
@@ -185,14 +187,22 @@ class combcat:
 
         # First we need to get the center for all the files, swarp them all
         opts = {}
-        opts["IMAGEOUT_NAME"] = os.path.join(
-            self.outdir, "SWarp-%s-center.fits" % (self.tilename))
+        if not filter:
+            opts["IMAGEOUT_NAME"] = os.path.join(
+                self.outdir, "SWarp-%s-center.fits" % (self.tilename))
+        else:
+            opts["IMAGEOUT_NAME"] = os.path.join(
+                self.outdir, "SWarp-%s-center_{}.fits" % (self.tilename, filter))
+
         opts["PIXEL_SCALE"] = self.pixscale
         opts["RESAMPLING_TYPE"] = "LANCZOS3"
         opts["CENTER_TYPE"] = "ALL"
         opts["NTHREADS"] = "0"
 
-        cmd = "swarp %s -c %s " % (' '.join(self.filelist), center_conf)
+        if not filter:
+            cmd = "swarp %s -c %s " % (' '.join(self.filelist), center_conf)
+        else:
+            cmd = "swarp %s -c %s " % (' '.join(self.file[filter]), center_conf)
         for param, value in list(opts.items()):
             cmd += "-%s %s " % (param, value)
 
@@ -222,11 +232,14 @@ class combcat:
         self.yo = y_center
 
         # Store wether center was done....
-        self.centered = True
+        if not filter:
+            self.centered = True
+        else:
+            self.centered = False
 
         return
 
-    def get_FLXSCALE(self, magbase=30):
+    def get_FLXSCALE(self, magbase=30, filename=None):
         ''' I don't really know what this function is supposed to do. '''
 
         print("# Computing FLXSCALE for magbase=%s" % magbase)
@@ -236,12 +249,17 @@ class combcat:
 
             self.flxscale[filter] = []
 
-            for fname in self.files[filter]:
+            if not filename:
+                for fname in self.files[filter]:
+                    header = getheader(fname)
+                    #zp = header['MAGZERO'] + 2.5*log10(header['EXPTIME'])
+                    zp = header['MAGZERO']
+                    flxscale = 10.0**(0.4 * (magbase - zp))
+                    self.flxscale[filter].append(flxscale)
+            if filename:
                 header = getheader(fname)
-                #zp = header['MAGZERO'] + 2.5*log10(header['EXPTIME'])
                 zp = header['MAGZERO']
                 flxscale = 10.0**(0.4 * (magbase - zp))
-                self.flxscale[filter].append(flxscale)
 
         return
 
@@ -274,7 +292,7 @@ class combcat:
         keywords = ['OBJECT', 'EXPTIME', 'AIRMASS', 'TIMESYS', 'DATE-OBS',
                     'TIME-OBS', 'OBSTYPE', 'OBSERVAT', 'TELESCOP', 'HA', 'ZD',
                     'DETECTOR', 'DARKTIME', 'RA', 'DEC', 'MJD-OBS', 'INSTRUME',
-                    'FILTER']
+                    'FILTER', 'MAGZERO', 'MAGZSIG']
 
         pars = {}
         pars["IMAGE_SIZE"] = "%s,%s" % (self.nx, self.ny)
@@ -295,7 +313,6 @@ class combcat:
 
         self.combima = {}
         self.weightima = {}
-        self.comb_exptime = {}
         cmd = ""
         for filter in filters:
 
@@ -337,6 +354,23 @@ class combcat:
 
         return
 
+    def get_filenames(self):
+        ''' This script will get called if we choose not to swarp the images.
+        This makes sure that all of the variables are defined.
+
+        '''
+
+        self.combima = {}
+        self.weightima = {}
+        for filter in self.filters:
+
+            # Store the names
+            self.combima[filter] = "%s%s" % (self.tilename, filter)
+            self.weightima[filter] = "%s%s_weight.fits" % (self.tilename,
+                                                           filter)
+
+        return
+
     def swarp_newfirm(self):
         ''' This runs swarp on the stacked newfirm images to make sure they are
         in the same projection as the mosaic images. Right now, it needs to
@@ -345,6 +379,10 @@ class combcat:
         stacked images from the VO are good enough to do what we want. '''
 
         from glob import glob
+
+        # build the swarp command
+        check_exe('swarp')
+        check_exe('funpack')
 
         # get the center file created above
         center = "{}/SWarp-{}-center.fits".format(self.outdir, self.tilename)
@@ -357,6 +395,7 @@ class combcat:
 
         # make sure the images aren't compressed
         imgs = glob('{}*.fz'.format(newfirm_dir))
+        inputs = [] # catch the input files if there is more than one
         print(imgs)
         if len(imgs) < 1:
             # check for uncompressed images
@@ -364,46 +403,45 @@ class combcat:
                 if len(imgs) < 1:
                     print('No NEWFIRM images found!')
                     return
-        else:
-            for img in imgs:
-                with fits.open(img) as kimg:
+
+        for img in imgs:
+            with fits.open(img) as kimg:
+                try:
+                    prod_type = kimg[0].header['prodtype']
+                except KeyError:
                     try:
-                        prod_type = kimg[0].header['prodtype']
+                        prod_type = kimg[1].header['prodtype']
                     except KeyError:
-                        try:
-                            prod_type = kimg[1].header['prodtype']
-                        except KeyError:
-                            print('Something is wrong with the images!')
-                            return
-                if 'image' in prod_type:
-                    # use funpack to decompress items
-                    check_exe('funpack')
-                    os.system('funpack -v {}'.format(img))
-                else:
-                    continue
+                        print('Something is wrong with the images!')
+                        return
+            print(prod_type)
+            if 'image' in prod_type:
+                # use funpack to decompress items
+                os.system('funpack -v {}'.format(img))
+                img = img.rstrip('.fz')
+                inputs.append(img)
+            else:
+                continue
 
-            try:
-                relpath = os.path.relpath('./', newfirm_dir)
-                print(relpath)
-                os.symlink('{}/{}'.format(relpath, center),
-                        '{}{}.head'.format(newfirm_dir, self.tilename))
-            except FileExistsError:
-                pass
+        try:
+            relpath = os.path.relpath('./', newfirm_dir)
+            print(relpath)
+            os.symlink('{}/{}'.format(relpath, center),
+                    '{}{}K.head'.format(newfirm_dir, self.tilename))
+        except FileExistsError:
+            pass
 
-            # build the swarp command
-            check_exe('swarp')
-            imgs = glob('{}*.fits'.format(newfirm_dir))
-            for img in imgs:
-                cmd = 'swarp {} '.format(img)
-                cmd += '-IMAGEOUT_NAME {}{}k.fits '.format(newfirm_dir,
-                                                        self.tilename)
-                cmd += '-SUBTRACT_BACK N -WRITE_XML N'
+        cmd = 'swarp {} '.format(','.join(inputs))
+        cmd += '-IMAGEOUT_NAME {}{}K.fits '.format(newfirm_dir,
+                                                self.tilename)
+        cmd += '-SUBTRACT_BACK N -WRITE_XML N'
 
-                print(cmd)
-                os.system(cmd)
+        print(cmd)
+        os.system(cmd)
 
-                # clean up decompressed files
-                os.remove('{}'.format(img))
+        # clean up decompressed files
+        for i in inputs:
+            os.remove('{}'.format(i))
 
         return
 
@@ -578,6 +616,41 @@ class combcat:
 
         return
 
+    def get_astrometry(self):
+        ''' This calls the pp script to astrometrically correct the images. I'm
+        breaking it appart from the rest of the script so I can control when
+        things happen. It is mostly for testing.
+
+        '''
+
+        # we have to prepare the images first.
+        check_exe('pp_prepare')
+        check_exe('pp_register')
+
+        subprocs = []
+        for filter in self.filters:
+            mosaic = '{}.fits'.format(self.combima[filter])
+            cmd = 'pp_prepare {}'.format(mosaic)
+
+            if not self.dryrun:
+                subprocs.append(subprocess.Popen(shlex.split(cmd)))
+
+        [p.wait() for p in subprocs]
+
+        for filter in self.filters:
+            mosaic = '{}.fits'.format(self.combima[filter])
+
+            cmd = 'pp_register {}'.format(mosaic)
+
+            if not self.dryrun:
+                subprocs.append(subprocess.Popen(shlex.split(cmd)))
+
+        [p.wait() for p in subprocs]
+
+        [i.kill() for i in subprocs]
+
+        return
+
     def get_zeropt(self):
         ''' This is going to call the photometrypipline script that lives in
         the projects directory. It should both astrometrically correct the
@@ -587,21 +660,39 @@ class combcat:
 
         '''
 
-        check_exe('pp_run')
+        check_exe('pp_photometry')
+        check_exe('pp_calibrate')
+        check_exe('pp_distill')
+
+        subprocs = []
+        for filter in self.filters:
+            mosaic = '{}.fits'.format(self.combima[filter])
+            cmd = 'pp_photometry {}'.format(mosaic)
+
+            if not self.dryrun:
+                subprocs.append(subprocess.Popen(shlex.split(cmd)))
+
+        [p.wait() for p in subprocs]
 
         for filter in self.filters:
             mosaic = '{}.fits'.format(self.combima[filter])
+            cmd = 'pp_calibrate {}'.format(mosaic)
 
-            cmd = 'pp_run {}'.format(mosaic)
-
-            print(cmd)
             if not self.dryrun:
-                pass
-                os.system(cmd)
+                subprocs.append(subprocess.Popen(shlex.split(cmd)))
+
+        [p.wait() for p in subprocs]
+
+        [i.kill() for i in subprocs]
+
+        for filter in self.filters:
+            mosaic = '{}.fits'.format(self.combima[filter])
+            cmd = 'pp_distill {}'.format(mosaic)
+            os.system(cmd) # gotta call it to make it work
 
             if os.path.isfile('photometry_control_star.dat'):
                 os.rename('photometry_control_star.dat',
-                          'photometry_control_star_{}.dat'.format(filter))
+                            'photometry_control_star_{}.dat'.format(filter))
             else:
                 print('Photometric calibration failed')
 
@@ -644,21 +735,37 @@ class combcat:
 
         self.getbpz = 1  # This var is not really used...
 
-        # make the zeropoint files with PP.
-        self.get_zeropt()
+        # make the zeropoint files with PP. -- this is getting moved to a
+        # seperate call in the main script.
+        #self.get_zeropt()
 
         for filter in self.filters:
 
-            self.combcat[filter] = self.combima[filter] + ".cat"
             input = self.combima[filter] + ".fits"
-            output = self.combcat[filter]
             photocal = 'photometry_control_star_{}.dat'.format(filter)
             try:
                 _tmp = np.genfromtxt(photocal, names=True, dtype=None)
                 zeropt = _tmp['ZP']
+                if zeropt == 0.0:
+                    print('WARNING!: Photometric calibration not set!')
+                    try:
+                        zeropt = self.magbase
+                        self.combcat[filter] = self.combima[filter] + ".cat"
+                    except AttributeError:
+                        self.get_FLXSCALE(self, filename=input)
+                        self.combcat[filter] = self.combima[filter] + ".cat"
+                else:
+                    self.combcat[filter] = self.combima[filter] + "_cal.cat"
             except OSError:
                 print('WARNING!: Photometric calibration not set!')
-                zeropt = self.magbase
+                try:
+                    zeropt = self.magbase
+                    self.combcat[filter] = self.combima[filter] + ".cat"
+                except AttributeError:
+                    self.get_FLXSCALE(self, filename=input)
+                    self.combcat[filter] = self.combima[filter] + ".cat"
+
+            output = self.combcat[filter]
 
             print(zeropt)
 
@@ -931,19 +1038,25 @@ class combcat:
 
         # input files
         if kband:
-            try:
-                red = '../../newfirm/stacked/{}{}.fits'.format(self.tilename, 'k')
-            except FileNotFoundError:
+            red = '../../newfirm/stacked/{}{}.fits'.format(self.tilename, 'K')
+            if os.path.isfile(red):
+                green = './{}{}.fits'.format(self.tilename, 'i')
+                blue = './{}{}.fits'.format(self.tilename, 'r')
+                bands = 'Kir'
+            else:
                 print('k-band file not found, restoring defaults')
-            green = './{}{}.fits'.format(self.tilename, 'i')
-            blue = './{}{}.fits'.format(self.tilename, 'r')
+                red = './{}{}.fits'.format(self.tilename, 'i')
+                green = './{}{}.fits'.format(self.tilename, 'r')
+                blue = './{}{}.fits'.format(self.tilename, 'g')
+                bands = 'irg'
         else:
             red = './{}{}.fits'.format(self.tilename, 'i')
             green = './{}{}.fits'.format(self.tilename, 'r')
             blue = './{}{}.fits'.format(self.tilename, 'g')
+            bands = 'irg'
 
         # output file
-        output = '{}.tiff'.format(self.tilename)
+        output = '{}{}.tiff'.format(self.tilename, bands)
 
         # options
         opts = ['-MIN_LEVEL', '0.001',
@@ -961,7 +1074,9 @@ class combcat:
             cmd += '{} '.format(opt)
 
         print(cmd)
-        os.system(cmd)
+        if not self.dryrun:
+            os.system(cmd)
+
         return
 
 # Create a mask file from the weights
@@ -1413,6 +1528,18 @@ def cmdline():
                       default=0,
                       help='Whether or not to swarp the newfirm mosaic data.')
 
+    parser.add_option("--noAstro",
+                      action='store_true',
+                      dest='noAstro',
+                      default=0,
+                      help='Whether or not to astro calibrate the mosiacs.')
+
+    parser.add_option("--noPhoto",
+                      action='store_true',
+                      dest='noPhoto',
+                      default=0,
+                      help='Whether or not to photo calibrate the mosaics.')
+
     (options, args) = parser.parse_args()
 
     if len(args) < 3:
@@ -1449,12 +1576,6 @@ def main():
     inpath = arg[1]
     outpath = arg[2]
 
-    # Read in the command line options
-    #USAGE = " usage:\t"+os.path.split(sys.argv[0])[1]+" <assoc> <in_datapath>
-    #<out_datapath> [dryrun]"
-    # Example
-    # ./combcat.py ~/bcs-inventory/BCS0519-5448.assoc ~/PROC ~/BCS/PROC
-
     # Init the class
     c = combcat(assocfile,
                 datapath=inpath,
@@ -1475,9 +1596,18 @@ def main():
                   conf="SWarp-common.conf",
                   combtype=opt.combtype)
 
+    if opt.noSWarp:
+        c.get_filenames()
+
     # swarp NEWFIRM images (if they are there)
     if not opt.noNEWFIRM:
         c.swarp_newfirm()
+
+    if not opt.noAstro:
+        c.get_astrometry()
+
+    if not opt.noPhoto:
+        c.get_zeropt()
 
     # Make the detection image
     if opt.useMask:
@@ -1505,7 +1635,7 @@ def main():
         c.make_RGB(kband=True)
 
     # cleanup
-    if opt.noCleanUP:
+    if opt.noCleanUP or opt.noSWarp:
         pass
     else:
         print("CLEANUP!")
