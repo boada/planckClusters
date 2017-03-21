@@ -1,0 +1,132 @@
+## change phot_apertures from (20) to (14); added FLUX_RADIUS(2), jpb 23/Apr/2002
+##
+## Commented output parameters specified as such in Bugzilla bug report 
+## 661 by C. Gronwall, 11-29-2001
+## 
+## K Anderson, 12-13-2001
+##
+## MAG_BEST, MAGERR_BEST removed from requested parameter output spec'd 
+## bug issue #870
+###
+## K Anderson, 01-22-2002
+##
+## MU_THRESHOLD and MU_MAX are now commented 
+## and suppressed in filter catalog output.
+## FWHM_WORLD is now included (i.e. uncommented) in 
+## filter catalog output. See Buzilla bug#1149
+##
+## K Anderson, 18-Apr-2002
+##
+## As specified in Bugzilla bug #1188, the latest set of parameter files for
+## ACS catalog creation now supports a set of 14 apertures (defined in the .inpar files)
+## This is reflected in the specification here of 14 apertures for the relevent
+## output fields.
+##
+## K Anderson, 25-Apr-2002
+##
+## FLUX_BEST and FLUXERR_BEST have now been removed from these output paramters
+## based upon the removal of the MAG_BEST, MAGERR_BEST parameters spec'd in bug #870
+##
+## K Anderson 6-May-2002
+NUMBER
+X_IMAGE
+Y_IMAGE
+MAG_AUTO
+MAGERR_AUTO
+FLUX_ISO
+FLUXERR_ISO
+MAG_ISO
+MAGERR_ISO
+FLUX_ISOCOR
+FLUXERR_ISOCOR
+MAG_ISOCOR
+MAGERR_ISOCOR
+FLUX_APER(14)
+FLUXERR_APER(14)
+MAG_APER(14)
+MAGERR_APER(14)
+FLUX_RADIUS(2)
+FLUX_AUTO
+FLUXERR_AUTO
+##FLUX_BEST
+##FLUXERR_BEST
+##MAG_BEST
+##MAGERR_BEST
+##KRON_RADIUS
+BACKGROUND
+##THRESHOLD
+##MU_THRESHOLD
+FLUX_MAX
+##MU_MAX
+##ISOAREA_IMAGE
+##ISOAREA_WORLD
+##XMIN_IMAGE
+##YMIN_IMAGE
+##XMAX_IMAGE
+##YMAX_IMAGE
+##X_WORLD
+##Y_WORLD
+##ALPHA_SKY
+##DELTA_SKY
+##ALPHA_J2000
+##DELTA_J2000
+##ALPHA_B1950
+##DELTA_B1950
+##X2_IMAGE
+##Y2_IMAGE
+##XY_IMAGE
+##X2_WORLD
+##Y2_WORLD
+##XY_WORLD
+##CXX_IMAGE
+##CYY_IMAGE
+##CXY_IMAGE
+##CXX_WORLD
+##CYY_WORLD
+##CXY_WORLD
+##A_IMAGE
+##B_IMAGE
+##A_WORLD
+##B_WORLD
+##THETA_IMAGE
+##THETA_WORLD
+##THETA_SKY
+##THETA_J2000
+##THETA_B1950
+##ELONGATION
+##ELLIPTICITY
+##ERRX2_IMAGE
+##ERRY2_IMAGE
+##ERRXY_IMAGE
+##ERRX2_WORLD
+##ERRY2_WORLD
+##ERRXY_WORLD
+##ERRCXX_IMAGE
+##ERRCYY_IMAGE
+##ERRCXY_IMAGE
+##ERRCXX_WORLD
+##ERRCYY_WORLD
+##ERRCXY_WORLD
+##ERRA_IMAGE
+##ERRB_IMAGE
+##ERRA_WORLD
+##ERRB_WORLD
+##ERRTHETA_IMAGE
+##ERRTHETA_WORLD
+##ERRTHETA_SKY
+##ERRTHETA_J2000
+##ERRTHETA_B1950
+FWHM_IMAGE
+FWHM_WORLD
+##ISO0
+##ISO1
+##ISO2
+##ISO3
+##ISO4
+##ISO5
+##ISO6
+##ISO7
+##FLAGS
+##IMAFLAGS_ISO(1)
+##NIMAFLAGS_ISO(1)
+##CLASS_STAR
