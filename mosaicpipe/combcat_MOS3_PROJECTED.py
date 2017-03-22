@@ -37,6 +37,9 @@ class combcat:
 
         self.pipeline = '/home/boada/Projects/planckClusters/mosaicpipe/'
 
+        # Check for environ vars
+        if not os.getenv('PIPE'):
+            os.environ['PIPE'] = os.path.join(self.pipeline)
         # Set the dust_directory
         #os.environ['DUST_DIR'] = os.path.join(self.BCSPIPE,"LIB")
 
@@ -173,9 +176,6 @@ class combcat:
             print(' to {}'.format(proj))
         return
 
-    def _readheader(self):
-        return
-
     def center_dither(self, conf="SWarp-center.conf", filter=None):
         ''' Center the dither pattern for SWARP '''
 
@@ -197,7 +197,6 @@ class combcat:
         opts["RESAMPLING_TYPE"] = "LANCZOS3"
         opts["CENTER_TYPE"] = "ALL"
         opts["NTHREADS"] = "0"
-
 
         if not filter:
             cmd = "swarp %s -c %s " % (' '.join(self.filelist), center_conf)
@@ -276,6 +275,8 @@ class combcat:
         if not filters:
             filters = self.filters
 
+        _conf = os.path.join(self.pipeline, 'confs', conf)
+
         # update the projections
         #self.update_header_projection()
 
@@ -331,8 +332,8 @@ class combcat:
 
             filelist = ' '.join(self.files[filter])
 
-            cmd = "swarp %s -IMAGEOUT_NAME %s -WEIGHTOUT_NAME %s " %\
-                (filelist, outimage, outweight)
+            cmd = "swarp %s -c %s -IMAGEOUT_NAME %s -WEIGHTOUT_NAME %s " %\
+                (filelist, _conf, outimage, outweight)
             cmd += " -WEIGHT_IMAGE %s " % (
                 ",".join(self.files_weight[filter]))
             #cmd += " -WEIGHT_SUFFIX .weight.fits'[0]'"
@@ -347,6 +348,11 @@ class combcat:
                 put_airmass(outimage, AM)
                 ET = self.calc_exptime(filter)
                 put_exptime(outimage, ET)
+
+                # make sure the header keywords have been propigated. This is
+                # important for the astro and flux calibration
+                put_headerKeywords(self.files[filter][0], outimage, keywords,
+                                   self.xo, self.yo)
 
             else:
                 print(cmd)
@@ -384,7 +390,7 @@ class combcat:
         check_exe('funpack')
 
         # get the center file created above
-        center = "{}/SWarp-{}-center_i.fits".format(self.outdir, self.tilename)
+        center = "{}/SWarp-{}-center.fits".format(self.outdir, self.tilename)
 
         _conf = os.path.join(self.pipeline, 'confs', conf)
 
@@ -647,6 +653,9 @@ class combcat:
         check_exe('pp_prepare')
         check_exe('pp_register')
 
+        # little patch to keep it from crashing
+        os.mkdir('.diagnostics')
+
         subprocs = []
         for filter in self.filters:
             mosaic = '{}.fits'.format(self.combima[filter])
@@ -740,8 +749,10 @@ class combcat:
 
         # list of output catalog names
         self.combcat = {}
-        self.SExinpar = os.path.join(os.environ['BCSPIPE'],
-                                     'LIB/pars/bcs_Catalog.inpar')
+
+        # The configuration file
+        self.SExinpar = os.path.join(self.pipeline, 'confs',
+                                     'bcs_Catalog.inpar')
 
         # The detection image that we'll use
         if self.DetImage:
@@ -1161,6 +1172,35 @@ def replace_vals_image(infits, outfits, repval=1):
     hdulist.close()
     return
 
+def put_headerKeywords(origFile, newFile, keywords, ra, dec):
+    ''' This takes all of the keywords from the original fits image and makes
+    sure they are present in the new fits image. This is important for the
+    mosaic3 data. For that data it doesn't seem to propigate the header
+    keywords correctly. This function makes sure those keywords are present.
+
+    '''
+
+    print(origFile, newFile)
+    with fits.open(origFile) as oF:
+        with fits.open(newFile, mode='update') as nF:
+            oHDR = oF[0].header # original header
+            nHDR = nF[0].header # new header
+
+            print('# Updating %s with new keywords')
+            for kw in keywords:
+                try:
+                    nHDR[kw]
+                except KeyError: # only update if it doesn't exist
+                    try:
+                        if kw == 'RA':
+                            nHDR[kw] = ra
+                        elif kw == 'DEC':
+                            nHDR[kw] = dec
+                        else:
+                            nHDR[kw] = oHDR[kw]
+                    except KeyError: # sometimes the original keys aren't there
+                        print('#{} Not Found'.format(kw))
+    return
 
 def put_airmass(filename, airmass):
 
