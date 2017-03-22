@@ -21,7 +21,7 @@ dirs = [dirs for _, dirs, _ in os.walk('./')][0] # only want top level
 cwd = os.getcwd()
 for d in dirs:
     os.chdir(cwd)
-    rawdir = './{}/Mosaic3/resampled'.format(d)
+    rawdir = './{}/mosaic3/resampled'.format(d)
     outdir = '.'
 
     # Go to the directory
