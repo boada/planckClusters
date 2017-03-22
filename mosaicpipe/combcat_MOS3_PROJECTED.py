@@ -654,7 +654,10 @@ class combcat:
         check_exe('pp_register')
 
         # little patch to keep it from crashing
-        os.mkdir('.diagnostics')
+        try:
+            os.mkdir('.diagnostics')
+        except:
+            pass
 
         subprocs = []
         for filter in self.filters:
