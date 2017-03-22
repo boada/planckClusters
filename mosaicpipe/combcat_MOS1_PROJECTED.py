@@ -37,6 +37,9 @@ class combcat:
 
         self.pipeline = '/home/boada/Projects/planckClusters/mosaicpipe/'
 
+        # Check for environ vars
+        if not os.getenv('PIPE'):
+            os.environ['PIPE'] = os.path.join(self.pipeline)
         # Set the dust_directory
         #os.environ['DUST_DIR'] = os.path.join(self.BCSPIPE,"LIB")
 
@@ -267,24 +270,19 @@ class combcat:
                     filters=None):
         ''' SWARPS all the files given in the association file together to make
         some moscaics.
-
         '''
 
         if not filters:
             filters = self.filters
 
+        _conf = os.path.join(self.pipeline, 'confs', conf)
+
         # update the projections
         #self.update_header_projection()
 
         # Get the dither centroid
-#        if not self.centered:
-#            self.center_dither()
-
-        # The configuration file
-        _conf = os.path.join(self.pipeline, 'confs', conf)
-
-        for filter in filters:
-            self.center_dither(filter=filter)
+        if not self.centered:
+            self.center_dither()
 
         self.make_swarp_input_weights(clobber=False)
         self.combtype = combtype
@@ -296,28 +294,27 @@ class combcat:
                     'DETECTOR', 'DARKTIME', 'RA', 'DEC', 'MJD-OBS', 'INSTRUME',
                     'FILTER', 'MAGZERO', 'MAGZSIG']
 
+        pars = {}
+        pars["IMAGE_SIZE"] = "%s,%s" % (self.nx, self.ny)
+        pars["CENTER_TYPE"] = "MANUAL"
+        pars["CENTER"] = "%s,%s" % (self.xo, self.yo)
+        pars["PIXEL_SCALE"] = self.pixscale
+        pars["PIXELSCALE_TYPE"] = "MANUAL"
+        #pars["FSCALE_KEYWORD"]  = "FLXSCALE"
+        pars["COPY_KEYWORDS"] = ','.join(keywords)
+        pars["COMBINE_TYPE"] = combtype
+        pars["NTHREADS"] = "0"
+        pars["WEIGHT_TYPE"] = "MAP_WEIGHT"
+
+        # The options
+        opts = ""
+        for param, value in list(pars.items()):
+            opts = opts + "-%s %s " % (param, value)
+
         self.combima = {}
         self.weightima = {}
+        cmd = ""
         for filter in filters:
-            self.center_dither()
-            pars = {}
-            pars["IMAGE_SIZE"] = "%s,%s" % (self.nx, self.ny)
-            pars["CENTER_TYPE"] = "MANUAL"
-            pars["CENTER"] = "%s,%s" % (self.xo, self.yo)
-            pars["PIXEL_SCALE"] = self.pixscale
-            pars["PIXELSCALE_TYPE"] = "MANUAL"
-            #pars["FSCALE_KEYWORD"]  = "FLXSCALE"
-            pars["COPY_KEYWORDS"] = ','.join(keywords)
-            pars["COMBINE_TYPE"] = combtype
-            pars["NTHREADS"] = "0"
-            pars["WEIGHT_TYPE"] = "MAP_WEIGHT"
-
-            # The options
-            opts = ""
-            for param, value in list(pars.items()):
-                opts = opts + "-%s %s " % (param, value)
-
-            cmd = ""
 
             pars[""] = "@%s" % (self.flxscale[filter])
 
@@ -339,6 +336,7 @@ class combcat:
                 (filelist, _conf, outimage, outweight)
             cmd += " -WEIGHT_IMAGE %s " % (
                 ",".join(self.files_weight[filter]))
+            #cmd += " -WEIGHT_SUFFIX .weight.fits'[0]'"
             cmd = cmd + " -FSCALE_DEFAULT %s " % (
                 ",".join(map(str, self.flxscale[filter])))
             cmd = cmd + opts
@@ -387,7 +385,7 @@ class combcat:
         check_exe('funpack')
 
         # get the center file created above
-        center = "{}/SWarp-{}-center_i.fits".format(self.outdir, self.tilename)
+        center = "{}/SWarp-{}-center.fits".format(self.outdir, self.tilename)
 
         _conf = os.path.join(self.pipeline, 'confs', conf)
 
@@ -650,6 +648,12 @@ class combcat:
         check_exe('pp_prepare')
         check_exe('pp_register')
 
+        # little patch to keep it from crashing
+        try:
+            os.mkdir('.diagnostics')
+        except:
+            pass
+
         subprocs = []
         for filter in self.filters:
             mosaic = '{}.fits'.format(self.combima[filter])
@@ -732,7 +736,7 @@ class combcat:
 
         return
 
-    # Run SExtractor
+    # run sextractor
     def SEx(self, det_filter='i'):
         ''' Runs SEXTRACTOR on the mosaicked images created by swarp. It should
         use the zero point created by the photometrypipline.
@@ -743,8 +747,10 @@ class combcat:
 
         # list of output catalog names
         self.combcat = {}
-        self.SExinpar = os.path.join(os.environ['BCSPIPE'],
-                                     'LIB/pars/bcs_Catalog.inpar')
+
+        # The configuration file
+        self.SExinpar = os.path.join(self.pipeline, 'confs',
+                                     'bcs_Catalog.inpar')
 
         # The detection image that we'll use
         if self.DetImage:
