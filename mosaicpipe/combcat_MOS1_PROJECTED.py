@@ -19,7 +19,7 @@ class combcat:
                  assocfile,
                  datapath='',
                  outpath='',
-                 pixscale=0.25,
+                 pixscale=0.2666,
                  dryrun=None,
                  noSWarp=False,
                  verb='yes'):
@@ -35,11 +35,7 @@ class combcat:
         self.centered = None
         self.got_zeropt = False
 
-        # Check for environ vars
-        if not os.getenv('BCSPIPE'):
-            os.environ['BCSPIPE'] = os.path.join(os.environ['HOME'],
-                                                 'BCSPIPE')
-        self.BCSPIPE = os.getenv('BCSPIPE')
+        self.pipeline = '/home/boada/Projects/planckClusters/mosaicpipe/'
 
         # Set the dust_directory
         #os.environ['DUST_DIR'] = os.path.join(self.BCSPIPE,"LIB")
@@ -183,7 +179,7 @@ class combcat:
         check_exe("swarp")
 
         # The configuration file
-        center_conf = os.path.join(self.BCSPIPE, 'LIB/pars', conf)
+        center_conf = os.path.join(self.pipeline, 'confs', conf)
 
         # First we need to get the center for all the files, swarp them all
         opts = {}
@@ -192,7 +188,7 @@ class combcat:
                 self.outdir, "SWarp-%s-center.fits" % (self.tilename))
         else:
             opts["IMAGEOUT_NAME"] = os.path.join(
-                self.outdir, "SWarp-%s-center_{}.fits" % (self.tilename, filter))
+                self.outdir, "SWarp-%s-center_%s.fits" % (self.tilename, filter))
 
         opts["PIXEL_SCALE"] = self.pixscale
         opts["RESAMPLING_TYPE"] = "LANCZOS3"
@@ -202,7 +198,7 @@ class combcat:
         if not filter:
             cmd = "swarp %s -c %s " % (' '.join(self.filelist), center_conf)
         else:
-            cmd = "swarp %s -c %s " % (' '.join(self.file[filter]), center_conf)
+            cmd = "swarp %s -c %s " % (' '.join(self.files[filter]), center_conf)
         for param, value in list(opts.items()):
             cmd += "-%s %s " % (param, value)
 
@@ -281,8 +277,14 @@ class combcat:
         #self.update_header_projection()
 
         # Get the dither centroid
-        if not self.centered:
-            self.center_dither()
+#        if not self.centered:
+#            self.center_dither()
+
+        # The configuration file
+        _conf = os.path.join(self.pipeline, 'confs', conf)
+
+        for filter in filters:
+            self.center_dither(filter=filter)
 
         self.make_swarp_input_weights(clobber=False)
         self.combtype = combtype
@@ -294,27 +296,28 @@ class combcat:
                     'DETECTOR', 'DARKTIME', 'RA', 'DEC', 'MJD-OBS', 'INSTRUME',
                     'FILTER', 'MAGZERO', 'MAGZSIG']
 
-        pars = {}
-        pars["IMAGE_SIZE"] = "%s,%s" % (self.nx, self.ny)
-        pars["CENTER_TYPE"] = "MANUAL"
-        pars["CENTER"] = "%s,%s" % (self.xo, self.yo)
-        pars["PIXEL_SCALE"] = self.pixscale
-        pars["PIXELSCALE_TYPE"] = "MANUAL"
-        #pars["FSCALE_KEYWORD"]  = "FLXSCALE"
-        pars["COPY_KEYWORDS"] = ','.join(keywords)
-        pars["COMBINE_TYPE"] = combtype
-        pars["NTHREADS"] = "0"
-        pars["WEIGHT_TYPE"] = "MAP_WEIGHT"
-
-        # The options
-        opts = ""
-        for param, value in list(pars.items()):
-            opts = opts + "-%s %s " % (param, value)
-
         self.combima = {}
         self.weightima = {}
-        cmd = ""
         for filter in filters:
+            self.center_dither()
+            pars = {}
+            pars["IMAGE_SIZE"] = "%s,%s" % (self.nx, self.ny)
+            pars["CENTER_TYPE"] = "MANUAL"
+            pars["CENTER"] = "%s,%s" % (self.xo, self.yo)
+            pars["PIXEL_SCALE"] = self.pixscale
+            pars["PIXELSCALE_TYPE"] = "MANUAL"
+            #pars["FSCALE_KEYWORD"]  = "FLXSCALE"
+            pars["COPY_KEYWORDS"] = ','.join(keywords)
+            pars["COMBINE_TYPE"] = combtype
+            pars["NTHREADS"] = "0"
+            pars["WEIGHT_TYPE"] = "MAP_WEIGHT"
+
+            # The options
+            opts = ""
+            for param, value in list(pars.items()):
+                opts = opts + "-%s %s " % (param, value)
+
+            cmd = ""
 
             pars[""] = "@%s" % (self.flxscale[filter])
 
@@ -332,11 +335,10 @@ class combcat:
 
             filelist = ' '.join(self.files[filter])
 
-            cmd = "swarp %s -IMAGEOUT_NAME %s -WEIGHTOUT_NAME %s " %\
-                (filelist, outimage, outweight)
+            cmd = "swarp %s -c %s -IMAGEOUT_NAME %s -WEIGHTOUT_NAME %s " %\
+                (filelist, _conf, outimage, outweight)
             cmd += " -WEIGHT_IMAGE %s " % (
                 ",".join(self.files_weight[filter]))
-            #cmd += " -WEIGHT_SUFFIX .weight.fits'[0]'"
             cmd = cmd + " -FSCALE_DEFAULT %s " % (
                 ",".join(map(str, self.flxscale[filter])))
             cmd = cmd + opts
@@ -371,7 +373,7 @@ class combcat:
 
         return
 
-    def swarp_newfirm(self):
+    def swarp_newfirm(self, conf='SWarp-common.conf'):
         ''' This runs swarp on the stacked newfirm images to make sure they are
         in the same projection as the mosaic images. Right now, it needs to
         have the stacked data from the VO. In the future,  I might create my
@@ -385,7 +387,9 @@ class combcat:
         check_exe('funpack')
 
         # get the center file created above
-        center = "{}/SWarp-{}-center.fits".format(self.outdir, self.tilename)
+        center = "{}/SWarp-{}-center_i.fits".format(self.outdir, self.tilename)
+
+        _conf = os.path.join(self.pipeline, 'confs', conf)
 
         # link this file into the newfirm directory and change the name
         # check first
@@ -431,10 +435,18 @@ class combcat:
         except FileExistsError:
             pass
 
-        cmd = 'swarp {} '.format(','.join(inputs))
+        # Keys to keep
+        keywords = ['OBJECT', 'EXPTIME', 'AIRMASS', 'TIMESYS', 'DATE-OBS',
+                    'TIME-OBS', 'OBSTYPE', 'OBSERVAT', 'TELESCOP', 'HA', 'ZD',
+                    'DETECTOR', 'DARKTIME', 'RA', 'DEC', 'MJD-OBS', 'INSTRUME',
+                    'FILTER', 'MAGZERO', 'MAGZSIG']
+
+        # remember the space behind each addition.
+        cmd = 'swarp {} -c {} '.format(','.join(inputs), _conf)
         cmd += '-IMAGEOUT_NAME {}{}K.fits '.format(newfirm_dir,
                                                 self.tilename)
-        cmd += '-SUBTRACT_BACK N -WRITE_XML N'
+        cmd += '-SUBTRACT_BACK N -WRITE_XML N '
+        cmd += '-COPY_KEYWORDS ' + ','.join(keywords)
 
         print(cmd)
         os.system(cmd)
@@ -442,6 +454,17 @@ class combcat:
         # clean up decompressed files
         for i in inputs:
             os.remove('{}'.format(i))
+
+        # correct the header information to make sure floats are floats and
+        # not strings
+        with fits.open('{}{}K.fits'.format(newfirm_dir, self.tilename),
+                    mode='update') as f:
+            header = f[0].header
+            for key, val in list(header.items()):
+                if 'CD1_' in key or 'CD2_' in key or \
+                        'CRVAL' in key or 'CRPIX' in key or \
+                        'EQUINOX' in key:
+                    f[0].header[key] = float(val)
 
         return
 
@@ -494,7 +517,7 @@ class combcat:
         if not self.centered:
             self.center_dither()
 
-        common_conf = os.path.join(self.BCSPIPE, 'LIB/pars', conf)
+        common_conf = os.path.join(self.pipeline, 'confs', conf)
         pars = {}
         pars["IMAGE_SIZE"] = "%s,%s" % (self.nx, self.ny)
         pars["CENTER_TYPE"] = "MANUAL"
@@ -1029,12 +1052,14 @@ class combcat:
         print('')
         return
 
-    def make_RGB(self, kband=False):
+    def make_RGB(self, kband=False, conf='stiff-common.conf'):
 
         try:
             check_exe('stiff')
         except FileNotFoundError:
             return
+
+        _conf = os.path.join(self.pipeline, 'confs', conf)
 
         # input files
         if kband:
@@ -1067,7 +1092,7 @@ class combcat:
                 '-COPYRIGHT', "'Steven Boada'"]
 
         # build the command -- a space is always last
-        cmd = 'stiff {} {} {} '.format(red, green, blue)
+        cmd = 'stiff {} {} {} -c {} '.format(red, green, blue, _conf)
         cmd += '-OUTFILE_NAME {} '.format(output)
         # append the options
         for opt in opts:
