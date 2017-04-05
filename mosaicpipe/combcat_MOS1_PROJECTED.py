@@ -663,6 +663,7 @@ class combcat:
                 subprocs.append(subprocess.Popen(shlex.split(cmd)))
 
         [p.wait() for p in subprocs]
+        [i.kill() for i in subprocs]
 
         for filter in self.filters:
             mosaic = '{}.fits'.format(self.combima[filter])
@@ -691,8 +692,18 @@ class combcat:
         check_exe('pp_calibrate')
         check_exe('pp_distill')
 
+        # little patch to keep it from crashing
+        try:
+            os.mkdir('.diagnostics')
+        except:
+            pass
+
         subprocs = []
         for filter in self.filters:
+            if os.path.isfile('photometry_control_star_{}.dat'.format(filter)):
+                print('# remove old photometry')
+                os.remove('photometry_control_star_{}.dat'.format(filter))
+
             mosaic = '{}.fits'.format(self.combima[filter])
             cmd = 'pp_photometry {}'.format(mosaic)
 
@@ -700,17 +711,18 @@ class combcat:
                 subprocs.append(subprocess.Popen(shlex.split(cmd)))
 
         [p.wait() for p in subprocs]
+        [i.kill() for i in subprocs]
 
         for filter in self.filters:
             mosaic = '{}.fits'.format(self.combima[filter])
             cmd = 'pp_calibrate {}'.format(mosaic)
 
             if not self.dryrun:
-                subprocs.append(subprocess.Popen(shlex.split(cmd)))
+                os.system(cmd)
+                #subprocs.append(subprocess.Popen(shlex.split(cmd)))
 
-        [p.wait() for p in subprocs]
-
-        [i.kill() for i in subprocs]
+        #[p.wait() for p in subprocs]
+        #[i.kill() for i in subprocs]
 
         for filter in self.filters:
             mosaic = '{}.fits'.format(self.combima[filter])
@@ -764,10 +776,6 @@ class combcat:
 
         self.getbpz = 1  # This var is not really used...
 
-        # make the zeropoint files with PP. -- this is getting moved to a
-        # seperate call in the main script.
-        #self.get_zeropt()
-
         for filter in self.filters:
 
             input = self.combima[filter] + ".fits"
@@ -818,14 +826,40 @@ class combcat:
             if not self.dryrun:
                 os.system(cmd)
 
+        # here we'll do the NEWFIRM sextracting
+        # link this file into the newfirm directory and change the name
+        # check first
+        newfirm_dir = '../../newfirm/stacked/'
+        if not os.path.isdir(newfirm_dir):
+            return
+
+        input = '{}{}K.fits'.format(newfirm_dir, self.tilename)
+        output = '{}K_cal.cat'.format(self.tilename)
+
+        with fits.open(input) as f:
+            header = f[0].header
+            zeropt = header['magzero']
+
+        # Do the SEx
+        cmd = "sex {},{} -CATALOG_NAME {}".format(det_ima, input, output)
+        cmd += " -MAG_ZEROPOINT {} -c {} {}1>&2".format(zeropt,
+                                                        self.SExinpar, opts)
+
+        print(cmd)
+        if not self.dryrun:
+            os.system(cmd)
+
+        # append the K-band filter and catalog information
+        self.filters.append('K')
+        self.combcat['K'] = output
+        self.XCorr['K'] = 0.0
+        self.XCorrError['K'] = 0.0
+
         return
 
     # Build th color catalog to use when computing the photo-z
     # Adapted from JHU APSIS pipeline
     def BuildColorCat(self):
-
-        # Change accordingly
-        zp_error = 0.05
 
         # The default output names
         self.colorCat = self.tilename + ".color"
@@ -846,13 +880,32 @@ class combcat:
         detectionList = []
         for key in outColumns:
             detectionList.append(detcols[key])
-        detectionColumns = tuple(
-            detectionList)  # the get_data function requires a tuple
+        # the get_data function requires a tuple
+        detectionColumns = tuple(detectionList)
         detection_variables = tableio.get_data(detCatalog,
                                                detectionColumns)
 
+        # Check to see if there is NEWFIRM imaging, and if so, add it to the
+        # filter list.
+        newfirm_dir = '../../newfirm/stacked/'
+        if not os.path.isdir(newfirm_dir):
+            pass
+        else:
+            kband = '{}{}K.fits'.format(newfirm_dir, self.tilename)
+
         # Read in the MAG_ISO and MAG_ISOERR from each catalog
         for filter in self.filters:
+            # get the zeropoint Info
+            if not filter == 'K':
+                tmp = np.genfromtxt('photometry_control_star_{}.dat'.format(
+                                    filter), names=True, dtype=None)
+                zpoint = tmp['ZP']
+                zp_error = tmp['ZP_sig']
+            else:
+                with fits.open(kband) as f:
+                    header = f[0].header
+                    zpoint = header['magzero']
+                    zp_error = header['magzsig']
 
             # Get the columns
             sexcols = SEx_head(self.combcat[filter], verb=None)
@@ -900,9 +953,6 @@ class combcat:
                                    nonobserved)
 
             detected = np.logical_not(nonobserved + nondetected)
-
-            # Get the zero point for the final magnitudes
-            zpoint = self.magbase
 
             print(filter, zpoint)
 
@@ -1655,10 +1705,9 @@ def main():
             c.DustCorrection()
             #sys.exit()
 
-            # Cats if allowed
-        if c.getbpz and not opt.noBPZ:
-            c.BuildColorCat()
-            c.runBPZ()
+    if not opt.noBPZ:
+        c.BuildColorCat()
+        #c.runBPZ()
 
     # make RGB images (pngs)
     if not opt.noRGB:
