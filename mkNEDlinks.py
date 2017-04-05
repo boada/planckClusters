@@ -10,17 +10,9 @@ base_string = ('https://ned.ipac.caltech.edu/cgi-bin/objsearch?in_csys='
                'equinox=J2000.0&obj_sort=Distance+to+search+center&of=pre_text'
                '&zv_breaker=30000.0&list_limit=5&img_stamp=YES')
 
-sheet = pd.read_csv('./catalogs/PSZ2_unconfirmed_catalog.csv')
+sheet = pd.read_csv('./catalogs/PSZ2_unconfirmed_catalog - Master.csv')
 
 for index, row in sheet.iterrows():
-    sheet['NED Link'][index] = base_string.format(row['RA'], row['DEC'])
+    sheet['NED'][index] = base_string.format(row['RA'], row['DEC'])
 
-
-
-
-
-
-
-
-
-
+sheet.to_csv('updated.csv')
