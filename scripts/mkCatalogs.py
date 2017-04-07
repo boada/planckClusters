@@ -1,12 +1,9 @@
-import urllib
+from urllib import parse, request
 import sys
 import os
 import string
 from astLib import astCoords
 import numpy as np
-import glob
-import time
-
 
 def filtercomment(sql):
     "Get rid of comments starting with --"
@@ -21,8 +18,8 @@ def query(sql):
     fmt = 'csv'
     "Run query and return file object"
     fsql = filtercomment(sql)
-    params = urllib.urlencode({'cmd': fsql, 'format': fmt})
-    return urllib.urlopen(url + '?%s' % params)
+    params = parse.urlencode({'cmd': fsql, 'format': fmt})
+    return request.urlopen(url + '?%s' % params)
 
 
 def work(ra, dec, outfile):
@@ -50,7 +47,7 @@ def work(ra, dec, outfile):
     FROM = '''FROM   galaxy AS G
     '''
     join = '''
-       JOIN dbo.Fgetnearbyobjeq(''' + str(ra) + ',' + str(dec) + ''',4) AS GN
+       JOIN dbo.Fgetnearbyobjeq(''' + str(ra) + ',' + str(dec) + ''',30) AS GN
          ON G.objid = GN.objid
        LEFT JOIN photoz AS Pz
               ON G.objid = Pz.objid
@@ -76,19 +73,17 @@ def work(ra, dec, outfile):
             line = result.readline()
         ofp.close()
 
+
 # get file data
-data =\
-np.genfromtxt('../../PSZ2_unconfirmed_catalog_4NOAO_2016A_newSwift-PSZ2_unconfirmed_catalog_4NOAO_.csv',
+data = np.genfromtxt('../catalogs/PSZ2_unconfirmed_catalog - Master.csv',
            delimiter=',', names=True, dtype=None)
 
 for i, (ra, dec,
-        name) in enumerate(zip(data['RA'], data['Dec'], data['Name'])):
-    if not data['SDSS_Footprint'][i] == 'TRUE':
-        continue
+        name) in enumerate(zip(data['RA'], data['DEC'], data['Name'])):
     print(data['Name'][i])
     if not os.path.isdir(data['Name'][i]):
         os.mkdir(data['Name'][i])
 
     ra = astCoords.hms2decimal(ra, ':')
     dec = astCoords.dms2decimal(dec, ':')
-    work(ra, dec, './%s/%s_SDSS_catalog.txt' % (name, name))
+    work(ra, dec, './SDSS/%s_SDSS_catalog.txt' % (nam))
