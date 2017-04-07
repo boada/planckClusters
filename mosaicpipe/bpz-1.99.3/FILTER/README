@@ -1,0 +1,51 @@
+- TOTAL THROUGHPUT CURVES (OTA+ACS)
+- Calculated on June,12 2003 using the following component  tables:
+
+ WFC: refdata.cmptbl="mysynphot$wfc120603_tmc.fits"
+ HRC: refdata.cmptbl="mysynphot$hrc120603_tmc.fits"
+
+ where mysynphot is /home/sirianni/SYNPHOT/REFFILES/
+
+in particuar, the difference from the current version of SYNPHOT are:
+ 
+dqehrc120603.asc  - dqe for HRC calculated from G.De Marchi using the two standar stars observed so far.
+dqewfc120603.asc  - dqe for WFC calculated from G.De Marchi using the two standar stars observed so far.
+
+some filters have been excluded in the fitting routine and have been corrected manually
+by multiplying the throughput by a constant:
+ 
+Filter   WFC     HRC     AVG
+------  -----   -----   ------
+F475W   0.993   1.017   1.0050
+F502N   0.985   0.996   0.9905
+F550M   0.967   0.987   0.9770
+F606W   0.984   0.983   0.9835
+F658N   0.986   0.978   0.9820
+F660N   0.998   0.972   0.9850
+F892N   0.971   1.016   0.9935
+------  -----   -----   ------
+
+the new transmission curves are in the following files:
+
+acs892_wfc_06.03.fits
+acs660_wfc_06.03.fits
+acs658_wfc_06.03.fits
+acs606_wfc_06.03.fits
+acs550_wfc_06.03.fits
+acs502_wfc_06.03.fits
+acs475_wfc_06.03.fits
+
+
+
+==========================================
+
+Summary for TXITXO:
+
+TOTAL THROUGHPUT CURVES (OTA+ACS)  Calculated on June,12 2003
+- CCD DQE provided by G.De Marchi on June 2 2003
+- Some filters have been modified manually (F475W,F502N,F550M,F606W,F658N,F660N, F892N)
+  because they could not be included in the correction for the DQE.
+- for  more detail see /home/sirianni/SYNPHOT/REFFILES/X_MODELS/061203/README
+- Note: for HRC we expect future corrections up to 12% in  red filters
+-       for WFC up to 3-4 % for F850LP, < 2% for all the other broad band filters.
+
