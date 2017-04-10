@@ -1,9 +1,9 @@
 from urllib import parse, request
 import sys
 import os
-import string
 from astLib import astCoords
 import numpy as np
+from time import sleep
 
 def filtercomment(sql):
     "Get rid of comments starting with --"
@@ -23,7 +23,7 @@ def query(sql):
 
 
 def work(ra, dec, outfile):
-    select = '''SELECT TOP 1000 G.objid,
+    select = '''SELECT G.objid,
                 G.ra,
                 G.dec,
                 G.u,
@@ -54,7 +54,7 @@ def work(ra, dec, outfile):
        LEFT JOIN specobj AS SO
               ON G.objid = SO.bestobjid
     '''
-    where = '''WHERE  G.r < 24
+    where = '''WHERE  G.i < 23
        AND clean = 1
        AND ( calibstatus_r & 1 ) != 0
     '''
@@ -64,12 +64,13 @@ def work(ra, dec, outfile):
     result = query(sql)
 
     line = result.readline()
-    if line.startswith("ERROR"):
+    if line.startswith("ERROR".encode()):
+        print('ERROR')
         ofp = sys.stderr
     else:
         ofp = open(outfile, 'wt')
         while line:
-            ofp.write(string.rstrip(line) + os.linesep)
+            ofp.write(line.rstrip().decode() + os.linesep)
             line = result.readline()
         ofp.close()
 
@@ -81,9 +82,8 @@ data = np.genfromtxt('../catalogs/PSZ2_unconfirmed_catalog - Master.csv',
 for i, (ra, dec,
         name) in enumerate(zip(data['RA'], data['DEC'], data['Name'])):
     print(data['Name'][i])
-    if not os.path.isdir(data['Name'][i]):
-        os.mkdir(data['Name'][i])
 
     ra = astCoords.hms2decimal(ra, ':')
     dec = astCoords.dms2decimal(dec, ':')
-    work(ra, dec, './SDSS/%s_SDSS_catalog.txt' % (nam))
+    work(ra, dec, './SDSS/%s_SDSS_catalog.txt' % (name.decode()))
+    sleep(1)
