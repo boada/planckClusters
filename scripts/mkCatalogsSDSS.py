@@ -14,13 +14,16 @@ def filtercomment(sql):
 
 
 def query(sql):
+    '''Run query and return file object'''
+
     url = 'http://skyserver.sdss3.org/public/en/tools/search/x_sql.aspx'
     fmt = 'csv'
-    "Run query and return file object"
     fsql = filtercomment(sql)
     params = parse.urlencode({'cmd': fsql, 'format': fmt})
-    return request.urlopen(url + '?%s' % params)
-
+    print(params)
+    print(url + '?%s' % params)
+    #return request.urlopen(url + '?%s' % params)
+    return 0
 
 def work(ra, dec, outfile):
     select = '''SELECT G.objid,
