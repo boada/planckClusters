@@ -31,8 +31,8 @@ MASK_TYPE        CORRECT        # type of detection MASKing: can be one of
  
 #------------------------------ Photometry -----------------------------------
 
-PHOT_APERTURES   55             # (14.96'' in paper) MAG_APER aperture diameter(s) in pixels 
-#PHOT_APERTURES   15,30,55             # MAG_APER aperture diameter(s) in pixels
+#PHOT_APERTURES   55            # (14.96'' in paper) MAG_APER aperture diameter(s) in pixels 
+PHOT_APERTURES   11.25          # MAG_APER aperture diameter(s) in pixels
 PHOT_AUTOPARAMS  2.5, 3.5       # MAG_AUTO parameters: <Kron_fact>,<min_radius>
 PHOT_PETROPARAMS 2.0, 3.5       # MAG_PETRO parameters: <Petrosian_fact>,
                                 # <min_radius>
