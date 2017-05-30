@@ -14,3 +14,5 @@ legacy/
 *.ps
 *.txt
 *.reg
+*.csv
+mosaicpipe/bpz_felipe/
