@@ -20,25 +20,25 @@ def query(sql):
     fmt = 'csv'
     fsql = filtercomment(sql)
     params = parse.urlencode({'cmd': fsql, 'format': fmt})
-    print(params)
-    print(url + '?%s' % params)
-    #return request.urlopen(url + '?%s' % params)
-    return 0
+    return request.urlopen(url + '?%s' % params)
 
 def work(ra, dec, outfile):
     select = '''SELECT G.objid,
                 G.ra,
                 G.dec,
-                G.u,
-                G.err_u,
-                G.g,
-                G.err_g,
-                G.r,
-                G.err_r,
-                G.i,
-                G.err_i,
-                G.z,
-                G.err_z,
+                G.raErr as ra_err,
+                G.decErr as dec_err,
+                G.cModelMag_u as u,
+                G.cModelMagErr_u as u_err,
+                G.cModelMag_g as g,
+                G.cModelMagErr_g as g_err,
+                G.cModelMag_r as r,
+                G.cModelMagErr_r as r_err,
+                G.cModelMag_i as i,
+                G.cModelMagErr_i as i_err,
+                G.cModelMag_z as z,
+                G.cModelMagErr_z as z_err,
+                G.flags,
                 Pz.z AS Photoz,
                 Pz.zerr AS Photoz_err,
                 SO.specobjid,
@@ -56,6 +56,7 @@ def work(ra, dec, outfile):
               ON G.objid = Pz.objid
        LEFT JOIN specobj AS SO
               ON G.objid = SO.bestobjid
+              AND SO.zwarning = 0
     '''
     where = '''WHERE  G.i < 23
        AND clean = 1
@@ -71,11 +72,14 @@ def work(ra, dec, outfile):
         print('ERROR')
         ofp = sys.stderr
     else:
-        ofp = open(outfile, 'wt')
-        while line:
-            ofp.write(line.rstrip().decode() + os.linesep)
-            line = result.readline()
-        ofp.close()
+        with open(outfile, 'wt') as ofp:
+            cnt = 0
+            while line:
+                ofp.write(line.rstrip().decode() + os.linesep)
+                line = result.readline()
+                cnt += 1
+        if cnt < 3:
+            os.remove(outfile)
 
 
 # get file data
@@ -88,5 +92,5 @@ for i, (ra, dec,
 
     ra = astCoords.hms2decimal(ra, ':')
     dec = astCoords.dms2decimal(dec, ':')
-    work(ra, dec, './SDSS/%s_SDSS_catalog.txt' % (name.decode()))
+    work(ra, dec, './SDSS/%s_SDSS_catalog.csv' % (name.decode()))
     sleep(1)
