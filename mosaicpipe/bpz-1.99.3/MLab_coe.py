@@ -4,9 +4,9 @@
 """Matlab(tm) compatibility functions.
 
 This will hopefully become a complete set of the basic functions available in
-matlab.  The syntax is kept as close to the matlab syntax as possible.  One 
-fundamental change is that the first index in matlab varies the fastest (as in 
-FORTRAN).  That means that it will usually perform reductions over columns, 
+matlab.  The syntax is kept as close to the matlab syntax as possible.  One
+fundamental change is that the first index in matlab varies the fastest (as in
+FORTRAN).  That means that it will usually perform reductions over columns,
 whereas with this object the most natural reductions are over rows.  It's perfectly
 possible to make this work the way it does in matlab if that's desired.
 """
@@ -14,7 +14,7 @@ possible to make this work the way it does in matlab if that's desired.
 # I ADDED thetastd -- DC
 # I ADDED histogram -- DC
 # avgstd2, std2, sum, total, size, divisible, ndec, interp, bilin
-# HAD TO REMOVE RandomArray BECAUSE OF AN ERROR: 
+# HAD TO REMOVE RandomArray BECAUSE OF AN ERROR:
 #   ImportError: ld.so.1: python: fatal: /home/coe/python/ranlib.so: wrong ELF data format: ELFDATA2LS
 
 #from Numeric import *
@@ -760,8 +760,8 @@ def linescross(xa, ya, xb, yb):
     DO THE LINES CONNECTING A TO B CROSS?
     A: TWO POINTS: (xa[0], ya[0]), (xa[1], ya[1])
     B: TWO POINTS: (xb[0], yb[0]), (xb[1], yb[1])
-    DRAW LINE FROM A0 TO B0 
-    IF A1 & B1 ARE ON OPPOSITE SIDES OF THIS LINE, 
+    DRAW LINE FROM A0 TO B0
+    IF A1 & B1 ARE ON OPPOSITE SIDES OF THIS LINE,
     AND THE SAME IS TRUE VICE VERSA,
     THEN THE LINES CROSS
     """
@@ -793,7 +793,7 @@ def linescross2(xa, ya, xb, yb):
     LINE A: (xa[0], ya[0]) -> (xa[1], ya[1])
     LINE B: (xb[0], yb[0]) -> (xb[1], yb[1])
     DRAW LINE A
-    IF THE B POINTS ARE ON OPPOSITE SIDES OF THIS LINE, 
+    IF THE B POINTS ARE ON OPPOSITE SIDES OF THIS LINE,
     AND THE SAME IS TRUE VICE VERSA,
     THEN THE LINES CROSS
     """
@@ -848,7 +848,7 @@ def linescrosstest():
 
 
 def outside(x, y, xo, yo):
-    """GIVEN 3 POINTS a, b, c OF A POLYGON 
+    """GIVEN 3 POINTS a, b, c OF A POLYGON
     WITH CENTER xo, yo
     DETERMINE WHETHER b IS OUTSIDE ac,
     THAT IS, WHETHER abc IS CONVEX"""
@@ -987,7 +987,7 @@ def triarea(x, y, dir=0):
 
 
 def CCWsort(x, y):
-    """FOR A CONVEX SET OF POINTS, 
+    """FOR A CONVEX SET OF POINTS,
     SORT THEM SUCH THAT THEY GO AROUND IN ORDER CCW FROM THE x-AXIS"""
     xc = mean(x)
     yc = mean(y)
@@ -999,7 +999,7 @@ def CCWsort(x, y):
 
 
 def polyarea(x, y):
-    """RETURNS THE AREA OF A CONVEX POLYGON 
+    """RETURNS THE AREA OF A CONVEX POLYGON
     GIVEN ITS COORDINATES (IN ANY ORDER)"""
     A = 0.
     x, y = CCWsort(x, y)
@@ -1162,21 +1162,21 @@ def lnclip(x, loexp):
 def linreg(X, Y):
     # written by William Park
     # http://www.python.org/topics/scicomp/recipes_in_python.html
-    """ Returns coefficients to the regression line 'y=ax+b' from x[] and y[]. 
-    Basically, it solves Sxx a + Sx b = Sxy Sx a + N b = Sy 
-    where Sxy = \sum_i x_i y_i, Sx = \sum_i x_i, and Sy = \sum_i y_i. 
-    The solution is a = (Sxy N - Sy Sx)/det b = (Sxx Sy - Sx Sxy)/det 
-    where det = Sxx N - Sx^2. 
-    In addition, 
-    Var|a| = s^2 |Sxx Sx|^-1 
+    """ Returns coefficients to the regression line 'y=ax+b' from x[] and y[].
+    Basically, it solves Sxx a + Sx b = Sxy Sx a + N b = Sy
+    where Sxy = \sum_i x_i y_i, Sx = \sum_i x_i, and Sy = \sum_i y_i.
+    The solution is a = (Sxy N - Sy Sx)/det b = (Sxx Sy - Sx Sxy)/det
+    where det = Sxx N - Sx^2.
+    In addition,
+    Var|a| = s^2 |Sxx Sx|^-1
     = s^2 | N -Sx| / det |b| |Sx N | |-Sx Sxx| s^2
-    = {\sum_i (y_i - \hat{y_i})^2 \over N-2} 
-    = {\sum_i (y_i - ax_i - b)^2 \over N-2} 
-    = residual / (N-2) R^2 
-    = 1 - {\sum_i (y_i - \hat{y_i})^2 \over \sum_i (y_i - \mean{y})^2} 
-    = 1 - residual/meanerror 
-    It also prints to &lt;stdout&gt; 
-    few other data, N, a, b, R^2, s^2, 
+    = {\sum_i (y_i - \hat{y_i})^2 \over N-2}
+    = {\sum_i (y_i - ax_i - b)^2 \over N-2}
+    = residual / (N-2) R^2
+    = 1 - {\sum_i (y_i - \hat{y_i})^2 \over \sum_i (y_i - \mean{y})^2}
+    = 1 - residual/meanerror
+    It also prints to &lt;stdout&gt;
+    few other data, N, a, b, R^2, s^2,
     which are useful in assessing the confidence of estimation. """
     #from math import sqrt
     if len(X) != len(Y):
@@ -1476,7 +1476,7 @@ def rand(*args):
 
 
 def eye(N, M=None, k=0, dtype=None):
-    """eye(N, M=N, k=0, dtype=None) returns a N-by-M matrix where the 
+    """eye(N, M=N, k=0, dtype=None) returns a N-by-M matrix where the
         k-th diagonal is all ones, and everything else is zeros.
         """
     if M == None: M = N
@@ -1710,7 +1710,7 @@ weightedmean = weightedavg
 ## def thetaavgstd1(theta):
 ##     """SHWAG VERSION: WON'T WORK IF THETA SPANS A RANGE > pi
 ##     CALCULATES THE AVERAGE & STANDARD DEVIATION IN A LIST (OR 1-D ARRAY) OF THETA (ANGLE) MEASUREMENTS
-##     RETURNS THE LIST [avg, std]    
+##     RETURNS THE LIST [avg, std]
 ##     NEED A NEW CODE TO HANDLE THAT: ?INCREASING WEIGHTED AVERAGES (2 POINTS AT A TIME)?"""
 ##     if len(theta) == 1:
 ##      return([theta[0], 999])
@@ -1852,7 +1852,7 @@ def diff(x, n=1):
 
 
 def shorten(x, n=1):  # shrink
-    """shorten(x,n=1) 
+    """shorten(x,n=1)
         SHORTENS x, TAKING AVG OF NEIGHBORS, RECURSIVELY IF n > 1
         """
     a = (x[1:] + x[:-1]) / 2.

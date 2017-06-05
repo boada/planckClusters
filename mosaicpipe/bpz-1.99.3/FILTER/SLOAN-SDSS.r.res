@@ -1,0 +1,1 @@
+SDSS/SLOAN-SDSS.r.res

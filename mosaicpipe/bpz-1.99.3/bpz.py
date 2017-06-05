@@ -877,7 +877,10 @@ for ig in range(ng):
         p_i = zeros((nz, nt)) * 1.
         j = searchsorted(z, z_s[ig])
         #print j,nt,z_s[ig]
-        p_i[j, :] = 1. / float(nt)
+        try:
+            p_i[j, :] = 1. / float(nt)
+        except IndexError:
+            pass
     else:
         if useprior:
             if pars.d['PRIOR'] == 'lensing':

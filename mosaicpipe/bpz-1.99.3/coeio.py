@@ -1135,7 +1135,7 @@ class VarsClass:
                 exec('self.%s = self.data[iii]' % label)
             except:
                 print 'BAD LABEL NAME:', label
-                xxx[9] = 3
+                #xxx[9] = 3
 
     def copy(self):
         #return copy.deepcopy(self)

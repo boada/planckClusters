@@ -1,7 +1,5 @@
 from numpy import *
-
 #from numpy import compress as compress1b
-
 
 # THE numpy1.0b compress SUCKS!
 # I REIMPORT IT AS compress1b AND I USE IT HERE
