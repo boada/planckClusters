@@ -26,7 +26,6 @@ def mk_regions(dir):
             f1.close()
 
 def mk_regions_array(output, ra, dec, info, tag='regions'):
-
     with open(output, 'wt') as f:
         f.writelines('# Region file formart: DS9 version 4.1\n')
         f.writelines('# Filename: {}'.format(output))
