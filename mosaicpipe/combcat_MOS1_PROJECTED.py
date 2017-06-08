@@ -1875,7 +1875,9 @@ def add_extra_photometry(tilename, filters=['u']):
                 f2.write(line)
                 line = f.readline()
 
-    #os.remove('tmp.color')
+    # mv the old color catalog
+    os.rename('tmp.columns'.format(tilename), '{}.columns'.format(tilename))
+    os.remove('tmp.color')
 
     return
 
