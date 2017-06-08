@@ -855,8 +855,9 @@ class combcat:
 
             opts = ''
             if filter == 'i':
-                backima = self.combima[filter] + "_BACK.fits"
-                opts = " -CHECKIMAGE_TYPE BACKGROUND_RMS"
+                backima = self.combima[filter] + "_SEG.fits"
+                #opts = " -CHECKIMAGE_TYPE BACKGROUND_RMS"
+                opts = " -CHECKIMAGE_TYPE SEGMENTATION"
                 opts += " -CHECKIMAGE_NAME {} ".format(backima)
 
             # weight map for detection, and BACKGROUND for meassurement
