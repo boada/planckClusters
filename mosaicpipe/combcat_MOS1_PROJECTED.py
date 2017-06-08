@@ -1572,8 +1572,8 @@ def match_SEx(tilename, filters):
         ra, dec = w.all_pix2world(cat['X_IMAGE'], cat['Y_IMAGE'], 0)
         ra = Column(ra, name='RA')
         dec = Column(dec, name='DEC')
-        cat.add_column(ra)
         try:
+            cat.add_column(ra)
         except ValueError:
             return
         cat.add_column(dec)
