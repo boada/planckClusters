@@ -1605,7 +1605,14 @@ def match_SEx(tilename, filters):
 
         os.remove('tmp.color')
 
-def add_speczs(tilename):
+def add_Speczs(tilename):
+    ''' This function adds the spec-z's to the color catalog. The previous
+    function adds all of the extra information to the sextractor catalogs. So
+    you can run either one, or both. Because they don't do the same thing even
+    though it looks like it.
+
+    '''
+
     from astropy.io import ascii
     from astropy import wcs
     from astropy.table import Column
@@ -1622,18 +1629,24 @@ def add_speczs(tilename):
 
     # match the catalogs
     sdss_cat = ascii.read('/home/boada/Projects/planckClusters/scripts/SDSS/'
-                '{}_SDSS_catalog.txt'.format(tilename))
+    try:
+                '{}_SDSS_catalog.csv'.format(tilename))
+        if len(sdss_cat) < 2:
+            return
+    except FileNotFoundError:
+        print('SDSS CATALOG NOT FOUND!')
+        return
     c_coord = SkyCoord(ra=cat['RA'] * u.degree, dec=cat['DEC'] * u.degree)
     s_coord = SkyCoord(ra=sdss_cat['ra'] * u.degree, dec=sdss_cat['dec'] *
                        u.degree)
-    idxc, idxs, d2d, d3d = s_coord.search_around_sky(c_coord, 3 * u.arcsec)
+    idxc, idxs, d2d, d3d = s_coord.search_around_sky(c_coord, 1 * u.arcsec)
 
     # set the fill value
-    sdss_cat['Specz'].fill_value = -99.0
+    sdss_cat['specz'].fill_value = -99.0
 
     # make a new column to catch the results
     zspec = np.ones(len(cat)) * -99.0
-    zspec[idxc] = sdss_cat['Specz'].filled()[idxs]
+    zspec[idxc] = sdss_cat['specz'].filled()[idxs]
     zspec = Column(zspec, name='Z_S')
     cat.add_column(zspec)
     cat.write('tmp.color', format='ascii.commented_header', overwrite=True)
