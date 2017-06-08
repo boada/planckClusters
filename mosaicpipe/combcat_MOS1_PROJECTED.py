@@ -707,6 +707,7 @@ class combcat:
         return
 
     def get_zeropt(self):
+        from astropy.io import fits
         ''' This is going to call the photometrypipline script that lives in
         the projects directory. It should both astrometrically correct the
         mosaics and calculate the overall zeropoint of the mosaic. Currently,
@@ -736,7 +737,21 @@ class combcat:
                 os.remove('photometry_control_star_{}.dat'.format(filter))
 
             mosaic = '{}.fits'.format(self.combima[filter])
-            cmd = 'pp_photometry -snr 10 -minarea 16 -aprad 55 {}'.format(mosaic)
+            # check to make sure it has the right header keywords
+            with fits.open(mosaic, mode='update') as mos:
+                keywords = ['TEL_KEYW', 'TELINSTR', 'MIDTIMJD', 'SECPIXY',
+                            'SECPIXX', 'PHOT_K']
+                values = ['KPNO4MOS1', 'KPNO4m/MOSAIC', 0.0, 0.2666, 0.2666,
+                          0.5]
+                for kw, val in zip(keywords, values):
+                    mos[0].header[kw] = val
+
+                #####################################################
+                ##### HACK TO MAKE THE ZEROPOINT ERRORS SMALLER #####
+                #####################################################
+                mos[0].header['GAIN'] = 1.
+
+            cmd = 'pp_photometry -snr 10 -aprad 5.7 {}'.format(mosaic)
 
             if not self.dryrun:
                 subprocs.append(subprocess.Popen(shlex.split(cmd)))
