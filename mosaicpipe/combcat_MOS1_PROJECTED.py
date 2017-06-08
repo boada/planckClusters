@@ -1094,14 +1094,36 @@ class combcat:
             cfile.write('M_0\t%s\n' % n_mo)
         return
 
+    def cleanCatalogs(self):
+        ''' This function takes all of the sextractor and newly created color
+        catalogs and cleans them to make sure there are no horrible detections.
+        Horrible detections include things where the detection image doesn't
+        overlap with the other image. This causes us to get crazy magnitudes
+        that don't make any sense. So throw those away. I am going to clean
+        both the color catalog, and the Sextractor catalogs. The color catalogs
+        will get -99 (for now), but it might be better to just remove them all
+        together.
+
+        '''
+
+        from astropy.io import ascii
+
+        color = ascii.read('{}.color'.format(self.tilename))
+        for filter in self.filters:
+            sex_cat = ascii.read(self.combcat[filter])
+            # find all the spots where the FWHM == 0.
+            fwhm_idx = np.where(sex_cat['FWHM_IMAGE'] == 0.0)[0]
+            color['{}_MOSAICII_MAG_ISO'.format(filter)][fwhm_idx] = -99.
+            color['{}_MOSAICII_MAGERR_ISO'.format(filter)][fwhm_idx] = 0.
+
     # Run Benitez BPZ
-    def runBPZ(self, specz=True):
+    def runBPZ(self, Specz=True):
         """Runs BPZ on the multicolor catalog file using the .columns """
 
-        # first we update with specz's if we want to
+        # first we update with Specz's if we want to
         match_SEx(self.tilename, self.filters)
-        add_speczs(self.tilename)
-        #add_speczs(self.tilename)
+        add_Speczs(self.tilename)
+        #add_Speczs(self.tilename)
 
         print('Starting photometric redshift determination...',
               file=sys.stderr)
