@@ -1573,38 +1573,63 @@ def match_SEx(tilename, filters):
         ra = Column(ra, name='RA')
         dec = Column(dec, name='DEC')
         cat.add_column(ra)
+        try:
+        except ValueError:
+            return
         cat.add_column(dec)
 
         # need these coordinates for the matching
         c_coord = SkyCoord(ra=cat['RA'] * u.degree, dec=cat['DEC'] * u.degree)
 
         # match the two catalogs -- idxc for cat, idxs for sdss
-        idxc, idxs, d2d, d3d = s_coord.search_around_sky(c_coord, 3 * u.arcsec)
+        idxc, idxs, d2d, d3d = s_coord.search_around_sky(c_coord, 1 * u.arcsec)
 
         # make some data to catch
         d = np.ones(len(cat)) * 99.0 # 99 is the non-detection value in SEx...
-        col = Column(d, name='sdss_{}'.format(filter))
-        col_err = Column(d, name='sdss_{}_err'.format(filter))
-        cat.add_column(col)
-        cat.add_column(col_err)
 
         # add some extra info from SDSS -- Specz, Photoz
         cols = []
-        cols.append(Column(d, name='sdss_Specz'))
-        cols.append(Column(d, name='sdss_Specz_err'))
-        cols.append(Column(d, name='sdss_Photoz'))
-        cols.append(Column(d, name='sdss_Photoz_err'))
+        cols.append(Column(d, name='sdss_{}'.format(filter)))
+        cols.append(Column(d, name='sdss_{}_err'.format(filter)))
+        cols.append(Column(d, name='sdss_petro_{}'.format(filter)))
+        cols.append(Column(d, name='sdss_petro_{}_err'.format(filter)))
+        cols.append(Column(d, name='sdss_objid', dtype=np.long))
+        cols.append(Column(d, name='sdss_specz'))
+        cols.append(Column(d, name='sdss_specz_err'))
+        cols.append(Column(d, name='sdss_photoz'))
+        cols.append(Column(d, name='sdss_photoz_err'))
+        cols.append(Column(d, name='sdss_type'))
         for col in cols:
             cat.add_column(col)
 
         # merge the matches
+        cat['sdss_objid'][idxc] = sdss_cat['objid'][idxs]
         cat['sdss_{}'.format(filter)][idxc] = sdss_cat[filter][idxs]
         cat['sdss_{}_err'.format(filter)][idxc] = sdss_cat[
-                                                'err_{}'.format(filter)][idxs]
-        cat['sdss_Specz'][idxc] = sdss_cat['Specz'][idxs]
-        cat['sdss_Specz_err'][idxc] = sdss_cat['Specz_err'][idxs]
-        cat['sdss_Photoz'][idxc] = sdss_cat['Photoz'][idxs]
-        cat['sdss_Photoz_err'][idxc] = sdss_cat['Photoz_err'][idxs]
+                                                '{}_err'.format(filter)][idxs]
+        cat['sdss_petro_{}'.format(filter)][idxc] = \
+                                sdss_cat['petroRad_{}'.format(filter)][idxs]
+        cat['sdss_petro_{}_err'.format(filter)][idxc] = \
+                                sdss_cat['petroRadErr_{}'.format(filter)][idxs]
+        cat['sdss_specz'][idxc] = sdss_cat['specz'][idxs]
+        cat['sdss_specz_err'][idxc] = sdss_cat['specz_err'][idxs]
+        cat['sdss_photoz'][idxc] = sdss_cat['photoz'][idxs]
+        cat['sdss_photoz_err'][idxc] = sdss_cat['photoz_err'][idxs]
+        cat['sdss_type'][idxc] = sdss_cat['type'][idxs]
+
+        #### NOW THE PANSTARRS DATA ####
+        idxc, idxp, d2d, d3d = p_coord.search_around_sky(c_coord, 1 * u.arcsec)
+        # make some data to catch
+        d = np.ones(len(cat)) * 99.0 # 99 is the non-detection value in SEx...
+        col = Column(d, name='ps1_{}'.format(filter))
+        col_err = Column(d, name='ps1_{}_err'.format(filter))
+        cat.add_column(col)
+        cat.add_column(col_err)
+        # merge the matches
+        cat['ps1_{}'.format(filter)][idxc] = ps1_cat[
+                                        '{}meanpsfmag'.format(filter)][idxp]
+        cat['ps1_{}_err'.format(filter)][idxc] = ps1_cat[
+                                        '{}meanpsfmagerr'.format(filter)][idxp]
 
         # write out the results
         cat.write('tmp.color', format='ascii.commented_header', overwrite=True)
