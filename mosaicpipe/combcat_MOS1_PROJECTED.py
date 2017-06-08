@@ -1628,8 +1628,8 @@ def add_Speczs(tilename):
     cat.add_column(dec)
 
     # match the catalogs
-    sdss_cat = ascii.read('/home/boada/Projects/planckClusters/scripts/SDSS/'
     try:
+        sdss_cat = ascii.read('/home/boada/Projects/planckClusters/scripts/SDSS/'
                 '{}_SDSS_catalog.csv'.format(tilename))
         if len(sdss_cat) < 2:
             return
