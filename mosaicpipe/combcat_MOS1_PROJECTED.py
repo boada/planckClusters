@@ -1534,11 +1534,29 @@ def match_SEx(tilename, filters):
 
     # read in the sdss catalog. We are doing this first because we only need to
     # do it once
-    sdss_cat = ascii.read('/home/boada/Projects/planckClusters/scripts/SDSS/'
-                '{}_SDSS_catalog.txt'.format(tilename))
+    try:
+        sdss_cat = ascii.read('/home/boada/Projects/planckClusters/scripts/SDSS/'
+                '{}_SDSS_catalog.csv'.format(tilename))
+        if len(sdss_cat) < 2:
+            print('# SDSS TOO SHORT!')
+            return
+    except FileNotFoundError:
+        print('# SDSS CATALOG NOT FOUND!')
+        return
+    try:
+        ps1_cat = ascii.read('/home/boada/Projects/planckClusters/scripts/PS1/'
+                '{}_PS1_catalog.csv'.format(tilename))
+        if len(ps1_cat) < 2:
+            print('# PS1 TOO SHORT!')
+            return
+    except FileNotFoundError:
+        print('# PS1 CATALOG NOT FOUND!')
+        return
     # need these coordinates for the matching
     s_coord = SkyCoord(ra=sdss_cat['ra'] * u.degree, dec=sdss_cat['dec'] *
                        u.degree)
+    p_coord = SkyCoord(ra=ps1_cat['ramean'] * u.degree,
+                        dec=ps1_cat['decmean'] * u.degree)
 
     for filter in filters:
         if filter == 'K':
