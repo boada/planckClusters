@@ -760,7 +760,7 @@ class combcat:
 
         for filter in self.filters:
             mosaic = '{}.fits'.format(self.combima[filter])
-            cmd = 'pp_calibrate -minstars 10 {}'.format(mosaic)
+            cmd = 'pp_calibrate {}'.format(mosaic)
 
             if not self.dryrun:
                 os.system(cmd)
@@ -773,7 +773,7 @@ class combcat:
             mosaic = '{}.fits'.format(self.combima[filter])
             # the positions file fails -- it's just used to make sure it doesn't
             # query JPL because our stuff isn't an asteroid.
-            cmd = 'pp_distill -positions diagnostics.html {}'.format(mosaic)
+            cmd = 'pp_distill {}'.format(mosaic)
             os.system(cmd) # gotta call it to make it work
 
             if os.path.isfile('photometry_control_star.dat'):
