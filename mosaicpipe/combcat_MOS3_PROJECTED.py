@@ -180,7 +180,7 @@ class combcat:
             print(' to {}'.format(proj))
         return
 
-    def center_dither(self, conf="SWarp-center.conf", filter=None):
+    def center_dither(self, conf="SWarp-center.conf", filter=None, dryrun=False):
         ''' Center the dither pattern for SWARP '''
 
         check_exe("swarp")
@@ -210,7 +210,7 @@ class combcat:
             cmd += "-%s %s " % (param, value)
 
         print(cmd)
-        if not self.dryrun:
+        if not self.dryrun or dryrun:
             print(os.getcwd())
             print("Centering mosaic", file=sys.stderr)
             os.system(cmd)
@@ -368,16 +368,30 @@ class combcat:
         This makes sure that all of the variables are defined.
 
         '''
+        # this is to convert the hms/dms coordinates back into decimal degrees.
+        # I don't really want to use this, but I am not rewriting things.
+        from astLib import astCoords
 
         self.combima = {}
+        self.combcat = {}
         self.weightima = {}
+
+        self.center_dither(dryrun=True)
+        self.xo = astCoords.hms2decimal(self.xo, ':')
+        self.yo = astCoords.dms2decimal(self.yo, ':')
+
         for filter in self.filters:
 
             # Store the names
             self.combima[filter] = "%s%s" % (self.tilename, filter)
             self.weightima[filter] = "%s%s_weight.fits" % (self.tilename,
                                                            filter)
-
+            # make the combined catalog filenames
+            if os.path.isfile('{}{}.cat'.format(self.tilename, filter)):
+                self.combcat[filter] = '{}{}.cat'.format(self.tilename, filter)
+            elif os.path.isfile('{}{}_cal.cat'.format(self.tilename, filter)):
+                self.combcat[filter] = '{}{}_cal.cat'.format(self.tilename,
+                                                             filter)
         # The default output names
         self.colorCat = self.tilename + ".color"
         self.columnsFile = self.tilename + ".columns"
@@ -667,20 +681,26 @@ class combcat:
         except:
             pass
 
+        # make the diagnostics file too
+        with open('diagnostics.html', 'a') as f:
+            pass
+
         subprocs = []
         for filter in self.filters:
             mosaic = '{}.fits'.format(self.combima[filter])
-            cmd = 'pp_prepare {}'.format(mosaic)
+            cmd = 'pp_prepare -ra {} -dec {} {}'.format(self.xo, self.yo, mosaic)
 
             if not self.dryrun:
+                print(cmd)
                 subprocs.append(subprocess.Popen(shlex.split(cmd)))
 
         [p.wait() for p in subprocs]
+        [i.kill() for i in subprocs]
 
         for filter in self.filters:
             mosaic = '{}.fits'.format(self.combima[filter])
 
-            cmd = 'pp_register {}'.format(mosaic)
+            cmd = 'pp_register -snr 10 -minarea 12 {}'.format(mosaic)
 
             if not self.dryrun:
                 subprocs.append(subprocess.Popen(shlex.split(cmd)))
@@ -692,6 +712,7 @@ class combcat:
         return
 
     def get_zeropt(self):
+        from astropy.io import fits
         ''' This is going to call the photometrypipline script that lives in
         the projects directory. It should both astrometrically correct the
         mosaics and calculate the overall zeropoint of the mosaic. Currently,
@@ -704,17 +725,16 @@ class combcat:
         check_exe('pp_calibrate')
         check_exe('pp_distill')
 
+        try:
+            os.mkdir('.diagnostics')
+        except:
+            pass
+
+        # make the diagnostics file too
+        with open('diagnostics.html', 'a') as f:
+            pass
+
         subprocs = []
-
-        if not os.path.isdir('.diagnostics'):
-            for filter in self.filters:
-                mosaic = '{}.fits'.format(self.combima[filter])
-                cmd = 'pp_prepare {}'.format(mosaic)
-
-                if not self.dryrun:
-                    subprocs.append(subprocess.Popen(shlex.split(cmd)))
-
-            [p.wait() for p in subprocs]
 
         for filter in self.filters:
             if os.path.isfile('photometry_control_star_{}.dat'.format(filter)):
@@ -722,7 +742,21 @@ class combcat:
                 os.remove('photometry_control_star_{}.dat'.format(filter))
 
             mosaic = '{}.fits'.format(self.combima[filter])
-            cmd = 'pp_photometry {}'.format(mosaic)
+            # check to make sure it has the right header keywords
+            with fits.open(mosaic, mode='update') as mos:
+                keywords = ['TEL_KEYW', 'TELINSTR', 'MIDTIMJD', 'SECPIXY',
+                            'SECPIXX', 'PHOT_K']
+                values = ['KPNO4MOS1', 'KPNO4m/MOSAIC', 0.0, 0.2666, 0.2666,
+                          0.5]
+                for kw, val in zip(keywords, values):
+                    mos[0].header[kw] = val
+
+                #####################################################
+                ##### HACK TO MAKE THE ZEROPOINT ERRORS SMALLER #####
+                #####################################################
+                mos[0].header['GAIN'] = 1.
+
+            cmd = 'pp_photometry -snr 10 -aprad 5.7 {}'.format(mosaic)
 
             if not self.dryrun:
                 subprocs.append(subprocess.Popen(shlex.split(cmd)))
@@ -738,11 +772,12 @@ class combcat:
                 #subprocs.append(subprocess.Popen(shlex.split(cmd)))
 
         #[p.wait() for p in subprocs]
-
-        [i.kill() for i in subprocs]
+        #[i.kill() for i in subprocs]
 
         for filter in self.filters:
             mosaic = '{}.fits'.format(self.combima[filter])
+            # the positions file fails -- it's just used to make sure it doesn't
+            # query JPL because our stuff isn't an asteroid.
             cmd = 'pp_distill {}'.format(mosaic)
             os.system(cmd) # gotta call it to make it work
 
@@ -825,8 +860,9 @@ class combcat:
 
             opts = ''
             if filter == 'i':
-                backima = self.combima[filter] + "_BACK.fits"
-                opts = " -CHECKIMAGE_TYPE BACKGROUND_RMS"
+                backima = self.combima[filter] + "_SEG.fits"
+                #opts = " -CHECKIMAGE_TYPE BACKGROUND_RMS"
+                opts = " -CHECKIMAGE_TYPE SEGMENTATION"
                 opts += " -CHECKIMAGE_NAME {} ".format(backima)
 
             # weight map for detection, and BACKGROUND for meassurement
@@ -867,10 +903,10 @@ class combcat:
             os.system(cmd)
 
         # append the K-band filter and catalog information
-        self.filters.append('K')
-        self.combcat['K'] = output
-        self.XCorr['K'] = 0.0
-        self.XCorrError['K'] = 0.0
+        #self.filters.append('K')
+        #self.combcat['K'] = output
+        #self.XCorr['K'] = 0.0
+        #self.XCorrError['K'] = 0.0
 
         return
 
@@ -1033,13 +1069,25 @@ class combcat:
             cfile.write('## BPZ .columns file for Observation: {}\n'.format(
                 self.tilename))
             cfile.write('## (This file was generated by the '
-                        'BCS Rutgers pipeline)\n##\n')
+                    'BCS Rutgers pipeline)\n##\n')
 
             i = len(detection_variables)
             for filter in self.filters:
+                # Get the zeropoint information
+                if not filter == 'K':
+                    tmp = np.genfromtxt('photometry_control_star_{}.dat'.format(
+                                        filter), names=True, dtype=None)
+                    zpoint = tmp['ZP']
+                    zp_error = tmp['ZP_sig']
+                else:
+                    with fits.open(kband) as f:
+                        header = f[0].header
+                        zpoint = header['magzero']
+                        zp_error = header['magzsig']
 
                 if filter == 'i':
                     n_mo = str(i + 1)
+
                 if filter == 'K':
                     cfile.write('%s_KittPeak\t %s,%s\t AB\t %.2f\t 0.0\n' %
                             (filter, i + 1, i + 2, zp_error))
@@ -1052,8 +1100,13 @@ class combcat:
         return
 
     # Run Benitez BPZ
-    def runBPZ(self):
+    def runBPZ(self, Specz=True):
         """Runs BPZ on the multicolor catalog file using the .columns """
+
+        # first we update with Specz's if we want to
+        match_SEx(self.tilename, self.filters)
+        add_Speczs(self.tilename)
+        add_extra_photometry(self.tilename)
 
         print('Starting photometric redshift determination...',
               file=sys.stderr)
@@ -1500,6 +1553,355 @@ def SEx_head(catalog, verb='yes'):
 
     return SExcols
 
+def match_SEx(tilename, filters):
+    from astropy.io import ascii
+    from astropy import wcs
+    from astropy.table import Column
+    from astropy.coordinates import SkyCoord
+    from astropy import units as u
+
+    # get the wcs info from the i-band because it is the dectection image
+    if os.path.isfile('{}i.fits'.format(tilename)):
+        w = wcs.WCS('{}i.fits'.format(tilename))
+    else:
+        print('# No i-band detection image aborting...')
+        return
+
+    # read in the sdss catalog. We are doing this first because we only need to
+    # do it once
+    try:
+        sdss_cat = ascii.read('/home/boada/Projects/planckClusters/scripts/SDSS/'
+                '{}_SDSS_catalog.csv'.format(tilename))
+        if len(sdss_cat) < 2:
+            print('# SDSS TOO SHORT!')
+            return
+    except FileNotFoundError:
+        print('# SDSS CATALOG NOT FOUND!')
+        return
+    try:
+        ps1_cat = ascii.read('/home/boada/Projects/planckClusters/scripts/PS1/'
+                '{}_PS1_catalog.csv'.format(tilename))
+        if len(ps1_cat) < 2:
+            print('# PS1 TOO SHORT!')
+            return
+    except FileNotFoundError:
+        print('# PS1 CATALOG NOT FOUND!')
+        return
+    # need these coordinates for the matching
+    s_coord = SkyCoord(ra=sdss_cat['ra'] * u.degree, dec=sdss_cat['dec'] *
+                       u.degree)
+    p_coord = SkyCoord(ra=ps1_cat['ramean'] * u.degree,
+                        dec=ps1_cat['decmean'] * u.degree)
+
+    for filter in filters:
+        if filter == 'K':
+            continue
+        try:
+            cat = ascii.read('{}{}_cal.cat'.format(tilename, filter))
+            cal = True
+        except FileNotFoundError:
+            cat = ascii.read('{}{}.cat'.format(tilename, filter))
+            cal = False
+
+        # calulate the RA/DEC of all of the detections
+        ra, dec = w.all_pix2world(cat['X_IMAGE'], cat['Y_IMAGE'], 0)
+        ra = Column(ra, name='RA')
+        dec = Column(dec, name='DEC')
+        try:
+            cat.add_column(ra)
+        except ValueError:
+            return
+        cat.add_column(dec)
+
+        # need these coordinates for the matching
+        c_coord = SkyCoord(ra=cat['RA'] * u.degree, dec=cat['DEC'] * u.degree)
+
+        # match the two catalogs -- idxc for cat, idxs for sdss
+        idxc, idxs, d2d, d3d = s_coord.search_around_sky(c_coord, 1 * u.arcsec)
+
+        # make some data to catch
+        d = np.ones(len(cat)) * 99.0 # 99 is the non-detection value in SEx...
+
+        # add some extra info from SDSS -- Specz, Photoz
+        cols = []
+        cols.append(Column(d, name='sdss_{}'.format(filter)))
+        cols.append(Column(d, name='sdss_{}_err'.format(filter)))
+        cols.append(Column(d, name='sdss_petro_{}'.format(filter)))
+        cols.append(Column(d, name='sdss_petro_{}_err'.format(filter)))
+        cols.append(Column(d, name='sdss_objid', dtype=np.long))
+        cols.append(Column(d, name='sdss_specz'))
+        cols.append(Column(d, name='sdss_specz_err'))
+        cols.append(Column(d, name='sdss_photoz'))
+        cols.append(Column(d, name='sdss_photoz_err'))
+        cols.append(Column(d, name='sdss_type'))
+        for col in cols:
+            cat.add_column(col)
+
+        # merge the matches
+        cat['sdss_objid'][idxc] = sdss_cat['objid'][idxs]
+        cat['sdss_{}'.format(filter)][idxc] = sdss_cat[filter][idxs]
+        cat['sdss_{}_err'.format(filter)][idxc] = sdss_cat[
+                                                '{}_err'.format(filter)][idxs]
+        cat['sdss_petro_{}'.format(filter)][idxc] = \
+                                sdss_cat['petroRad_{}'.format(filter)][idxs]
+        cat['sdss_petro_{}_err'.format(filter)][idxc] = \
+                                sdss_cat['petroRadErr_{}'.format(filter)][idxs]
+        cat['sdss_specz'][idxc] = sdss_cat['specz'][idxs]
+        cat['sdss_specz_err'][idxc] = sdss_cat['specz_err'][idxs]
+        cat['sdss_photoz'][idxc] = sdss_cat['photoz'][idxs]
+        cat['sdss_photoz_err'][idxc] = sdss_cat['photoz_err'][idxs]
+        cat['sdss_type'][idxc] = sdss_cat['type'][idxs]
+
+        #### NOW THE PANSTARRS DATA ####
+        idxc, idxp, d2d, d3d = p_coord.search_around_sky(c_coord, 1 * u.arcsec)
+        # make some data to catch
+        d = np.ones(len(cat)) * 99.0 # 99 is the non-detection value in SEx...
+        col = Column(d, name='ps1_{}'.format(filter))
+        col_err = Column(d, name='ps1_{}_err'.format(filter))
+        cat.add_column(col)
+        cat.add_column(col_err)
+        # merge the matches
+        cat['ps1_{}'.format(filter)][idxc] = ps1_cat[
+                                        '{}meanpsfmag'.format(filter)][idxp]
+        cat['ps1_{}_err'.format(filter)][idxc] = ps1_cat[
+                                        '{}meanpsfmagerr'.format(filter)][idxp]
+
+        # write out the results
+        cat.write('tmp.color', format='ascii.commented_header', overwrite=True)
+
+        # mv the old color catalog
+        if cal:
+            os.rename('{}{}_cal.cat'.format(tilename, filter),
+                      '{}{}_cal.cat.orig'.format(tilename, filter))
+        else:
+            os.rename('{}{}.cat'.format(tilename, filter),
+                      '{}{}.cat.orig'.format(tilename, filter))
+
+        with open('tmp.color') as f:
+            line = f.readline()
+            line = line.split()
+            if cal:
+                file = '{}{}_cal.cat'.format(tilename, filter)
+            else:
+                file = '{}{}.cat'.format(tilename, filter)
+            with open(file, 'wt') as f2:
+                f2.write('## ' + time.ctime() + '\n')
+                f2.write('## Matched Catalog file for Observation: '
+                            '{}\n'.format(tilename))
+                f2.write('## (This file was generated by the '
+                        'BCS Rutgers pipeline)\n##\n')
+                for i, l in enumerate(line[1:]):
+                    f2.write('{} {} {}\n'.format(line[0], i + 1, l))
+                line = f.readline()
+                while line:
+                    f2.write(line)
+                    line = f.readline()
+
+        os.remove('tmp.color')
+
+def add_Speczs(tilename):
+    ''' This function adds the spec-z's to the color catalog. The previous
+    function adds all of the extra information to the sextractor catalogs. So
+    you can run either one, or both. Because they don't do the same thing even
+    though it looks like it.
+
+    '''
+
+    from astropy.io import ascii
+    from astropy import wcs
+    from astropy.table import Column
+    from astropy.coordinates import SkyCoord
+    from astropy import units as u
+
+    w = wcs.WCS('{}i.fits'.format(tilename))
+    cat = ascii.read('{}.color'.format(tilename))
+    ra, dec = w.all_pix2world(cat['X_IMAGE'], cat['Y_IMAGE'], 0)
+    ra = Column(ra, name='RA')
+    dec = Column(dec, name='DEC')
+    cat.add_column(ra)
+    cat.add_column(dec)
+
+    # match the catalogs
+    try:
+        sdss_cat = ascii.read('/home/boada/Projects/planckClusters/scripts/SDSS/'
+                '{}_SDSS_catalog.csv'.format(tilename))
+        if len(sdss_cat) < 2:
+            return
+    except FileNotFoundError:
+        print('SDSS CATALOG NOT FOUND!')
+        return
+    c_coord = SkyCoord(ra=cat['RA'] * u.degree, dec=cat['DEC'] * u.degree)
+    s_coord = SkyCoord(ra=sdss_cat['ra'] * u.degree, dec=sdss_cat['dec'] *
+                       u.degree)
+    idxc, idxs, d2d, d3d = s_coord.search_around_sky(c_coord, 1 * u.arcsec)
+
+    # set the fill value
+    sdss_cat['specz'].fill_value = -99.0
+
+    # make a new column to catch the results
+    zspec = np.ones(len(cat)) * -99.0
+    zspec[idxc] = sdss_cat['specz'].filled()[idxs]
+    zspec = Column(zspec, name='Z_S')
+    cat.add_column(zspec)
+    cat.write('tmp.color', format='ascii.commented_header', overwrite=True)
+
+    # mv the old color catalog
+    os.rename('{}.color'.format(tilename), '{}.color.orig'.format(tilename))
+
+    with open('tmp.color') as f:
+        line = f.readline()
+        line = line.split()
+        with open('{}.color'.format(tilename), 'wt') as f2:
+            f2.write('## ' + time.ctime() + '\n')
+            f2.write('## BPZ .columns file for Observation: '
+                        '{}\n'.format(tilename))
+            f2.write('## (This file was generated by the '
+                      'BCS Rutgers pipeline)\n##\n')
+            for i, l in enumerate(line[1:]):
+                f2.write('{} {} {}\n'.format(line[0], i + 1, l))
+            line = f.readline()
+            while line:
+                f2.write(line)
+                line = f.readline()
+
+    # fix the columns file
+    with open('{}.columns'.format(tilename), 'at') as f:
+        f.write('Z_S {}'.format(i + 1))
+
+    os.remove('tmp.color')
+
+    return
+
+def add_extra_photometry(tilename, filters=['u']):
+    ''' This function adds the spec-z's to the color catalog. The previous
+    function adds all of the extra information to the sextractor catalogs. So
+    you can run either one, or both. Because they don't do the same thing even
+    though it looks like it.
+
+    '''
+
+    from astropy.io import ascii
+    from astropy.table import Column
+    from astropy.coordinates import SkyCoord
+    from astropy import units as u
+
+    # read in the sdss catalog. We are doing this first because we only need to
+    # do it once
+    try:
+        cat = ascii.read('/home/boada/Projects/planckClusters/scripts/SDSS/'
+                '{}_SDSS_catalog.csv'.format(tilename))
+        sdss = True
+        ps1 = False
+        if len(cat) < 2:
+            print('# SDSS CATALOG NOT FOUND! -- TRYING PS1')
+            sdss = False
+    except FileNotFoundError:
+        sdss = False
+        print('# SDSS CATALOG NOT FOUND! -- TRYING PS1')
+    if not sdss:
+        try:
+            cat = ascii.read('/home/boada/Projects/planckClusters/scripts/PS1/'
+                    '{}_PS1_catalog.csv'.format(tilename))
+            ps1 = True
+            if len(cat) < 2:
+                print('# PS1 TOO SHORT!')
+                return
+        except FileNotFoundError:
+            print('# PS1 CATALOG NOT FOUND!')
+            return
+    # need these coordinates for the matching
+    if sdss:
+        s_coord = SkyCoord(ra=cat['ra'] * u.degree, dec=cat['dec'] * u.degree)
+    elif ps1:
+        s_coord = SkyCoord(ra=cat['ramean'] * u.degree, dec=cat['decmean'] *
+                           u.degree)
+    else:
+        return
+
+    color = ascii.read('{}.color'.format(tilename))
+    c_coord = SkyCoord(ra=color['RA'] * u.degree, dec=color['DEC'] * u.degree)
+
+    # match the catalogs
+    idxc, idxs, d2d, d3d = s_coord.search_around_sky(c_coord, 1 * u.arcsec)
+
+    for filter in filters:
+        if sdss:
+            # set the fill value
+            cat[filter].fill_value = -99.0
+            cat['{}_err'.format(filter)].fill_value = 0.
+
+            # make a new column to catch the results
+            newPhot = np.ones(len(color)) * -99.0
+            newPhot_err = np.zeros(len(color))
+            newPhot[idxc] = cat[filter].filled()[idxs]
+            newPhot_err[idxc] = cat['{}_err'.format(filter)].filled()[idxs]
+
+            newPhot = Column(newPhot, name='sdss_{}'.format(filter))
+            newPhot_err = Column(newPhot_err, name='sdss_{}_err'.format(filter))
+            color.add_column(newPhot)
+            color.add_column(newPhot_err)
+        elif ps1:
+            cat[filter].fill_value = -99.0
+            cat['{}_err'.format(filter)].fill_value = 0.
+
+            # make a new column to catch the results
+            newPhot = np.ones(len(color)) * -99.0
+            newPhot_err = np.zeros(len(color))
+            newPhot[idxc] = cat['{}meanpsfmag'.format(filter)].filled()[idxs]
+            newPhot_err[idxc] = cat['{}meanpsfmagerr'.format(
+                                                    filter)].filled()[idxs]
+
+            newPhot = Column(newPhot, name='ps1_{}'.format(filter))
+            newPhot_err = Column(newPhot, name='ps1_{}_err'.format(filter))
+            color.add_column(newPhot)
+            color.add_column(newPhot_err)
+        else:
+            return
+
+    color.write('tmp.color', format='ascii.commented_header', overwrite=True)
+
+    with open('tmp.color') as f:
+        line = f.readline()
+        line = line.split()
+        with open('{}.color'.format(tilename), 'wt') as f2:
+            f2.write('## ' + time.ctime() + '\n')
+            f2.write('## BPZ .columns file for Observation: '
+                        '{}\n'.format(tilename))
+            f2.write('## (This file was generated by the '
+                      'BCS Rutgers pipeline)\n##\n')
+            for i, l in enumerate(line[1:]):
+                f2.write('{} {} {}\n'.format(line[0], i + 1, l))
+            line = f.readline()
+            while line:
+                f2.write(line)
+                line = f.readline()
+
+    # fix the columns file
+    with open('{}.columns'.format(tilename)) as f:
+        line = f.readline()
+        with open('tmp.columns', 'w') as f2:
+            while line:
+                if 'M_0' in line:
+                    f2.write('SLOAN-SDSS.{}\t {},{}'.format(filter, i, i + 1))
+                    f2.write('\t AB 0.05\t 0.0\n')
+                f2.write(line)
+                line = f.readline()
+
+    # mv the old color catalog
+    os.rename('tmp.columns'.format(tilename), '{}.columns'.format(tilename))
+    os.remove('tmp.color')
+
+    return
+
+def write_ds9(d):
+    with open('sdss_specz2.reg', 'wt') as f:
+        f.write('# Region file formart: DS9 version 4.1\n')
+        f.write('# Filename: sdss_specz.reg\n')
+        mask = np.where(d['Z_S'] > -1)[0]
+        for ra, dec, z in zip(d['RA'][mask], d['DEC'][mask], d['Z_S'][mask]):
+            f.write('fk5;circle({},{},2")'.format(ra, dec))
+            f.write('# width=2 text={' + str(z) + '} \n')
+
 ########################################
 # Read and write fits simple functions
 #######################################
@@ -1750,10 +2152,9 @@ def main():
             c.DustCorrection()
             #sys.exit()
 
-            # Cats if allowed
-        if c.getbpz and not opt.noBPZ:
-            c.BuildColorCat()
-            c.runBPZ()
+    if not opt.noBPZ:
+        c.BuildColorCat()
+        c.runBPZ()
 
     # make RGB images (pngs)
     if not opt.noRGB:
