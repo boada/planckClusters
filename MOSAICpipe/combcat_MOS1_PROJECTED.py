@@ -1123,7 +1123,7 @@ class combcat:
         # first we update with Specz's if we want to
         match_SEx(self.tilename, self.filters)
         add_Speczs(self.tilename)
-        #add_Speczs(self.tilename)
+        #add_extra_photometry(self.tilename)
 
         print('Starting photometric redshift determination...',
               file=sys.stderr)
@@ -1797,7 +1797,6 @@ def add_extra_photometry(tilename, filters=['u']):
             print('# PS1 CATALOG NOT FOUND!')
             return
     # need these coordinates for the matching
-
     if sdss:
         s_coord = SkyCoord(ra=cat['ra'] * u.degree, dec=cat['dec'] * u.degree)
     elif ps1:
