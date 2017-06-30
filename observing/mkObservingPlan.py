@@ -24,14 +24,14 @@ def utc2mts(time):
 
 
 # load the data from the CSV of the spreadsheet
-data = pd.read_csv('./catalogs/PSZ2_unconfirmed_catalog.csv')
+data = pd.read_csv('../catalogs/PSZ2_unconfirmed_catalog - Master.csv')
 
 # figure out which we need to observe
-mask = pd.isnull(data['IR run1'])
-data = data[mask]
+#mask = pd.isnull(data['IR run1'])
+#data = data[mask]
 
-mask = data['SNR'] > 5.
-data = data[mask]
+#mask = data['SNR'] > 5.
+#data = data[mask]
 
 # make telescope location
 kpno = Observer.at_site('KPNO', timezone='US/Mountain')
@@ -45,8 +45,8 @@ targets = [FixedTarget(name=name, coord=coor)
            for name, coor in zip(data['Name'], coords)]
 
 # make the observing time - Local time.
-start_time_mst = Time('2017-01-10 18:30')
-end_time_mst = Time('2017-01-12 06:00')
+start_time_mst = Time('2017-06-17 18:30')
+end_time_mst = Time('2017-06-21 06:00')
 night_time = end_time_mst - start_time_mst
 observable_time_mst = start_time_mst + night_time * np.linspace(0, 1, 75)
 
@@ -55,14 +55,16 @@ start_time_utc = mst2utc(start_time_mst)
 end_time_utc = mst2utc(end_time_mst)
 observable_time_utc = mst2utc(observable_time_mst)
 
+time_range = Time([start_time_utc, end_time_utc])
+
 # now we figure out what is observable at all with some simple constraints
 constraint = [AtNightConstraint.twilight_civil(),
-              AirmassConstraint(max=2.5, boolean_constraint=False)]
+              AirmassConstraint(max=2.5, boolean_constraint=True)]
 
 observable = astroplan.is_observable(constraint,
                                      kpno,
                                      targets,
-                                     times=observable_time_utc)
+                                     time_range=time_range)
 
 data['Observable'] = observable
 data.to_csv('updated.csv')
