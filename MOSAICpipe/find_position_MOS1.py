@@ -1,26 +1,9 @@
 #!/usr/bin/env python
 
-import os, sys
-
-# Decided between numarray and numpy
-if os.environ['NUMERIX'] == 'numpy':
-    import numpy as numarray
-    import numpy.random as nrandom
-    float32 = numarray.float32
-    float64 = numarray.float64
-    int16 = numarray.int16
-    nstr = numarray.char
-    print("Will use numpy")
-elif os.environ['NUMERIX'] == 'numarray':
-    import numarray
-    import numarray.random_array as nrandom
-    float32 = numarray.Float32
-    float64 = numarray.Float64
-    int16 = numarray.Int16
-    import numarray.strings as nstr
-    print("Will use numarray :(")
-else:
-    sys.exit("Must define NUMERIX")
+import os
+import sys
+import numpy
+import numpy.random as nrandom
 import glob
 import math
 from pyfits import getheader, getval
@@ -39,28 +22,32 @@ import tableio
 import cosmology
 import aux
 
-land = numarray.logical_and
-lge = numarray.greater_equal
-lle = numarray.less_equal
-lor = numarray.logical_or
+float32 = numpy.float32
+float64 = numpy.float64
+int16 = numpy.int16
+nstr = numpy.char
+land = numpy.logical_and
+lge = numpy.greater_equal
+lle = numpy.less_equal
+lor = numpy.logical_or
 
 sout = sys.stderr
 
 
 class finder:
 
-    def __init__(self, ctile,maglim=25.0,
-                 pixscale = 0.2666,
-                 zlim =1.8,
+    def __init__(self, ctile, maglim=25.0,
+                 pixscale=0.2666,
+                 zlim=1.8,
                  zo=None,
                  dz=0.05,
-                 radius = 1000.0, # Radius in kpc
-                 cosmo=(0.3,0.7,0.7),
+                 radius=1000.0, # Radius in kpc
+                 cosmo=(0.3, 0.7, 0.7),
                  zuse="ZB", # Use ZB (Bayesian) or ML (Max Like)
                  outpath='plots',
-                 path = os.path.join(os.environ['HOME'],"SOAR-data/COMB"),
-                 evolfile = "0_1gyr_hr_m62_salp.color",
-                 p_lim = 0.4,
+                 path=os.path.join(os.environ['HOME'], "SOAR-data/COMB"),
+                 evolfile="0_1gyr_hr_m62_salp.color",
+                 p_lim=0.4,
                  verb='yes'):
 
         # Check for environ vars
@@ -131,11 +118,11 @@ class finder:
                 29,
                 30,
                 3,
-                4,  #5,
+                4,  # 5,
                 6,
-                7,  #8,
+                7,  # 8,
                 9,
-                10,  #11,
+                10,  # 11,
                 #12,13,#14,
                 15,
                 16,
@@ -163,11 +150,11 @@ class finder:
          t_ml,
          chi,
          g,
-         g_err,  #g_sn,
+         g_err,  # g_sn,
          r,
-         r_err,  #r_sn,
+         r_err,  # r_sn,
          i,
-         i_err,  #i_sn, 
+         i_err,  # i_sn,
          g_bpz,
          g_berr,
          r_bpz,
@@ -199,37 +186,37 @@ class finder:
         star_lim = 0.80
 
         # Clean up according to BPZ
-        #sout.write( "# Avoiding magnitudes -99 and 99 in BPZ \n") 
-        #g_mask   = numarray.where(lor( g_bpz == 99,g_bpz == -99),0,1)
-        #r_mask   = numarray.where(lor( r_bpz == 99,r_bpz == -99),0,1)
-        #i_mask   = numarray.where(lor( i_bpz == 99,i_bpz == -99),0,1)
+        #sout.write( "# Avoiding magnitudes -99 and 99 in BPZ \n")
+        #g_mask   = numpy.where(lor( g_bpz == 99,g_bpz == -99),0,1)
+        #r_mask   = numpy.where(lor( r_bpz == 99,r_bpz == -99),0,1)
+        #i_mask   = numpy.where(lor( i_bpz == 99,i_bpz == -99),0,1)
         #bpz_mask = g_mask*r_mask*i_mask
 
         # Clean up to avoid 99 values and very faint i_mag values
-        #sout.write( "# Avoiding magnitudes 99 in MAG_AUTO \n") 
-        #g_mask = numarray.where( g >= 99,    0 , 1)
-        #r_mask = numarray.where( r >= 99,    0 , 1)
-        #i_mask = numarray.where( i >= i_lim, 0 , 1)
+        #sout.write( "# Avoiding magnitudes 99 in MAG_AUTO \n")
+        #g_mask = numpy.where( g >= 99,    0 , 1)
+        #r_mask = numpy.where( r >= 99,    0 , 1)
+        #i_mask = numpy.where( i >= i_lim, 0 , 1)
         #sout.write( "# Avoiding magnitudes i > %s in MAG_AUTO \n" % i_lim)
 
         # Clean by class_star
-        #sout.write( "# Avoiding CLASS_STAR > %s \n" % star_lim) 
-        #mask_star = numarray.where( class_star > star_lim, 0 , 1)
+        #sout.write( "# Avoiding CLASS_STAR > %s \n" % star_lim)
+        #mask_star = numpy.where( class_star > star_lim, 0 , 1)
 
         # Clean up by odds
-        #sout.write( "# Avoiding ODDS < %s in BPZ \n" % odds_lim) 
-        #odds_mask = numarray.where( odds > odds_lim, 1, 0)
+        #sout.write( "# Avoiding ODDS < %s in BPZ \n" % odds_lim)
+        #odds_mask = numpy.where( odds > odds_lim, 1, 0)
 
         # Avoid z> zlim objects too.
         sout.write("# Avoiding objects with z > %s " % self.zlim)
-        zp_mask = numarray.where(z_ph > self.zlim, 0, 1)
+        zp_mask = numpy.where(z_ph > self.zlim, 0, 1)
 
         # The final 'good' mask
         #mask_good = g_mask*r_mask*i_mask*zp_mask * odds_mask * mask_star
         mask_good = zp_mask
-        idx = numarray.where(mask_good == 1)
+        idx = numpy.where(mask_good == 1)
 
-        # Make ids a Char String in numarray
+        # Make ids a Char String in numpy
         self.id = nstr.array(id)[idx]
 
         # Only keep the 'good' one, avoid -99 and 99 values in BPZ mags
@@ -315,13 +302,13 @@ class finder:
                     z1 = float(point.group('z1'))
                     z2 = float(point.group('z2'))
                     dz = float(point.group('dz'))
-                    zx = numarray.arange(z1, z2, dz)
+                    zx = numpy.arange(z1, z2, dz)
                 continue
             ID = fields[0]
-            probs.append(numarray.asarray(list(map(float, fields[1:]))))
+            probs.append(numpy.asarray(list(map(float, fields[1:]))))
 
         # Transform the list into an N array
-        p_z = numarray.asarray(probs)
+        p_z = numpy.asarray(probs)
 
         # select same galaxies as in catalogs we just read
         self.p_z = p_z[self.idx_cat][:]
@@ -331,15 +318,15 @@ class finder:
         t1 = time.time()
         # Get the 1-sigma z1, z2 limits for each galaxy
         # Cumulatibe P(<z) function for each selected galaxy
-        self.Psum = numarray.cumsum(self.p_z, axis=1)
+        self.Psum = numpy.cumsum(self.p_z, axis=1)
         sout.write("# Getting +/- 1sigma (z1,z2) limits for each galaxy ")
         self.z1 = self.ra * 0.0
         self.z2 = self.ra * 0.0
 
         # One by one in the list
         for i in range(len(self.ra)):
-            i1 = numarray.where(self.Psum[i, :] >= 0.159)[0][0]
-            i2 = numarray.where(self.Psum[i, :] > 0.842)[0][0]
+            i1 = numpy.where(self.Psum[i, :] >= 0.159)[0][0]
+            i2 = numpy.where(self.Psum[i, :] > 0.842)[0][0]
             self.z1[i] = self.zx[i1]
             self.z2[i] = self.zx[i2]
 
@@ -354,7 +341,7 @@ class finder:
         # Distance modulus, dlum and dangular
         self.dlum = self.cset.dlum(self.z_ph)
         self.dang = self.cset.dang(self.z_ph)
-        self.DM = 25.0 + 5.0 * numarray.log10(self.dlum)
+        self.DM = 25.0 + 5.0 * numpy.log10(self.dlum)
 
         t0 = time.time()
         # Get the absolute magnitudes, *** not including evolution ***, only Kcorr
@@ -364,8 +351,8 @@ class finder:
 
         # Alternatibely we can get both the kcorr and the evol from
         # the *.color file from BC03 *.ised file
-        sout.write(
-            "# Computing absolute magnitudes interpolating konly from BC03 model \n")
+        sout.write("# Computing absolute magnitudes "
+                   "interpolating konly from BC03 model \n")
         k, ev = KEfit(self.evolfile)
 
         self.Mg = self.g - self.DM - k['g'](self.z_ph)
@@ -385,8 +372,8 @@ class finder:
         self.Msun['i'] = 4.54
 
         # Mags k-corrected to z=0.25 as done in Reyes el al 2009
-        #Mg = self.g - self.DM  -  k['g'](self.z_ph) + k['g'](0.25) 
-        #Mr = self.r - self.DM  -  k['r'](self.z_ph) + k['r'](0.25) 
+        #Mg = self.g - self.DM  -  k['g'](self.z_ph) + k['g'](0.25)
+        #Mr = self.r - self.DM  -  k['r'](self.z_ph) + k['r'](0.25)
         #Mi = self.i - self.DM  -  k['i'](self.z_ph) + k['i'](0.25)
 
         # Mags k-corrected
@@ -426,38 +413,40 @@ class finder:
 
             # We get the limit at the z_ph of each candidate, corrected by z=0.1
             Mr_BCG_limit = Mr_limit + self.ev_r - self.evf['r'](
-                0.1)  #+ self.DM_factor
+                0.1)  # + self.DM_factor
             Mi_BCG_limit = Mi_limit + self.ev_i - self.evf['i'](
-                0.1)  #+ self.DM_factor
-            # Evaluate the BCG Probability function, we get the limit for each object
+                0.1)  # + self.DM_factor
+            # Evaluate the BCG Probability function, we
+            # get the limit for each object
             self.p = p_BCG(self.Mr, Mr_BCG_limit)
             self.BCG_probs = True
 
             i_lim = 25.0
             star_lim = 0.5
-            mask_p = numarray.where(self.p >= p_lim, 1, 0)
-            mask_g = numarray.where(self.g < i_lim + 5, 1, 0)
-            mask_r = numarray.where(self.r < i_lim + 5, 1, 0)
-            mask_i = numarray.where(self.i < i_lim, 1, 0)
-            mask_t = numarray.where(self.type < 2.0, 1, 0)
+            mask_p = numpy.where(self.p >= p_lim, 1, 0)
+            mask_g = numpy.where(self.g < i_lim + 5, 1, 0)
+            mask_r = numpy.where(self.r < i_lim + 5, 1, 0)
+            mask_i = numpy.where(self.i < i_lim, 1, 0)
+            mask_t = numpy.where(self.type < 2.0, 1, 0)
 
             # Avoid freakishly bright objects, 2.5 mags brighter than the M_BCG_limit
-            mask_br = numarray.where(self.Mr > Mr_BCG_limit - 3.5, 1, 0)
-            mask_bi = numarray.where(self.Mi > Mi_BCG_limit - 3.5, 1, 0)
+            mask_br = numpy.where(self.Mr > Mr_BCG_limit - 3.5, 1, 0)
+            mask_bi = numpy.where(self.Mi > Mi_BCG_limit - 3.5, 1, 0)
 
             # Put a more strict cut in class_star for bcg candidates
             sout.write("# Avoiding CLASS_STAR > %s in BGCs\n" % star_lim)
-            mask_star = numarray.where(self.class_star <= star_lim, 1, 0)
+            mask_star = numpy.where(self.class_star <= star_lim, 1, 0)
 
             # Construct the final mask now
-            self.mask_BCG = mask_t * mask_g * mask_r * mask_i * mask_br * mask_bi * mask_p
+            self.mask_BCG = (mask_t * mask_g * mask_r * mask_i * mask_br *
+                             mask_bi * mask_p)
             self.BCG_masked = True
             sout.write(" \t Done: %s\n" % extras.elapsed_time_str(t0))
 
         # Select the candidates now
-        idx = numarray.where(self.mask_BCG == 1)
+        idx = numpy.where(self.mask_BCG == 1)
 
-        # And pass up to to class        
+        # And pass up to to class
         # The index number
         self.idx_BCG = idx
         self.ra_BCG = self.ra[idx]
@@ -528,7 +517,7 @@ class finder:
         # Select the limits of the image to display
         #self.dx = dx
         #self.dy = dy
-        #yo = self.yo 
+        #yo = self.yo
         #xo = self.xo
         #x1 = int(xo - dx)
         #x2 = int(xo + dx)
@@ -556,23 +545,23 @@ class finder:
         s1 = int((-dx / 2.0) * scale)
         s2 = int((+dx / 2.0) * scale)
 
-        sx = numarray.arange(s1, s2 + 0.05, ds)
+        sx = numpy.arange(s1, s2 + 0.05, ds)
 
         xtext = []
         xtick = []
         for s in sx:
-            x = xo + s / scale  #+ ds/scale
+            x = xo + s / scale  # + ds/scale
             xtick.append(x)
             xtext.append("%.1f" % s)
 
         s1 = int((-dy / 2.0) * scale)
         s2 = int((+dy / 2.0) * scale)
-        sy = numarray.arange(s1, s2 + 0.05, ds)
+        sy = numpy.arange(s1, s2 + 0.05, ds)
 
         ytext = []
         ytick = []
         for s in sy:
-            y = yo + s / scale  #+ ds/scale
+            y = yo + s / scale  # + ds/scale
             ytick.append(y)
             ytext.append("%.1f" % s)
         pylab.yticks(ytick, tuple(ytext))
@@ -617,7 +606,7 @@ class finder:
         return
 
     #####################################
-    # Draw the zone where to select 
+    # Draw the zone where to select
     ######################################
     def draw_zone(self, n=8):
         # Draw the region to select from
@@ -747,25 +736,24 @@ class finder:
                                           self.ra,
                                           self.dec,
                                           units='deg')
-        mask_R1Mpc = numarray.where(dist <= r1Mpc, 1, 0)
-        mask_rcore = numarray.where(dist <= rcore, 1, 0)
+        mask_R1Mpc = numpy.where(dist <= r1Mpc, 1, 0)
+        mask_rcore = numpy.where(dist <= rcore, 1, 0)
         arcmin2Mpc = astrometry.arc2kpc(
             zo, 60.0, self.cosmo) / 1000.0  # scale between arcmin and Mpc
 
         # 2 - Select in redshift
         z1 = zo - dz
         z2 = zo + dz
-        mask_z = numarray.where(land(self.z_ph >= z1, self.z_ph <= z2), 1, 0)
+        mask_z = numpy.where(land(self.z_ph >= z1, self.z_ph <= z2), 1, 0)
 
         # 3 - Select in brightness
         Mi_lim_zo = Mi_lim + self.evf['i'](zo) - self.evf['i'](0.1)
-        mask_L1 = numarray.where(self.Mi <= Mi_lim_zo, 1,
-                                 0)  # Faint  cut > 0.4L*
-        mask_L2 = numarray.where(self.Mi >= Mi_BCG, 1, 0)  # Bright cut < L_BCG
+        mask_L1 = numpy.where(self.Mi <= Mi_lim_zo, 1, 0)  # Faint  cut > 0.4L*
+        mask_L2 = numpy.where(self.Mi >= Mi_BCG, 1, 0)  # Bright cut < L_BCG
 
         # The final selection mask, position x redshift x Luminosity
-        idx = numarray.where(mask_R1Mpc * mask_L1 * mask_L2 * mask_z == 1)
-        idc = numarray.where(mask_rcore * mask_L1 * mask_L2 * mask_z == 1)
+        idx = numpy.where(mask_R1Mpc * mask_L1 * mask_L2 * mask_z == 1)
+        idc = numpy.where(mask_rcore * mask_L1 * mask_L2 * mask_z == 1)
 
         # Shot versions handles
         gr = self.gr
@@ -777,14 +765,14 @@ class finder:
         converge = False
         while not converge:
             # The conditions to apply
-            c1 = numarray.abs(gr[idc] - gr[idc].mean(
-            )) > Nsigma * numarray.std(gr[idc], ddof=1)
-            c2 = numarray.abs(ri[idc] - ri[idc].mean(
-            )) > Nsigma * numarray.std(ri[idc], ddof=1)
-            iclip = numarray.where(lor(
-                c1, c2))  # where any of the conditions fails
+            c1 = numpy.abs(gr[idc] - gr[idc].mean()) > Nsigma * numpy.std(
+                gr[idc], ddof=1)
+            c2 = numpy.abs(ri[idc] - ri[idc].mean()) > Nsigma * numpy.std(
+                ri[idc], ddof=1)
+            iclip = numpy.where(lor(c1,
+                                    c2))  # where any of the conditions fails
             if len(iclip[0]) > 0:
-                idc = numarray.delete(idc, iclip[0])  # Removed failed ones
+                idc = numpy.delete(idc, iclip[0])  # Removed failed ones
                 converge = False
             else:
                 converge = True
@@ -793,12 +781,12 @@ class finder:
         sout.write(" \t Done: %s\n" % extras.elapsed_time_str(t0))
 
         # Or we can make a new mask where the condition's are true
-        c1 = numarray.abs(self.gr - gr[idc].mean()) > Nsigma * numarray.std(
-            gr[idc], ddof=1)
-        c2 = numarray.abs(self.ri - ri[idc].mean()) > Nsigma * numarray.std(
-            ri[idc], ddof=1)
-        mask_cm = numarray.where(lor(c1, c2), 0, 1)  # where condition fails
-        iR1Mpc = numarray.where(
+        c1 = numpy.abs(self.gr - gr[idc].mean()) > Nsigma * numpy.std(gr[idc],
+                                                                      ddof=1)
+        c2 = numpy.abs(self.ri - ri[idc].mean()) > Nsigma * numpy.std(ri[idc],
+                                                                      ddof=1)
+        mask_cm = numpy.where(lor(c1, c2), 0, 1)  # where condition fails
+        iR1Mpc = numpy.where(
             mask_R1Mpc * mask_L1 * mask_L2 * mask_z * mask_cm == 1)
         Ngal = len(iR1Mpc[0])
         sout.write("# Total: %s objects selected in 1h^-1Mpc around %s\n" %
@@ -810,8 +798,8 @@ class finder:
         R200 = 0.156 * (Ngal**0.6) / self.h  # In Mpc
         r200 = astrometry.kpc2arc(zo, R200 * 1000.0,
                                   self.cosmo) / 3600.  # in degrees.
-        mask_r200 = numarray.where(dist <= r200, 1, 0)
-        i200 = numarray.where(
+        mask_r200 = numpy.where(dist <= r200, 1, 0)
+        i200 = numpy.where(
             mask_r200 * mask_L1 * mask_L2 * mask_z * mask_cm == 1)
         N200 = len(i200[0])
         self.i200 = i200
@@ -822,8 +810,8 @@ class finder:
         ############################################################################
 
         # And the value for all galaxies up NxR1Mpc -- change if required.
-        mask_R = numarray.where(dist <= 10 * r1Mpc, 1, 0)
-        iR = numarray.where(mask_R * mask_L1 * mask_L2 * mask_z * mask_cm == 1)
+        mask_R = numpy.where(dist <= 10 * r1Mpc, 1, 0)
+        iR = numpy.where(mask_R * mask_L1 * mask_L2 * mask_z * mask_cm == 1)
 
         # Pass up
         self.iR = iR
@@ -834,7 +822,7 @@ class finder:
         self.arcmin2Mpc = arcmin2Mpc
 
         # Sort indices radially for galaxies < N*R1Mpc, will be used later
-        i = numarray.argsort(self.dist2BCG[iR])
+        i = numpy.argsort(self.dist2BCG[iR])
         self.ix_radial = iR[0][i]
 
         # We want to keep i200 and iR1Mpc to write out members.
@@ -871,25 +859,24 @@ class finder:
                                           self.ra,
                                           self.dec,
                                           units='deg')
-        mask_R = numarray.where(dist <= r, 1, 0)
-        mask_rcore = numarray.where(dist <= rcore, 1, 0)
+        mask_R = numpy.where(dist <= r, 1, 0)
+        mask_rcore = numpy.where(dist <= rcore, 1, 0)
         arcmin2Mpc = astrometry.arc2kpc(
             zo, 60.0, self.cosmo) / 1000.0  # scale between arcmin and Mpc
 
         # 2 - Select in redshift
         z1 = zo - dz
         z2 = zo + dz
-        mask_z = numarray.where(land(self.z_ph >= z1, self.z_ph <= z2), 1, 0)
+        mask_z = numpy.where(land(self.z_ph >= z1, self.z_ph <= z2), 1, 0)
 
         # 3 - Select in brightness
         Mi_lim_zo = Mi_lim + self.evf['i'](zo) - self.evf['i'](0.1)
-        mask_L1 = numarray.where(self.Mi <= Mi_lim_zo, 1,
-                                 0)  # Faint  cut > 0.4L*
-        mask_L2 = numarray.where(self.Mi >= Mi_BCG, 1, 0)  # Bright cut < L_BCG
+        mask_L1 = numpy.where(self.Mi <= Mi_lim_zo, 1, 0)  # Faint  cut > 0.4L*
+        mask_L2 = numpy.where(self.Mi >= Mi_BCG, 1, 0)  # Bright cut < L_BCG
 
         # The final selection mask, position x redshift x Luminosity
-        idx = numarray.where(mask_R * mask_L1 * mask_L2 * mask_z == 1)[0]
-        idc = numarray.where(mask_rcore * mask_L1 * mask_L2 * mask_z == 1)[0]
+        idx = numpy.where(mask_R * mask_L1 * mask_L2 * mask_z == 1)[0]
+        idc = numpy.where(mask_rcore * mask_L1 * mask_L2 * mask_z == 1)[0]
 
         # Shot versions handles
         gr = self.gr
@@ -901,14 +888,14 @@ class finder:
         converge = False
         while not converge:
             # The conditions to apply
-            c1 = numarray.abs(gr[idc] - gr[idc].mean(
-            )) > Nsigma * numarray.std(gr[idc], ddof=1)
-            c2 = numarray.abs(ri[idc] - ri[idc].mean(
-            )) > Nsigma * numarray.std(ri[idc], ddof=1)
-            iclip = numarray.where(lor(c1, c2))[
+            c1 = numpy.abs(gr[idc] - gr[idc].mean()) > Nsigma * numpy.std(
+                gr[idc], ddof=1)
+            c2 = numpy.abs(ri[idc] - ri[idc].mean()) > Nsigma * numpy.std(
+                ri[idc], ddof=1)
+            iclip = numpy.where(lor(c1, c2))[
                 0]  # where any of the conditions fails
             if len(iclip) > 0:
-                idc = numarray.delete(idc, iclip)  # Removed failed ones
+                idc = numpy.delete(idc, iclip)  # Removed failed ones
                 converge = False
             else:
                 converge = True
@@ -922,19 +909,19 @@ class finder:
         print(self.z_ph[idc])
 
         # Compute the weighted average and rms
-        dz = 0.5 * numarray.abs(self.z2[idc] - self.z1[idc])
+        dz = 0.5 * numpy.abs(self.z2[idc] - self.z1[idc])
         # Fix zeros
         dz[dz == 0] = 1e-5
         z_cl, z_clrms = aux.statsw(self.z_ph[idc], weight=1.0 / dz)
         sout.write(" \t Done: %s\n" % extras.elapsed_time_str(t0))
 
         # Or we can make a new mask where the condition's are true
-        c1 = numarray.abs(self.gr - gr[idc].mean()) > Nsigma * numarray.std(
-            gr[idc], ddof=1)
-        c2 = numarray.abs(self.ri - ri[idc].mean()) > Nsigma * numarray.std(
-            ri[idc], ddof=1)
-        mask_cm = numarray.where(lor(c1, c2), 0, 1)  # where condition fails
-        iRadius = numarray.where(
+        c1 = numpy.abs(self.gr - gr[idc].mean()) > Nsigma * numpy.std(gr[idc],
+                                                                      ddof=1)
+        c2 = numpy.abs(self.ri - ri[idc].mean()) > Nsigma * numpy.std(ri[idc],
+                                                                      ddof=1)
+        mask_cm = numpy.where(lor(c1, c2), 0, 1)  # where condition fails
+        iRadius = numpy.where(
             mask_R * mask_L1 * mask_L2 * mask_z * mask_cm == 1)
         Ngal = len(iRadius[0])
         sout.write("# Total: %s objects selected in %s [kpc] around %s\n" %
@@ -977,7 +964,7 @@ class finder:
             dec = self.dec[i]
             a = self.a_image[i]
             b = self.b_image[i]
-            theta = self.theta[i]  #*math.pi/180.0
+            theta = self.theta[i]  # *math.pi/180.0
             xo = self.x_image[i]
             yo = self.y_image[i]
             #(xo,yo) = astrometry.rd2xy(ra,dec,self.fitsfile)
@@ -1019,9 +1006,9 @@ class finder:
 
     # Get the area inside circle
     def area_in_circle(self, xo, yo, r_pixels):
-        (ix, iy) = numarray.indices((self.nx, self.ny))
-        d = numarray.sqrt((xo - ix)**2 + (yo - iy)**2)
-        pix_in = numarray.where(d <= r_pixels)
+        (ix, iy) = numpy.indices((self.nx, self.ny))
+        d = numpy.sqrt((xo - ix)**2 + (yo - iy)**2)
+        pix_in = numpy.where(d <= r_pixels)
         area_in = float(len(pix_in[0]))
         area_tot = math.pi * r_pixels**2
         self.area_fraction = area_in / area_tot
@@ -1045,7 +1032,7 @@ class finder:
             dec = self.dec[i]
             a = self.a_image[i]
             b = self.b_image[i]
-            theta = self.theta[i]  #*math.pi/180.0
+            theta = self.theta[i]  # *math.pi/180.0
             xo = self.x_image[i]
             yo = self.y_image[i]
             # Change the referece pixel to reflect jpg standards where the
@@ -1067,8 +1054,8 @@ class finder:
 
     # Get the nearest object in catalog
     def get_nearest(self, x, y):
-        distance = numarray.sqrt((self.x_image - x)**2 + (self.y_image - y)**2)
-        self.iclose = numarray.argmin(distance)
+        distance = numpy.sqrt((self.x_image - x)**2 + (self.y_image - y)**2)
+        self.iclose = numpy.argmin(distance)
         self.ID = self.id[self.iclose]
         return
 
@@ -1118,8 +1105,7 @@ class finder:
         DEC = astrometry.dec2deg(self.dec[i])
 
         s = open(filename, "w")
-        head = "# %-18s %12s %12s %7s %7s %5s %10s %10s %8s %8s %8s %8s %8s %8s %8s\n" % (
-            'ID_BCG', 'RA', 'DEC', 'zBCG', 'z_cl', 'Ngal', 'L_i', 'L_iBCG',
+        head = "# %-18s %12s %12s %7s %7s %5s %10s %10s %8s %8s %8s %8s %8s %8s %8s\n" % ('ID_BCG', 'RA', 'DEC', 'zBCG', 'z_cl', 'Ngal', 'L_i', 'L_iBCG',
             'Mr', 'Mi', 'r', 'i', 'p_BCG', 'R[kpc]', 'area[%]')
         format = "%20s %12s %12s %7.3f %7.3f %5d %10.3e %10.3e %8.2f %8.2f %8.2f %8.2f %8.3f %8.1f %8.2f\n"
         vars = (self.ID_BCG, RA, DEC, self.z_ph[i], self.z_cl, self.Ngal,
@@ -1147,7 +1133,7 @@ class finder:
         RA = astrometry.dec2deg(ra / 15)
         DEC = astrometry.dec2deg(dec)
         print("ra,dec,filename", RA, DEC, self.fitsfile)
-        return  #event.xdata,event.ydata
+        return  # event.xdata,event.ydata
 
     def handle_ellipses(self, event, figure=1):
 
@@ -1162,7 +1148,7 @@ class finder:
         # construct the ellipse for the current display
         a = self.a_image[i]
         b = self.b_image[i]
-        theta = self.theta[i]  #*math.pi/180.0
+        theta = self.theta[i]  # *math.pi/180.0
         xo = self.x_image[i]
         yo = self.y_image[i]
         # Change the referece pixel to reflect jpg standards where the
@@ -1225,22 +1211,22 @@ class finder:
         zo = self.z_ph[iBCG]
         tck = scipy.interpolate.splrep(zx, self.p_z[iBCG], s=0)
         ds = 0.001
-        x = numarray.arange(zx[2], zx[-3], ds)
+        x = numpy.arange(zx[2], zx[-3], ds)
         y = scipy.interpolate.splev(x, tck, der=0)
-        y = numarray.where(y < 0, 0, y)
+        y = numpy.where(y < 0, 0, y)
 
         # Get the 1 sigma error bars (68.2%)
-        Psum = numarray.cumsum(y * ds / dz)
-        i1 = numarray.where(Psum >= 0.159)[0][0]
-        i2 = numarray.where(Psum > 0.841)[0][0]
+        Psum = numpy.cumsum(y * ds / dz)
+        i1 = numpy.where(Psum >= 0.159)[0][0]
+        i2 = numpy.where(Psum > 0.841)[0][0]
         z1_68 = x[i1]
         z2_68 = x[i2]
         dz1 = zo - x[i1]
         dz2 = x[i2] - zo
 
         # And the 2-sigma (95.4%)
-        i1 = numarray.where(Psum >= 0.023)[0][0]
-        i2 = numarray.where(Psum > 0.977)[0][0]
+        i1 = numpy.where(Psum >= 0.023)[0][0]
+        i2 = numpy.where(Psum > 0.977)[0][0]
         z1_95 = x[i1]
         z2_95 = x[i2]
         dz1 = zo - x[i1]
@@ -1395,18 +1381,18 @@ def F_BCG(x, b=0.4, zp=0.5):
     # Recenter at 50% (0.5) or at 68.2% (0.682)
     dx = math.log10(-math.log(zp)) / b
     u = x + dx
-    phi = numarray.exp(-10**(b * u))
+    phi = numpy.exp(-10**(b * u))
     return phi
 
 
-#######################################################################    
+#######################################################################
 # Modified Schechter magnitude function from Postman et al (2001)
 # uses alpha+2 rather than alpha+1 because of the extra 10^-0.4(m-m*)
 # phi = (10^(-0.4(m-m*)))^(alpha+1) * exp[-10^(-0.4(m-m*))]
 # PHI = phi*10^(-0.4(m-m*))
 #######################################################################
 def PHI(m, mstar, alpha):
-    exp = numarray.exp
+    exp = numpy.exp
     a = 10**(-0.4 * (m - mstar))
     # Note (alpha+2) normally is just (alpha+1)
     phi = a**(alpha + 2) * exp(-a)
@@ -1449,9 +1435,9 @@ def PEllipse(xxx_todo_changeme,
     sin = math.sin
     angle = -angle * pi / 180.  # hack to make it work, angle=-angle
 
-    t = 2 * pi / resolution * numarray.arange(resolution)
-    xtmp = A * numarray.cos(t)
-    ytmp = B * numarray.sin(t)
+    t = 2 * pi / resolution * numpy.arange(resolution)
+    xtmp = A * numpy.cos(t)
+    ytmp = B * numpy.sin(t)
 
     x = xtmp * cos(angle) - ytmp * sin(angle) + xo
     y = xtmp * sin(angle) + ytmp * cos(angle) + yo
@@ -1466,9 +1452,9 @@ def PCircle(xxx_todo_changeme2, radius, resolution=100, **kwargs):
     pi = math.pi
     cos = math.cos
     sin = math.sin
-    t = 2 * pi / resolution * numarray.arange(resolution)
-    xtmp = radius * numarray.cos(t)
-    ytmp = radius * numarray.sin(t)
+    t = 2 * pi / resolution * numpy.arange(resolution)
+    xtmp = radius * numpy.cos(t)
+    ytmp = radius * numpy.sin(t)
     x = xtmp + xo
     y = ytmp + yo
     return Polygon(list(zip(x, y)), **kwargs)
@@ -1520,18 +1506,18 @@ def main():
     else:
         zo = None
 
-    f = finder(ctile,maglim=26.0,
-               zlim =1.8,
+    f = finder(ctile, maglim=26.0,
+               zlim=1.8,
                zo=zo,
                dz=float(opt.dz),
                radius=radius,
-               cosmo=(0.3,0.7,0.7),
+               cosmo=(0.3, 0.7, 0.7),
                #zuse="ZB", # Use ZB (Bayesian) or ML (Max Like)
                zuse=opt.zuse, # Use ZB (Bayesian) or ML (Max Like)
                outpath='plots',
-               path = opt.path,
-               evolfile = "0_1gyr_hr_m62_salp.color",
-               p_lim = 0.4,
+               path=opt.path,
+               evolfile="0_1gyr_hr_m62_salp.color",
+               p_lim=0.4,
                verb='yes')
 
     f.jpg_read()
