@@ -68,6 +68,7 @@ def work(ra, dec, outfile):
        LEFT JOIN specobj AS SO
               ON p.objid = SO.bestobjid
               AND zwarning = 0
+              AND SO.z > 0.01
     '''
     where = '''WHERE  p.i < 23
        AND clean = 1
@@ -91,6 +92,7 @@ def work(ra, dec, outfile):
                 cnt += 1
         if cnt < 3:
             os.remove(outfile)
+
 
 # get file data
 data = np.genfromtxt('../catalogs/PSZ2_unconfirmed_catalog - Master.csv',
