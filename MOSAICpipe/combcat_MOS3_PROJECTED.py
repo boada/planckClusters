@@ -35,7 +35,7 @@ class combcat:
         self.centered = None
         self.got_zeropt = False
 
-        self.pipeline = '/home/boada/Projects/planckClusters/mosaicpipe/'
+        self.pipeline = '/home/boada/Projects/planckClusters/MOSAICpipe/'
 
         # Check for environ vars
         if not os.getenv('PIPE'):
@@ -685,6 +685,14 @@ class combcat:
         with open('diagnostics.html', 'a') as f:
             pass
 
+        try:
+            if ':' in self.xo or ':' in self.yo:
+                from astLib import astCoords
+                self.xo = astCoords.hms2decimal(self.xo, ':')
+                self.yo = astCoords.dms2decimal(self.yo, ':')
+        except TypeError:
+            pass
+
         subprocs = []
         for filter in self.filters:
             mosaic = '{}.fits'.format(self.combima[filter])
@@ -746,7 +754,7 @@ class combcat:
             with fits.open(mosaic, mode='update') as mos:
                 keywords = ['TEL_KEYW', 'TELINSTR', 'MIDTIMJD', 'SECPIXY',
                             'SECPIXX', 'PHOT_K']
-                values = ['KPNO4MOS1', 'KPNO4m/MOSAIC', 0.0, 0.2666, 0.2666,
+                values = ['KPNO4MOS3', 'KPNO4m/MOSAIC', 0.0, 0.25, 0.25,
                           0.5]
                 for kw, val in zip(keywords, values):
                     mos[0].header[kw] = val
@@ -797,6 +805,8 @@ class combcat:
                         'CRVAL' in key or 'CRPIX' in key or \
                             'EQUINOX' in key:
                         f[0].header[key] = float(val)
+                    if 'PV' in key:
+                        f[0].header[key] = str(val)
 
         return
 
@@ -1106,7 +1116,7 @@ class combcat:
         # first we update with Specz's if we want to
         match_SEx(self.tilename, self.filters)
         add_Speczs(self.tilename)
-        add_extra_photometry(self.tilename)
+        #add_extra_photometry(self.tilename)
 
         print('Starting photometric redshift determination...',
               file=sys.stderr)

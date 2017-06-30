@@ -35,7 +35,7 @@ class combcat:
         self.centered = None
         self.got_zeropt = False
 
-        self.pipeline = '/home/boada/Projects/planckClusters/mosaicpipe/'
+        self.pipeline = '/home/boada/Projects/planckClusters/MOSAICpipe/'
 
         # Check for environ vars
         if not os.getenv('PIPE'):
@@ -260,7 +260,7 @@ class combcat:
                     flxscale = 10.0**(0.4 * (magbase - zp))
                     self.flxscale[filter].append(flxscale)
             if filename:
-                header = getheader(fname)
+                header = getheader(filename)
                 zp = header['MAGZERO']
                 flxscale = 10.0**(0.4 * (magbase - zp))
 
@@ -680,6 +680,14 @@ class combcat:
         with open('diagnostics.html', 'a') as f:
             pass
 
+        try:
+            if ':' in self.xo or ':' in self.yo:
+                from astLib import astCoords
+                self.xo = astCoords.hms2decimal(self.xo, ':')
+                self.yo = astCoords.dms2decimal(self.yo, ':')
+        except TypeError:
+            pass
+
         subprocs = []
         for filter in self.filters:
             mosaic = '{}.fits'.format(self.combima[filter])
@@ -836,7 +844,8 @@ class combcat:
                         zeropt = self.magbase
                         self.combcat[filter] = self.combima[filter] + ".cat"
                     except AttributeError:
-                        self.get_FLXSCALE(self, filename=input)
+                        #self.get_FLXSCALE(self, filename=input)
+                        zeropt = 26
                         self.combcat[filter] = self.combima[filter] + ".cat"
                 else:
                     self.combcat[filter] = self.combima[filter] + "_cal.cat"
