@@ -10,6 +10,8 @@ FORTRAN).  That means that it will usually perform reductions over columns,
 whereas with this object the most natural reductions are over rows.  It's perfectly
 possible to make this work the way it does in matlab if that's desired.
 """
+from __future__ import print_function
+from __future__ import division
 # I CHANGED median -- DC
 # I ADDED thetastd -- DC
 # I ADDED histogram -- DC
@@ -18,6 +20,10 @@ possible to make this work the way it does in matlab if that's desired.
 #   ImportError: ld.so.1: python: fatal: /home/coe/python/ranlib.so: wrong ELF data format: ELFDATA2LS
 
 #from Numeric import *
+from builtins import map
+from builtins import range
+from builtins import object
+from past.utils import old_div
 from numpy import *
 from compress2 import compress2 as compress
 from bisect import bisect
@@ -36,7 +42,7 @@ except:
 def argmin2d(a):
     i = argmin(a.flat)
     ny, nx = a.shape
-    iy = i / nx
+    iy = old_div(i, nx)
     ix = i % nx
     return iy, ix
 
@@ -44,7 +50,7 @@ def argmin2d(a):
 def argmax2d(a):
     i = argmax(a.flat)
     ny, nx = a.shape
-    iy = i / nx
+    iy = old_div(i, nx)
     ix = i % nx
     return iy, ix
 
@@ -70,7 +76,7 @@ def sinn(x):
 
 def multiples(lo, hi, x=1, eps=1e-7):
     """Returns an array of the multiples of x between [lo,hi] inclusive"""
-    l = ceil((lo - eps) / x) * x
+    l = ceil(old_div((lo - eps), x)) * x
     return arange(l, hi + eps, x)
 
 
@@ -196,10 +202,10 @@ def sec2hms(x, precision=0, mpersist=True):
     out = ''
     if x > 60:
         if x > 3600:
-            h = int(x / 3600)
+            h = int(old_div(x, 3600))
             out = '%d:' % h
             x = x - 3600 * h
-        m = int(x / 60)
+        m = int(old_div(x, 60))
         out += '%d:' % m
         x = x - 60 * m
     elif mpersist:
@@ -229,22 +235,22 @@ def sec2yr(x, precision=0, mpersist=True):
             daysec = 24 * hoursec  # day
             if x > daysec:  # days
                 yearsec = 365.25 * daysec
-                monthsec = yearsec / 12.
+                monthsec = old_div(yearsec, 12.)
                 if x > monthsec:  # months
                     if x > yearsec:  # years
-                        y = int(x / yearsec)
+                        y = int(old_div(x, yearsec))
                         out = '%d years, ' % y
                         x = x - y * yearsec
-                    months = int(x / monthsec)
+                    months = int(old_div(x, monthsec))
                     out += '%d months, ' % months
                     x = x - months * monthsec
-                d = int(x / daysec)
+                d = int(old_div(x, daysec))
                 out += '%d days, ' % d
                 x = x - d * daysec
-            h = int(x / 3600)
+            h = int(old_div(x, 3600))
             out += '%d hours, ' % h
             x = x - 3600 * h
-        m = int(x / 60)
+        m = int(old_div(x, 60))
         out += '%d minutes, ' % m
         x = x - 60 * m
     elif mpersist:
@@ -269,7 +275,7 @@ minsec = 60  # minute
 hoursec = minsec * 60  # hour
 daysec = 24 * hoursec  # day
 yearsec = 365.25 * daysec
-monthsec = yearsec / 12.
+monthsec = old_div(yearsec, 12.)
 
 
 def prange(x, xinclude=None, margin=0.05):
@@ -278,7 +284,7 @@ def prange(x, xinclude=None, margin=0.05):
     margin = FRACTIONAL MARGIN ON EITHER SIDE OF DATA."""
     xmin = min(x)
     xmax = max(x)
-    if xinclude <> None:
+    if xinclude != None:
         xmin = min([xmin, xinclude])
         xmax = max([xmax, xinclude])
 
@@ -325,7 +331,7 @@ def pairs(x):
 def Psig(P, nsigma=1):
     """(ir, il) bound central nsigma of P
     -- edges contain equal amounts of P"""
-    Pn = P / total(P)
+    Pn = old_div(P, total(P))
     g = gausst(nsigma)
     Pl = cumsum(Pn)
     Pr = cumsum(Pn[::-1])
@@ -338,18 +344,18 @@ def Psig(P, nsigma=1):
 
 
 def xsig(x, P, nsigma=1):
-    print 'xsigmom MUCH MORE ACCURATE THAN xsig IN MLab_coe'
-    return p2p(take(x, Psig(P, nsigma))) / 2.
+    print('xsigmom MUCH MORE ACCURATE THAN xsig IN MLab_coe')
+    return old_div(p2p(take(x, Psig(P, nsigma))), 2.)
 
 
 def gaussin(nsigma=1):
     """FRACTION WITHIN nsigma"""
-    return erf(nsigma / sqrt(2))
+    return erf(old_div(nsigma, sqrt(2)))
 
 
 def gaussp(nsigma=1):
     """FRACTION INCLUDED UP TO nsigma"""
-    return 0.5 + gaussin(nsigma) / 2.
+    return 0.5 + old_div(gaussin(nsigma), 2.)
 
 
 def gaussbtw(nsig1, nsig2):
@@ -372,7 +378,7 @@ from scipy.optimize import golden
 
 
 def mom2(x, y):
-    return sqrt(total(x**2 * y) / total(y))
+    return sqrt(old_div(total(x**2 * y), total(y)))
 
 
 def mom2dx(dx, x, y):
@@ -388,13 +394,13 @@ def xsigmom(x, y):
 def testxsigmom():
     x = mgrid[-5:5:100001j]
     g = gauss1(abs(x - 0.98765), 0.123456789)
-    print xsig(x, g)
-    print xsigmom(x, g)
+    print(xsig(x, g))
+    print(xsigmom(x, g))
 
     x = mgrid[-5:5:101j]
     g = gauss1(abs(x - 0.98765), 0.123456789)
-    print xsig(x, g)
-    print xsigmom(x, g)
+    print(xsig(x, g))
+    print(xsigmom(x, g))
 
 ###
 
@@ -413,7 +419,7 @@ def randrange2(lo, hi, N=1):
     return ((hi - lo) * random(N) + lo)
 
 
-class PDraw:
+class PDraw(object):
     def __init__(self, x, P):
         self.x = x
         self.P = P
@@ -445,7 +451,7 @@ def hypotxy(x1, y1, x2, y2):
 
 
 def hypotinvn(x):
-    return 1 / sqrt(sum(1. / x**2))
+    return old_div(1, sqrt(sum(old_div(1., x**2))))
 
 
 def hypotinvnn(*x):
@@ -463,7 +469,7 @@ def subtend(x1, y1, x2, y2):
     d = dot([x1, y1], [x2, y2])
     r1 = hypot(x1, y1)
     r2 = hypot(x2, y2)
-    costheta = d / (r1 * r2)
+    costheta = old_div(d, (r1 * r2))
     theta = arccos(costheta)
     return theta
 
@@ -502,11 +508,11 @@ def nrange(x, n=100):
 
 def range01(n=100):
     """n EQUALLY-SPACED SAMPLES ON THE RANGE OF [0,1]"""
-    return arange(n) / (n - 1.)
+    return old_div(arange(n), (n - 1.))
 
 
 def middle(x):
-    return (max(x) + min(x)) / 2.
+    return old_div((max(x) + min(x)), 2.)
 
 
 def within(A, xc, yc, ro, yesorno=0):  # --DC
@@ -533,7 +539,7 @@ def within(A, xc, yc, ro, yesorno=0):  # --DC
 
     if (ro - xc > 0.5) or (ro - yc > 0.5) \
      or (ro + xc > nx - 0.5) or (ro + yc > ny - 0.5):
-        print 'WARNING: CIRCLE EXTENDS BEYOND BOX IN MLab_coe.within'
+        print('WARNING: CIRCLE EXTENDS BEYOND BOX IN MLab_coe.within')
 
     if yesorno:
         v = less_equal(r, ro)  # TRUE OR FALSE, WITHOUT FRACTIONS
@@ -605,7 +611,7 @@ def demagnify(a, n, func='mean'):
     345
     678
     """
-    ny, nx = array(a.shape) / n
+    ny, nx = old_div(array(a.shape), n)
     a = a[:ny * 8, :nx * 8]  # Trim if not even multiples
     a = reshape(a, (ny, n, nx, n))
     a = transpose(a, (0, 2, 1, 3))
@@ -636,7 +642,7 @@ def insidepoly1(xp, yp, x, y):
     xp, yp = CCWsort(xp, yp)
     xp = xp.tolist()
     yp = yp.tolist()
-    if xp[-1] <> xp[0]:
+    if xp[-1] != xp[0]:
         xp.append(xp[0])
         yp.append(yp[0])
 
@@ -667,7 +673,7 @@ def insidepoly(xp, yp, xx, yy):
     inhull = []
     for i in range(len(xx)):
         if i and not (i % 10000):
-            print '%d / %d' % (i, len(xx))
+            print('%d / %d' % (i, len(xx)))
         inhull1 = insidepoly1(xp, yp, xx[i], yy[i])
         inhull.append(inhull1)
 
@@ -682,7 +688,7 @@ def insidepolyshwag(xp, yp, xx, yy):
     xp, yp = CCWsort(xp, yp)  # NEEDED
     xp = xp.tolist()
     yp = yp.tolist()
-    if xp[-1] <> xp[0]:
+    if xp[-1] != xp[0]:
         xp.append(xp[-1])  # SHOULD BE [0]
         yp.append(yp[-1])  # SHOULD BE [0]
 
@@ -693,7 +699,7 @@ def insidepolyshwag(xp, yp, xx, yy):
     inhull = ones(len(xx)).astype(int)
     for i in range(len(xx)):
         if i and not (i % 10000):
-            print '%d / %d' % (i, len(xx))
+            print('%d / %d' % (i, len(xx)))
         xa = [xo, xx[i]]
         ya = [yo, yy[i]]
         for j in range(len(xp) - 2):
@@ -750,7 +756,7 @@ def linefit(x1, y1, x2, y2):
         m = Inf
         b = NaN
     else:
-        m = (y2 - y1) / (x2 - x1)
+        m = old_div((y2 - y1), (x2 - x1))
         b = y1 - m * x1
     return m, b
 
@@ -776,12 +782,12 @@ def linescross(xa, ya, xb, yb):
     m0, b0 = linefit(xa[0], ya[0], xb[0], yb[0])
     ya1 = m0 * xa[1] + b0
     yb1 = m0 * xb[1] + b0
-    cross1 = (ya1 > ya[1]) <> (yb1 > yb[1])
+    cross1 = (ya1 > ya[1]) != (yb1 > yb[1])
 
     m1, b1 = linefit(xa[1], ya[1], xb[1], yb[1])
     ya0 = m1 * xa[0] + b1
     yb0 = m1 * xb[0] + b1
-    cross0 = (ya0 > ya[0]) <> (yb0 > yb[0])
+    cross0 = (ya0 > ya[0]) != (yb0 > yb[0])
 
     return cross0 and cross1
 
@@ -808,12 +814,12 @@ def linescross2(xa, ya, xb, yb):
     ma, ba = linefit(xa[0], ya[0], xa[1], ya[1])
     yb0 = ma * xb[0] + ba
     yb1 = ma * xb[1] + ba
-    crossb = (yb0 > yb[0]) <> (yb1 > yb[1])
+    crossb = (yb0 > yb[0]) != (yb1 > yb[1])
 
     mb, bb = linefit(xb[0], yb[0], xb[1], yb[1])
     ya0 = mb * xa[0] + bb
     ya1 = mb * xa[1] + bb
-    crossa = (ya0 > ya[0]) <> (ya1 > ya[1])
+    crossa = (ya0 > ya[0]) != (ya1 > ya[1])
 
     return crossa and crossb
 
@@ -908,7 +914,7 @@ def convexhull(x, y, rep=1, nprev=0):
 
 def gauss(r, sig=1., normsum=1):
     """GAUSSIAN NORMALIZED SUCH THAT AREA=1"""
-    r = clip(r / float(sig), 0, 10)
+    r = clip(old_div(r, float(sig)), 0, 10)
     G = exp(-0.5 * r**2)
     G = where(less(r, 10), G, 0)
     if normsum:
@@ -1048,7 +1054,7 @@ def sym8(a):
     """OKAY, SO THIS ISN'T QUITE RADIAL SYMMETRY..."""
     x = a + flipud(a) + fliplr(a) + transpose(a) + rot90(
         transpose(a), 2) + rot90(a, 1) + rot90(a, 2) + rot90(a, 3)
-    return x / 8.
+    return old_div(x, 8.)
 
 
 #def divsafe(a, b, inf=1e30, nan=0.):
@@ -1064,7 +1070,7 @@ def divsafe(a, b, inf=Inf, nan=NaN):
     babs = clip(abs(b), 1e-200, 1e9999)
     bb = bsgn * babs
     #return where(b, a / bb, where(a, Inf, NaN))
-    return where(b, a / bb, where(a, sgn * inf, nan))
+    return where(b, old_div(a, bb), where(a, sgn * inf, nan))
 
 
 def expsafe(x):
@@ -1111,7 +1117,7 @@ def singlevalue(x):
 def roundn(x, ndec=0):
     if singlevalue(x):
         fac = 10.**ndec
-        return roundint(x * fac) / fac
+        return old_div(roundint(x * fac), fac)
     else:
         rr = []
         for xx in x:
@@ -1126,7 +1132,7 @@ def percentile(p, x):
 
 
 def percentile2(v, x):
-    return searchsorted(sort(x), v) / float(len(x))
+    return old_div(searchsorted(sort(x), v), float(len(x)))
 
 
 def logical(x):
@@ -1143,9 +1149,9 @@ def element_or(*l):
 
 
 def log2(x, loexp=''):
-    if loexp <> '':
+    if loexp != '':
         x = clip2(x, 2**loexp, None)
-    return log10(x) / log10(2)
+    return old_div(log10(x), log10(2))
 
 
 def log10clip(x, loexp, hiexp=None):
@@ -1180,10 +1186,10 @@ def linreg(X, Y):
     which are useful in assessing the confidence of estimation. """
     #from math import sqrt
     if len(X) != len(Y):
-        raise ValueError, 'unequal length'
+        raise ValueError('unequal length')
     N = len(X)
     if N == 2:  # --DC
-        a = (Y[1] - Y[0]) / (X[1] - X[0])
+        a = old_div((Y[1] - Y[0]), (X[1] - X[0]))
         b = Y[0] - a * X[0]
     else:
         Sx = Sy = Sxx = Syy = Sxy = 0.0
@@ -1194,24 +1200,25 @@ def linreg(X, Y):
             Syy = Syy + y * y
             Sxy = Sxy + x * y
         det = Sxx * N - Sx * Sx
-        a, b = (Sxy * N - Sy * Sx) / det, (Sxx * Sy - Sx * Sxy) / det
+        a, b = old_div((Sxy * N - Sy * Sx), det), old_div(
+            (Sxx * Sy - Sx * Sxy), det)
         meanerror = residual = 0.0
         for x, y in map(None, X, Y):
-            meanerror = meanerror + (y - Sy / N)**2
+            meanerror = meanerror + (y - old_div(Sy, N))**2
             residual = residual + (y - a * x - b)**2
-        RR = 1 - residual / meanerror
-        ss = residual / (N - 2)
+        RR = 1 - old_div(residual, meanerror)
+        ss = old_div(residual, (N - 2))
         Var_a, Var_b = ss * N / det, ss * Sxx / det
-    print "y=ax+b"
-    print "N= %d" % N
+    print("y=ax+b")
+    print("N= %d" % N)
     if N == 2:
-        print "a= ", a
-        print "b= ", b
+        print("a= ", a)
+        print("b= ", b)
     else:
-        print "a= %g \\pm t_{%d;\\alpha/2} %g" % (a, N - 2, sqrt(Var_a))
-        print "b= %g \\pm t_{%d;\\alpha/2} %g" % (b, N - 2, sqrt(Var_b))
-        print "R^2= %g" % RR
-        print "s^2= %g" % ss
+        print("a= %g \\pm t_{%d;\\alpha/2} %g" % (a, N - 2, sqrt(Var_a)))
+        print("b= %g \\pm t_{%d;\\alpha/2} %g" % (b, N - 2, sqrt(Var_b)))
+        print("R^2= %g" % RR)
+        print("s^2= %g" % ss)
     return a, b
 
 
@@ -1225,7 +1232,7 @@ def linregrobust(x, y):
     x, y = compress(good, (x, y))
     ng = len(x)
     if ng < n:
-        print 'REMOVED %d OUTLIER(S), RECALCULATING linreg' % (n - ng)
+        print('REMOVED %d OUTLIER(S), RECALCULATING linreg' % (n - ng))
         a, b = linreg(x, y)
     return a, b
 
@@ -1335,13 +1342,13 @@ def between(lo, x, hi):  # --DC
 
 
 def divisible(x, n):  # --DC
-    return (x / float(n) - x / n) < (0.2 / n)
+    return (old_div(x, float(n)) - old_div(x, n)) < (old_div(0.2, n))
 
 
 def ndec(x, max=3):  # --DC
     """RETURNS # OF DECIMAL PLACES IN A NUMBER"""
     for n in range(max, 0, -1):
-        if round(x, n) <> round(x, n - 1):
+        if round(x, n) != round(x, n - 1):
             return n
     return 0  # IF ALL ELSE FAILS...  THERE'S NO DECIMALS
 
@@ -1398,11 +1405,11 @@ def interp1(x, xdata, ydata, silent=0):  # --DC
     ydata = ydata.take(SI, 0).astype(float).tolist()
     if x > xdata[-1]:
         if not silent:
-            print x, 'OUT OF RANGE in interp in MLab_coe.py'
+            print(x, 'OUT OF RANGE in interp in MLab_coe.py')
         return ydata[-1]
     elif x < xdata[0]:
         if not silent:
-            print x, 'OUT OF RANGE in interp in MLab_coe.py'
+            print(x, 'OUT OF RANGE in interp in MLab_coe.py')
         return ydata[0]
     else:
         # i = bisect(xdata, x)  # SAME UNLESS EQUAL
@@ -1412,7 +1419,7 @@ def interp1(x, xdata, ydata, silent=0):  # --DC
         else:
             [xlo, xhi] = xdata[i - 1:i + 1]
             [ylo, yhi] = ydata[i - 1:i + 1]
-            return ((x - xlo) * yhi + (xhi - x) * ylo) / (xhi - xlo)
+            return old_div(((x - xlo) * yhi + (xhi - x) * ylo), (xhi - xlo))
 
 
 def interpn1(x, xdata, ydata, silent=0):  # --DC
@@ -1426,7 +1433,7 @@ def interpn1(x, xdata, ydata, silent=0):  # --DC
 
 def interp2(x, xdata, ydata):  # --DC
     """LINEAR INTERPOLATION/EXTRAPOLATION GIVEN TWO DATA POINTS"""
-    m = (ydata[1] - ydata[0]) / (xdata[1] - xdata[0])
+    m = old_div((ydata[1] - ydata[0]), (xdata[1] - xdata[0]))
     b = ydata[1] - m * xdata[1]
     y = m * x + b
     return y
@@ -1436,12 +1443,12 @@ def bilin(x, y, data, datax, datay):  # --DC
     """ x, y ARE COORDS OF INTEREST
     data IS 2x2 ARRAY CONTAINING NEARBY DATA
     datax, datay CONTAINS x & y COORDS OF NEARBY DATA"""
-    lavg = ((y - datay[0]) * data[1, 0] +
-            (datay[1] - y) * data[0, 0]) / (datay[1] - datay[0])
-    ravg = ((y - datay[0]) * data[1, 1] +
-            (datay[1] - y) * data[0, 1]) / (datay[1] - datay[0])
-    return (
-        (x - datax[0]) * ravg + (datax[1] - x) * lavg) / (datax[1] - datax[0])
+    lavg = old_div(((y - datay[0]) * data[1, 0] + (datay[1] - y) * data[0, 0]),
+                   (datay[1] - datay[0]))
+    ravg = old_div(((y - datay[0]) * data[1, 1] + (datay[1] - y) * data[0, 1]),
+                   (datay[1] - datay[0]))
+    return old_div(((x - datax[0]) * ravg + (datax[1] - x) * lavg),
+                   (datax[1] - datax[0]))
 
 
 def bilin2(x, y, data):  # --DC
@@ -1520,7 +1527,7 @@ def diag(v, k=0):
         elif k < 0: return v[:k]
         else: return v
     else:
-        raise ValueError, "Input must be 1- or 2-D."
+        raise ValueError("Input must be 1- or 2-D.")
 
 
 def fliplr(m):
@@ -1530,7 +1537,7 @@ def fliplr(m):
         """
     m = asarray(m)
     if len(m.shape) != 2:
-        raise ValueError, "Input must be 2-D."
+        raise ValueError("Input must be 2-D.")
     return m[:, ::-1]
 
 
@@ -1540,7 +1547,7 @@ def flipud(m):
         """
     m = asarray(m)
     if len(m.shape) != 2:
-        raise ValueError, "Input must be 2-D."
+        raise ValueError("Input must be 2-D.")
     return m[::-1]
 
     # reshape(x, m, n) is not used, instead use reshape(x, (m, n))
@@ -1552,7 +1559,7 @@ def rot90(m, k=1):
         """
     m = asarray(m)
     if len(m.shape) != 2:
-        raise ValueError, "Input must be 2-D."
+        raise ValueError("Input must be 2-D.")
     k = k % 4
     if k == 0: return m
     elif k == 1: return transpose(fliplr(m))
@@ -1613,7 +1620,7 @@ def mean1(m):
     """mean(m) returns the mean along the first dimension of m.  Note:  if m is
         an integer array, integer division will occur.
         """
-    return add.reduce(m) / len(m)
+    return old_div(add.reduce(m), len(m))
 
 
 def mean(m, axis=0):
@@ -1621,11 +1628,11 @@ def mean(m, axis=0):
         an integer array, integer division will occur.
         """
     m = asarray(m)
-    return add.reduce(m, axis=axis) / m.shape[axis]
+    return old_div(add.reduce(m, axis=axis), m.shape[axis])
 
 
 def meangeom(m):
-    return product(m)**(1. / len(m))
+    return product(m)**(old_div(1., len(m)))
 
 
 # sort is done in C but is done row-wise rather than column-wise
@@ -1640,10 +1647,11 @@ def median(m):
         """
     m = asarray(m)
     if m.shape[0] & 1:
-        return msort(m)[m.shape[0] / 2]  # ODD # OF ELEMENTS
+        return msort(m)[old_div(m.shape[0], 2)]  # ODD # OF ELEMENTS
     else:
-        return (msort(m)[m.shape[0] / 2] + msort(m)[m.shape[0] / 2 - 1]
-                ) / 2.0  # EVEN # OF ELEMENTS
+        return old_div((msort(m)[old_div(m.shape[0], 2)] +
+                        msort(m)[old_div(m.shape[0], 2) - 1]),
+                       2.0)  # EVEN # OF ELEMENTS
 
 
 def rms(m):
@@ -1658,7 +1666,7 @@ def std(m):
         dimension of m.  The result is unbiased meaning division by len(m)-1.
         """
     mu = mean(m)
-    return sqrt(add.reduce(pow(m - mu, 2))) / sqrt(len(m) - 1.0)
+    return old_div(sqrt(add.reduce(pow(m - mu, 2))), sqrt(len(m) - 1.0))
 
 
 stddev = std
@@ -1668,7 +1676,7 @@ def meanstd(m):
     """meanstd(m) returns the mean and uncertainty = std / sqrt(N-1)
         """
     mu = mean(m)
-    dmu = sqrt(add.reduce(pow(m - mu, 2))) / (len(m) - 1.0)
+    dmu = old_div(sqrt(add.reduce(pow(m - mu, 2))), (len(m) - 1.0))
     return mu, dmu
 
 
@@ -1681,12 +1689,12 @@ def avgstd2(m):  # --DC
     while not done:
         n = len(m)
         mu = mean(m)
-        sig = sqrt(add.reduce(pow(m - mu, 2))) / sqrt(n - 1.0)
+        sig = old_div(sqrt(add.reduce(pow(m - mu, 2))), sqrt(n - 1.0))
         good = greater(m, mu - 3 * sig) * less(m, mu + 3 * sig)
         m = compress(good, m)
         done = sum(good) == n
 
-    return [mu, sqrt(add.reduce(pow(m - mu, 2))) / sqrt(len(m) - 1.0)]
+    return [mu, old_div(sqrt(add.reduce(pow(m - mu, 2))), sqrt(len(m) - 1.0))]
 
 
 def std2(m):  # --DC
@@ -1702,7 +1710,7 @@ stddev = std
 
 
 def weightedavg(x, w):
-    return sum(x * w) / sum(w)
+    return old_div(sum(x * w), sum(w))
 
 
 weightedmean = weightedavg
@@ -1750,7 +1758,7 @@ def thetaavgstd(theta):
                 thavg = thavg - 2 * pi
             elif th - thavg > pi:
                 th = th - 2 * pi
-            thavg = (i * thavg + th) / (i + 1)
+            thavg = old_div((i * thavg + th), (i + 1))
         for i in range(n):
             if theta[i] > thavg + pi:
                 theta[i] = theta[i] - 2 * pi
@@ -1829,7 +1837,7 @@ def cumtrapz(y, x=None, axis=0):
     elif axis == 1:
         return cumsum(d * (y[:, 1:] + y[:, 0:-1]) / 2.0, axis=1)
     else:
-        print 'YOUR VALUE OF axis = %d IS NO GOOD IN MLab_coe.cumtrapz' % axis
+        print('YOUR VALUE OF axis = %d IS NO GOOD IN MLab_coe.cumtrapz' % axis)
 
 
 def xbins(x):
@@ -1837,7 +1845,7 @@ def xbins(x):
     d = shorten(x)
     da = x[1] - x[0]
     db = x[-1] - x[-2]
-    d = concatenate(([x[0] - da / 2.], d, [x[-1] + db / 2.]))
+    d = concatenate(([x[0] - old_div(da, 2.)], d, [x[-1] + old_div(db, 2.)]))
     return d
 
 
@@ -1855,7 +1863,7 @@ def shorten(x, n=1):  # shrink
     """shorten(x,n=1)
         SHORTENS x, TAKING AVG OF NEIGHBORS, RECURSIVELY IF n > 1
         """
-    a = (x[1:] + x[:-1]) / 2.
+    a = old_div((x[1:] + x[:-1]), 2.)
     if n > 1:
         return shorten(a, n - 1)
     else:
@@ -1866,7 +1874,7 @@ def lengthen(x, n):  # expand
     """lengthen([0, 1, 5], 4) ==> 0, 0.25, 0.5, 0.75, 1, 2, 3, 4, 5"""
     x = array(x)
     d = diff(x)
-    i = arange(n) / float(n)
+    i = old_div(arange(n), float(n))
     o = outer(i, d)
     o = o + x[:-1]
     o = ravel(transpose(o))
@@ -1885,7 +1893,7 @@ def powerlaw(x, y):
     dlogx = diff(logx)
     dlogy = diff(logy)
 
-    dd = dlogy / dlogx
+    dd = old_div(dlogy, dlogx)
     #x2 = (x[1:] + x[:-1]) / 2
     logx2 = shorten(logx)
     x2 = 10**logx2
@@ -1898,8 +1906,8 @@ def grad(m):
     The result will be 2 arrays, one for each of the axes x & y, respectively,
     with each having dimension (N-2, N-2), where m was (N, N).
     The coordinates will be in between of those of m.  --DC"""
-    ay = (m[2:] - m[:-2]) / 2.  # (N-2, N)
-    ax = (m[:, 2:] - m[:, :-2]) / 2.  # (N,   N-2)
+    ay = old_div((m[2:] - m[:-2]), 2.)  # (N-2, N)
+    ax = old_div((m[:, 2:] - m[:, :-2]), 2.)  # (N,   N-2)
     ay = ay[:, 1:-1]  # (N-2, N-2)
     ax = ax[1:-1, :]
     return array([ax, ay])
@@ -1924,7 +1932,7 @@ def laplacian(m):
     for dx, dy in [(-1, -1), (-1, 1), (1, 1), (1, -1)]:
         corners = corners + m[1 + dy:ny - 1 + dy, 1 + dx:nx - 1 + dx]
 
-    return (2 * corners - sides - 4 * center) / 3.
+    return old_div((2 * corners - sides - 4 * center), 3.)
 
 
 def corrcoef(x, y=None):
@@ -1932,7 +1940,7 @@ def corrcoef(x, y=None):
         """
     c = cov(x, y)
     d = diag(c)
-    return c / sqrt(multiply.outer(d, d))
+    return old_div(c, sqrt(multiply.outer(d, d)))
 
 
 def cov(m, y=None):
@@ -1942,7 +1950,7 @@ def cov(m, y=None):
     sum_cov = 0.0
     for v in m:
         sum_cov = sum_cov + multiply.outer(v, v)
-    return (sum_cov - len(m) * multiply.outer(mu, mu)) / (len(m) - 1.0)
+    return old_div((sum_cov - len(m) * multiply.outer(mu, mu)), (len(m) - 1.0))
 
 
 # Added functions supplied by Travis Oliphant
@@ -1960,9 +1968,10 @@ def kaiser(M, beta):
     """
     import cephes
     n = arange(0, M)
-    alpha = (M - 1) / 2.0
-    return cephes.i0(beta *
-                     sqrt(1 - ((n - alpha) / alpha)**2.0)) / cephes.i0(beta)
+    alpha = old_div((M - 1), 2.0)
+    return old_div(
+        cephes.i0(beta * sqrt(1 - (old_div((n - alpha), alpha))**2.0)),
+        cephes.i0(beta))
 
 
 def blackman(M):
@@ -1976,7 +1985,8 @@ def bartlett(M):
     """bartlett(M) returns the M-point Bartlett window.
     """
     n = arange(0, M)
-    return where(less_equal(n, M / 2.0), 2.0 * n / M, 2.0 - 2.0 * n / M)
+    return where(
+        less_equal(n, old_div(M, 2.0)), 2.0 * n / M, 2.0 - 2.0 * n / M)
 
 
 def hanning(M):
@@ -1996,7 +2006,7 @@ def hamming(M):
 def sinc(x):
     """sinc(x) returns sin(pi*x)/(pi*x) at all points of array x.
     """
-    return where(equal(x, 0.0), 1.0, sin(pi * x) / (pi * x))
+    return where(equal(x, 0.0), 1.0, old_div(sin(pi * x), (pi * x)))
 
 
 from numpy.linalg import eig, svd
@@ -2028,12 +2038,12 @@ def cumhisto(a, da=1., amin=[], amax=[]):  # --DC
         amin = min(a)
     if amax == []:
         amax = max(a)
-    nnn = (amax - amin) / da
+    nnn = old_div((amax - amin), da)
     if less(nnn - int(nnn), 1e-4):
         amax = amax + da
     bins = arange(amin, amax + da, da)
     n = searchsorted(sort(a), bins)
-    n = array(map(float, n))
+    n = array(list(map(float, n)))
     return n[1:]
 
 
@@ -2063,13 +2073,13 @@ def histo(a, da=1., amin=[], amax=[]):  # --DC
         amin = min(a)
     if amax == []:
         amax = max(a)
-    nnn = (amax - amin) / da
+    nnn = old_div((amax - amin), da)
     if less(nnn - int(nnn), 1e-4):
         amax = amax + da
     bins = arange(amin, amax + da, da)
     n = searchsorted(sort(a), bins)
     #    n=concatenate([n,[len(a)]])
-    n = array(map(float, n))
+    n = array(list(map(float, n)))
     ##     print a
     ##     print bins
     ##     print n
@@ -2148,13 +2158,13 @@ def histob(a, da=1., amin=[], amax=[]):  # --DC
     amin = amin - 1e-4
     amax = amax + 1e-4
     #if less(abs(amax - a[-1]), da*1e-4):
-    nnn = (amax - amin) / da
+    nnn = old_div((amax - amin), da)
     if less(nnn - int(nnn), 1e-4):
         amax = amax + da
     #bins = arange(amin,amax+da,da)
     bins = arange(amin, amax + da, da)
     n = searchsorted(sort(a), bins)
-    n = array(map(float, n))
+    n = array(list(map(float, n)))
     n = n[1:] - n[:-1]
     return (bins, n)
 
@@ -2184,7 +2194,7 @@ def histov(a, bins, v, presorted=0):
 
 
 def isNaN(x):
-    return not (x < 0) and not (x > 0) and (x <> 0)
+    return not (x < 0) and not (x > 0) and (x != 0)
 
 
 def isnan(x):

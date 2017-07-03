@@ -13,6 +13,8 @@
 # some performance when the functions are used on scalar arguments,
 # but should give a big win on vectors.
 
+from builtins import range
+from builtins import object
 import numpy as Numeric
 #from Numeric import *
 from numpy import *
@@ -26,7 +28,7 @@ UfuncType = type(Numeric.add)
 # unary function objects (maybe rename to UN_FUNC?)
 
 
-class FuncOps:
+class FuncOps(object):
     """
     Common mix-in operations for function objects.
     Normal function classes are assumed to implement a call routine,
@@ -56,7 +58,7 @@ class FuncOps:
 
     def __coerce__(self, x):
         #if type(x) in [IntType, FloatType, LongType, ComplexType]:
-        if type(x) in [int, float, long, complex]:
+        if type(x) in [int, float, int, complex]:
             return (self, UnConstant(x))
         else:
             return (self, x)
@@ -124,7 +126,7 @@ class UnCompose(FuncOps):
 #    d=m.compose(c)   - m(c(x,y))
 
 
-class BinFuncOps:
+class BinFuncOps(object):
     # returns self(f(x), g(x)), a unary function
     def compose(self, f, g):
         return BinCompose(self, f, g)
@@ -306,7 +308,7 @@ def array_map(f, ar):
     "Apply an ordinary function to all values in an array."
     flat_ar = ravel(ar)
     out = zeros(len(flat_ar), flat_ar.dtype.char)
-    for i in xrange(len(flat_ar)):
+    for i in range(len(flat_ar)):
         out[i] = f(flat_ar[i])
     out.shape = ar.shape
     return out
@@ -318,6 +320,6 @@ def array_map_2(f, a, b):
     flat_a = ravel(a)
     flat_b = ravel(b)
     out = zeros(len(flat_a), a.dtype.char)
-    for i in xrange(len(flat_a)):
+    for i in range(len(flat_a)):
         out[i] = f(flat_a[i], flat_b[i])
     return reshape(out, a.shape)

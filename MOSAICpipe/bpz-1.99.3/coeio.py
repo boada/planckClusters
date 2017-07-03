@@ -1,9 +1,14 @@
+from __future__ import print_function
+from __future__ import division
 ## Automatically adapted for numpy Jun 08, 2006
 ## By hand: 'float' -> float, Float -> float, Int -> int
 
 # coeio.py
 # INPUT / OUTPUT OF FILES
 
+from builtins import range
+from builtins import object
+from past.utils import old_div
 from coetools import *
 import string
 
@@ -38,9 +43,9 @@ def pint(A, n=0):
     prints A.astype(int)"""
     if type(A) in [list, tuple]:
         A = array(A)
-    if n <> 0:
+    if n != 0:
         A = A * 10**n
-    print A.astype(int)
+    print(A.astype(int))
 
 
 def pintup(A, n=0):
@@ -55,13 +60,13 @@ if pyfitsloaded:
     #pyfitsusesnumpy = (string.atof(pyfits.__version__[:3]) >= 1.1) and (
     #    numerix == 'numpy')
     if not pyfitsusesnumpy:
-        print 'You probably should have done this first: setenv NUMERIX numpy'
+        print('You probably should have done this first: setenv NUMERIX numpy')
         import numarray
 
 
 def recapfile(name, ext):
     """CHANGE FILENAME EXTENSION"""
-    if ext[0] <> '.':
+    if ext[0] != '.':
         ext = '.' + ext
     i = string.rfind(name, ".")
     if i == -1:
@@ -73,10 +78,10 @@ def recapfile(name, ext):
 
 def capfile(name, ext):
     """ADD EXTENSION TO FILENAME IF NECESSARY"""
-    if ext[0] <> '.':
+    if ext[0] != '.':
         ext = '.' + ext
     n = len(ext)
-    if name[-n:] <> ext:
+    if name[-n:] != ext:
         name += ext
     return name
 
@@ -85,7 +90,7 @@ def decapfile(name, ext=''):
     """REMOVE EXTENSION FROM FILENAME IF PRESENT
     IF ext LEFT BLANK, THEN ANY EXTENSION WILL BE REMOVED"""
     if ext:
-        if ext[0] <> '.':
+        if ext[0] != '.':
             ext = '.' + ext
         n = len(ext)
         if name[-n:] == ext:
@@ -136,11 +141,11 @@ def params_cl():
 def delfile(file, silent=0):
     if os.path.exists(file) or os.path.islink(file):  # COULD BE BROKEN LINK!
         if not silent:
-            print 'REMOVING ', file, '...'
+            print('REMOVING ', file, '...')
         os.remove(file)
     else:
         if not silent:
-            print "CAN'T REMOVE", file, "DOES NOT EXIST."
+            print("CAN'T REMOVE", file, "DOES NOT EXIST.")
 
 
 rmfile = delfile
@@ -161,7 +166,7 @@ def dirfile(filename, dir=""):
 def loadfile(filename, dir="", silent=0, keepnewlines=0):
     infile = dirfile(filename, dir)
     if not silent:
-        print "Loading ", infile, "...\n"
+        print("Loading ", infile, "...\n")
     fin = open(infile, 'r')
     sin = fin.readlines()
     fin.close()
@@ -174,13 +179,13 @@ def loadfile(filename, dir="", silent=0, keepnewlines=0):
 def loadheader(filename, dir="", silent=0, keepnewlines=0):
     infile = dirfile(filename, dir)
     if not silent:
-        print "Loading ", infile, "...\n"
+        print("Loading ", infile, "...\n")
     fin = open(infile, 'r')
     line = '#'
     sin = []
     while line:
         line = fin.readline()
-        if line[0] <> '#':
+        if line[0] != '#':
             break
         else:
             sin.append(line)
@@ -202,7 +207,7 @@ def fileempty(filename, dir="", silent=0, delifempty=0):
         while line and not gotdata:
             line = fin.readline()
             if line:
-                if line[0] <> '#':
+                if line[0] != '#':
                     gotdata = 1
         if delifempty:
             if not gotdata:
@@ -217,8 +222,8 @@ def delfileifempty(filename, dir="", silent=0):
 
 def assigndict(keys, values):
     n = len(keys)
-    if n <> len(values):
-        print "keys & values DON'T HAVE SAME LENGTH IN coeio.assigndict!"
+    if n != len(values):
+        print("keys & values DON'T HAVE SAME LENGTH IN coeio.assigndict!")
     else:
         d = {}
         for i in range(n):
@@ -230,7 +235,7 @@ def loaddict1(filename, dir="", silent=0):
     lines = loadfile(filename, dir, silent)
     dict = {}
     for line in lines:
-        if line[0] <> '#':
+        if line[0] != '#':
             words = string.split(line)
             key = str2num(words[0])
             val = ''  # if nothing there
@@ -249,7 +254,7 @@ def loaddict(filename, dir="", silent=0):
     lines = loadfile(filename, dir, silent)
     dict = {}
     for line in lines:
-        if line[0] <> '#':
+        if line[0] != '#':
             words = string.split(line)
             key = str2num(words[0])
             val = ''  # if nothing there
@@ -314,14 +319,14 @@ def loadcols(infile, format='', pl=0):
     roundcols = []
     for line in txt:
         if line:
-            if line[0] <> '#':
+            if line[0] != '#':
                 words = string.split(line)
                 if pl:
-                    print line
+                    print(line)
                 for iword in range(len(words)):
                     if iword > len(format) - 1:
-                        print 'EXTRA CONTENT IN LINE: ',
-                        print string.join(words[iword:])
+                        print('EXTRA CONTENT IN LINE: ', end=' ')
+                        print(string.join(words[iword:]))
                         break
                     #print iword
                     word = words[iword]
@@ -346,9 +351,13 @@ def loadcols(infile, format='', pl=0):
 
     if roundcols:
         if len(roundcols) > 1:
-            print 'WARNING, THE FOLLOWING COLUMNS WERE ROUNDED FROM FLOAT TO INT: ', roundcols
+            print(
+                'WARNING, THE FOLLOWING COLUMNS WERE ROUNDED FROM FLOAT TO INT: ',
+                roundcols)
         else:
-            print 'WARNING, THE FOLLOWING COLUMN WAS ROUNDED FROM FLOAT TO INT: ', roundcols
+            print(
+                'WARNING, THE FOLLOWING COLUMN WAS ROUNDED FROM FLOAT TO INT: ',
+                roundcols)
 
     if arrayout:
         for icol in range(ncols):
@@ -425,7 +434,7 @@ def savedata(data,
     outfile = dirfile(filename, dir)
 
     if dow and os.path.exists(outfile):
-        print outfile, " ALREADY EXISTS"
+        print(outfile, " ALREADY EXISTS")
     else:
         skycat = strend(filename, '.scat')
         if skycat:
@@ -442,10 +451,11 @@ def savedata(data,
             if type(format) == dict:  # CONVERT DICTIONARY FORM TO LIST
                 dd = ' '
                 for label in labels:
-                    if label in format.keys():
+                    if label in list(format.keys()):
                         dd += format[label]
                     else:
-                        print "WARNING: YOU DIDN'T SUPPLY A FORMAT FOR", label + ".  USING %.3f AS DEFAULT"
+                        print("WARNING: YOU DIDN'T SUPPLY A FORMAT FOR",
+                              label + ".  USING %.3f AS DEFAULT")
                         dd += '%.3f'
                     dd += '  '
                 dd = dd[:-2] + '\n'  # REMOVE LAST WHITESPACE, ADD NEWLINE
@@ -453,7 +463,7 @@ def savedata(data,
                 #print format
         else:
             if not silent:
-                print "Formatting... "
+                print("Formatting... ")
             coldec = [0] * nx  # OF DECIMAL PLACES
             colint = [
                 0
@@ -466,9 +476,9 @@ def savedata(data,
             if machine:
                 maxy = 0
             if (ny <= maxy) or not maxy:
-                yyy = range(ny)
+                yyy = list(range(ny))
             else:
-                yyy = arange(maxy) * ((ny - 1.) / (maxy - 1.))
+                yyy = arange(maxy) * (old_div((ny - 1.), (maxy - 1.)))
                 yyy = yyy.astype(int)
             for iy in yyy:
                 for ix in range(nx):
@@ -536,7 +546,7 @@ def savedata(data,
                 else:
                     format += "\n"
             if pf:
-                print "format='%s\\n'" % format[:-1]
+                print("format='%s\\n'" % format[:-1])
 
                 # NEED TO BE ABLE TO ALTER INPUT FORMAT
         if machine:  # machine readable
@@ -643,7 +653,7 @@ def savedata(data,
                 headline += '#'
                 colformats = string.split(format, '%')[1:]
                 if not silent:
-                    print
+                    print()
                 for ix in range(nx):
                     cf = colformats[ix]
                     collen = collens[ix]
@@ -656,7 +666,7 @@ def savedata(data,
                     header = [headline]
                 else:
                     if header[
-                            -1] <> '.':  # SPECIAL CODE TO REFRAIN FROM ADDING TO HEADER
+                            -1] != '.':  # SPECIAL CODE TO REFRAIN FROM ADDING TO HEADER
                         header.append(headline)
 
                 if skycat:
@@ -729,7 +739,7 @@ def savedata(data,
                     headline = 'Note (%d): ' % (inote + 1)
                     note = string.split(notes[inote], '\n')
                     headline += note[0]
-                    if headline[-1] <> '\n':
+                    if headline[-1] != '\n':
                         headline += '\n'
                     header.append(headline)
                     if len(note) > 1:
@@ -737,13 +747,13 @@ def savedata(data,
                             if note[iline]:  # make sure it's not blank (e.g., after \n)
                                 headline = ' ' * 10
                                 headline += note[iline]
-                                if headline[-1] <> '\n':
+                                if headline[-1] != '\n':
                                     headline += '\n'
                                 header.append(headline)
             header.append('-' * 80 + '\n')
 
         if not silent:
-            print "Saving ", outfile, "...\n"
+            print("Saving ", outfile, "...\n")
 
         fout = open(outfile, 'w')
 
@@ -810,8 +820,8 @@ def loaddata(filename, dir="", silent=0, headlines=0):
             try:
                 data[iy, ix] = string.atof(ss[ix])
             except:
-                print ss
-                print ss[ix]
+                print(ss)
+                print(ss[ix])
                 data[iy, ix] = string.atof(ss[ix])
 
     if tr:
@@ -833,7 +843,7 @@ def loadlist(filename, dir="./"):
     #    os.chdir("/home/coe/imcat/ksb/A1689txitxo/R/02/")
 
     infile = dirfile(filename, dir)
-    print "Loading ", infile, "...\n"
+    print("Loading ", infile, "...\n")
 
     fin = open(infile, 'r')
     sin = fin.readlines()
@@ -896,7 +906,7 @@ def loadmachine(filename, dir="", silent=0):
     cols = []
     cat.labels = []
     line = fin.readline()
-    while line[0] <> '-':
+    while line[0] != '-':
         xx = []
         xx.append(string.atoi(line[1:4]))
         xx.append(string.atoi(line[5:8]))
@@ -908,7 +918,7 @@ def loadmachine(filename, dir="", silent=0):
 
     # NOW SKIP NOTES:
     line = fin.readline()
-    while line[0] <> '-':
+    while line[0] != '-':
         line = fin.readline()
 
     # INITIALIZE DATA
@@ -938,7 +948,7 @@ def loadpymc(filename, dir="", silent=0):
     i, data = loaddata(filename + '.out+')
 
     cat = VarsClass()
-    for label in ind.keys():
+    for label in list(ind.keys()):
         ilo, ihi = ind[label]
         chunk = data[ilo - 1:ihi]
         cat.add(label, chunk)
@@ -946,17 +956,17 @@ def loadpymc(filename, dir="", silent=0):
     return cat
 
 
-class Cat2D_xyflip:
+class Cat2D_xyflip(object):
     def __init__(self,
                  filename='',
                  dir="",
                  silent=0,
-                 labels=string.split('x y z')):
+                 labels=('x y z').split()):
         if len(labels) == 2:
             labels.append('z')
         self.labels = labels
         if filename:
-            if filename[-1] <> '+':
+            if filename[-1] != '+':
                 filename += '+'
             self.data = loaddata(filename, dir)
             self.assigndata()
@@ -980,12 +990,12 @@ class Cat2D_xyflip:
         return z
 
 
-class Cat2D:
+class Cat2D(object):
     def __init__(self,
                  filename='',
                  dir="",
                  silent=0,
-                 labels=string.split('x y z')):
+                 labels=('x y z').split()):
         if len(labels) == 2:
             labels.append('z')
         self.labels = labels
@@ -1045,7 +1055,7 @@ def savecat2d_xyflip(data, x, y, filename, dir="", silent=0):
     #x = x[:, NewAxis]
     x = reshape(x, (len(x), 1))
     data = concatenate([x, data], 1)
-    if filename[-1] <> '+':
+    if filename[-1] != '+':
         filename += '+'
     #savedata(data, filename)
     savedata1(data, filename, dir)
@@ -1064,17 +1074,17 @@ def loadvars(filename, dir="", silent=0):
     >>> exec(loadvars('file.cat'))
     NOTE: DATA IS ALSO SAVED IN ARRAY data"""
     global data, labels, labelstr
-    if filename[-1] <> '+':
+    if filename[-1] != '+':
         filename += '+'
     data = loaddata(filename, dir, silent)
     labels = string.split(header[-1][1:])
     labelstr = string.join(labels, ',')
-    print labelstr + ' = data'
+    print(labelstr + ' = data')
     return 'from coeio import data,labels,labelstr\n' + labelstr + ' = data'  # STRING TO BE EXECUTED AFTER EXIT
     #return 'from coeio import data\n' + labelstr + ' = data'  # STRING TO BE EXECUTED AFTER EXIT
 
 
-class VarsClass:
+class VarsClass(object):
     def __init__(self,
                  filename='',
                  dir="",
@@ -1093,11 +1103,11 @@ class VarsClass:
                 tbdata = hdulist[1].data
                 self.labels = labels or self.labels
                 for label in self.labels:
-                    print label
-                    print tbdata.field(label)[:5]
+                    print(label)
+                    print(tbdata.field(label)[:5])
                     exec("self.%s = array(tbdata.field('%s'), 'f')" %
                          (label, label))
-                    print self.get(label)[:5]
+                    print(self.get(label)[:5])
                 self.updatedata()
             elif machinereadable(filename, dir):
                 #self = loadmachine(filename, dir, silent)
@@ -1108,7 +1118,7 @@ class VarsClass:
                 self.name = filename
                 #self.header = '' # for now...
             else:
-                if filename[-1] <> '+':
+                if filename[-1] != '+':
                     filename += '+'
                 self.name = filename[:-1]
                 self.data = loaddata(filename, dir, silent, headlines)
@@ -1134,7 +1144,7 @@ class VarsClass:
             try:
                 exec('self.%s = self.data[iii]' % label)
             except:
-                print 'BAD LABEL NAME:', label
+                print('BAD LABEL NAME:', label)
                 #xxx[9] = 3
 
     def copy(self):
@@ -1190,9 +1200,10 @@ class VarsClass:
         #selfcopy = self.copy()
         ##         if len(self.id) <> len(good):
         ##             print "VarsClass: SUBSET CANNOT BE CREATED: good LENGTH = %d, data LENGTH = %d" % (len(self.id), len(good))
-        if self.len() <> len(good):
-            print "VarsClass: SUBSET CANNOT BE CREATED: good LENGTH = %d, data LENGTH = %d" % (
-                self.len(), len(good))
+        if self.len() != len(good):
+            print(
+                "VarsClass: SUBSET CANNOT BE CREATED: good LENGTH = %d, data LENGTH = %d"
+                % (self.len(), len(good)))
         else:
             selfcopy = self.copy()
             data = self.updateddata()
@@ -1239,8 +1250,8 @@ class VarsClass:
     def takeid(self, id, idlabel='id'):
         selfid = self.get(idlabel).astype(int)  # [6 4 5]
         i = argmin(abs(selfid - id))
-        if selfid[i] <> id:
-            print "PROBLEM! ID %d NOT FOUND IN takeid" % id
+        if selfid[i] != id:
+            print("PROBLEM! ID %d NOT FOUND IN takeid" % id)
             return None
         else:
             return self.take(array([i]))
@@ -1251,8 +1262,8 @@ class VarsClass:
         #pause()
         selfid = self.get(idlabel).astype(int)  # [6 4 5]
         i = argmin(abs(selfid - id))
-        if selfid[i] <> id:
-            print "PROBLEM! ID %d NOT FOUND IN putid" % id
+        if selfid[i] != id:
+            print("PROBLEM! ID %d NOT FOUND IN putid" % id)
             return None
         else:
             exec('x = self.%s.copy()' % label)
@@ -1280,8 +1291,8 @@ class VarsClass:
         put(good, goodindices, 1)
         self.good = good
         if -1 in indices:
-            print "PROBLEM! NOT ALL IDS FOUND IN takeids!"
-            print compress(less(indices, 0), ids)
+            print("PROBLEM! NOT ALL IDS FOUND IN takeids!")
+            print(compress(less(indices, 0), ids))
         return self.take(indices)
 
     def putids(self, label, ids, values, idlabel='id', rep=True):
@@ -1304,8 +1315,8 @@ class VarsClass:
                 indexlist,
                 array(ids).astype(int))  # ids = [4 6]  ->  indices = [1 0]
             if (-1 in indices) and (rep < 2):
-                print "PROBLEM! NOT ALL IDS FOUND IN putids!"
-                print compress(less(indices, 0), ids)
+                print("PROBLEM! NOT ALL IDS FOUND IN putids!")
+                print(compress(less(indices, 0), ids))
             if singlevalue(values):
                 values = zeros(self.len(), float) + values
             put(x, indices, values)
@@ -1319,13 +1330,13 @@ class VarsClass:
                 #idstochange = []
                 done = 1
             if 0:
-                print x  #[:10]
-                print ids  #[:10]
-                print indexlist  #[:10]
+                print(x)  #[:10]
+                print(ids)  #[:10]
+                print(indexlist)  #[:10]
                 #print idsdone[:10]
-                print idchecklist  #[:10]
-                print len(x)
-                print len(x) - len(compress(idchecklist, idchecklist))
+                print(idchecklist)  #[:10]
+                print(len(x))
+                print(len(x) - len(compress(idchecklist, idchecklist)))
                 #print len(idstochange)
                 pause()
         exec('self.%s = x' % label)
@@ -1375,11 +1386,11 @@ class VarsClass:
                     data = zeros(self.len(), float) + data
                 else:
                     data = array([float(data)])
-            elif self.len() and (len(data) <> self.len()):
-                print 'WARNING!! in loadvarswithclass.add:'
-                print 'len(%s) = %d BUT len(id) = %d' % (label, len(data),
-                                                         self.len())
-                print
+            elif self.len() and (len(data) != self.len()):
+                print('WARNING!! in loadvarswithclass.add:')
+                print('len(%s) = %d BUT len(id) = %d' % (label, len(data),
+                                                         self.len()))
+                print()
         self.labels.append(label)
         exec('self.%s = data.astype(float)' % label)
 
@@ -1395,8 +1406,8 @@ class VarsClass:
         labels.sort()
         labels2 = self2.labels[:]
         labels2.sort()
-        if labels <> labels2:
-            print "ERROR in loadvarswithclass.append: labels don't match"
+        if labels != labels2:
+            print("ERROR in loadvarswithclass.append: labels don't match")
             xxx[9] = 3
         else:
             if over:  # OVERWRITE OLD OBJECTS WITH NEW WHERE IDS ARE THE SAME
@@ -1456,7 +1467,7 @@ class VarsClass:
             dtol = dtol * ones(self.len())
         for i in range(self.len()):
             if not (i % 100):
-                print "%d / %d" % (i, self.len())
+                print("%d / %d" % (i, self.len()))
             #matchid, dist = findmatch(searchcat.x, searchcat.y, self.x[i], self.y[i], dtol=dtol[i], silent=1, returndist=1, xsorted=1)  # silent=2*(i<>38)-1
             matchid, dist = findmatch(searchcat.x,
                                       searchcat.y,
@@ -1493,10 +1504,10 @@ class VarsClass:
         i = self.labels.index(oldlabel)
         self.labels[i] = newlabel
         if self.descriptions:
-            if oldlabel in self.descriptions.keys():
+            if oldlabel in list(self.descriptions.keys()):
                 self.descriptions[newlabel] = self.descriptions[oldlabel]
         if self.units:
-            if oldlabel in self.units.keys():
+            if oldlabel in list(self.units.keys()):
                 self.units[newlabel] = self.units[oldlabel]
 
     def save(self,
@@ -1538,7 +1549,7 @@ class VarsClass:
                                  'fits')  # if name then name, else self.name
         name = capfile(name, 'fits')  # IF WAS name (PASSED IN) NEED TO capfile
         if (not overwrite) and os.path.exists(name):
-            print name, 'ALREADY EXISTS, AND YOU TOLD ME NOT TO OVERWRITE IT'
+            print(name, 'ALREADY EXISTS, AND YOU TOLD ME NOT TO OVERWRITE IT')
         else:
             units = self.units
             header = header or self.header  # if header then header, else self.header
@@ -1550,7 +1561,7 @@ class VarsClass:
                 a = self.get(label)
                 if not pyfitsusesnumpy:
                     a = numarray.array(a)
-                if label in units.keys():
+                if label in list(units.keys()):
                     col = pyfits.Column(name=label,
                                         format=format.get(label, 'E'),
                                         unit=units[label],
@@ -1573,7 +1584,7 @@ class VarsClass:
                 descriptions = self.descriptions
                 for ilabel in range(len(labels)):
                     label = labels[ilabel]
-                    if label in descriptions.keys():
+                    if label in list(descriptions.keys()):
                         description = descriptions[label]
                         if len(description) < 48:
                             description1 = description
@@ -1582,11 +1593,11 @@ class VarsClass:
                             i = string.rfind(description[:45], ' ')
                             description1 = description[:i] + '...'
                             description2 = '...' + description[i + 1:]
-                        prihdr.update('TTYPE%d' %
-                                      (ilabel + 1), label, description1)
+                        prihdr.update('TTYPE%d' % (ilabel + 1), label,
+                                      description1)
                         if description2:
-                            prihdr.update('TFORM%d' % (ilabel + 1), format.get(
-                                label, 'E'), description2)
+                            prihdr.update('TFORM%d' % (ilabel + 1),
+                                          format.get(label, 'E'), description2)
                 for inote in range(len(self.notes)):
                     words = string.split(self.notes[inote], '\n')
                     for iword in range(len(words)):
@@ -1657,7 +1668,7 @@ def loadimcat(filename, dir="", silent=0):
 
     infile = dirfile(filename, dir)
     if not silent:
-        print "Loading ", infile, "...\n"
+        print("Loading ", infile, "...\n")
 
     fin = open(infile, 'r')
     sin = fin.readlines()
@@ -1689,7 +1700,7 @@ def savedict(dict, filename, dir="", silent=0):
     """SAVES A DICTIONARY OF STRINGS"""
     outfile = dirfile(filename, dir)
     fout = open(outfile, 'w')
-    for key in dict.keys():
+    for key in list(dict.keys()):
         fout.write('%s %s\n' % (key, dict[key]))
     fout.close()
 
@@ -1699,7 +1710,7 @@ def savefile(lines, filename, dir="", silent=0):
     outfile = dirfile(filename, dir)
     fout = open(outfile, 'w')
     for line in lines:
-        if line[-1] <> '\n':
+        if line[-1] != '\n':
             line += '\n'
         fout.write(line)
     fout.close()
@@ -1716,14 +1727,14 @@ def saveimcat(cat, filename, dir="./", silent=0):
 
     # COLUMN HEADERS
     fout.write("#")
-    for key in cat.keys():
+    for key in list(cat.keys()):
         fout.write(string.rjust(key, 15))
     fout.write("\n")
 
     n = len(cat[key])
     for i in range(n):
         fout.write(" ")
-        keys = cat.keys()
+        keys = list(cat.keys())
         keys.sort()
         for key in keys:
             x = cat[key][i]
@@ -1746,10 +1757,10 @@ def prunecols(infile, cols, outfile, separator=" "):
 
     fout = open(outfile, 'w')
     for line in sin:
-        print line
+        print(line)
         line = string.strip(line)
         words = string.split(line, separator)
-        print words
+        print(words)
         for col in cols:
             fout.write(words[col - 1] + separator)
         fout.write("\n")
@@ -1759,7 +1770,7 @@ def prunecols(infile, cols, outfile, separator=" "):
 # SExtractor/SExSeg CATALOGS / CONFIGURATION FILES
 
 
-class SExSegParamsClass:
+class SExSegParamsClass(object):
     def __init__(self, filename='', dir="", silent=0, headlines=0):
         # CONFIGURATION
         #   configkeys -- PARAMETERS IN ORDER
@@ -1775,7 +1786,7 @@ class SExSegParamsClass:
         self.params = []
         txt = loadfile(filename, dir, silent)
         for line in txt:
-            if string.strip(line) and (line[:1] <> '#'):
+            if string.strip(line) and (line[:1] != '#'):
                 # READ FIRST WORD AND DISCARD IT FROM line
                 key = string.split(line)[0]
                 line = line[len(key):]
@@ -1798,7 +1809,7 @@ class SExSegParamsClass:
     def save(self, name='', header=''):
         name = name or self.name  # if name then name, else self.name
         # QUICK CHECK: IF ANY CONFIG PARAMS WERE ADDED TO THE DICT, BUT NOT TO THE LIST:
-        for key in self.config.keys():
+        for key in list(self.config.keys()):
             if key not in self.configkeys:
                 self.configkeys.append(key)
         # OKAY...
@@ -1842,7 +1853,7 @@ class SExSegParamsClass:
             self.config[key] = self2.config[key]
         if self2.params:
             self.params = self2.params
-        for key in self2.comments.keys():
+        for key in list(self2.comments.keys()):
             if self2.comments[key]:
                 self.comments[key] = self2.comments[key]
 
@@ -1879,7 +1890,7 @@ def loadsexcat(infile,
 
     infile = join(dir, infile)
     if not silent:
-        print "LOADING SExtractor catalog " + infile,
+        print("LOADING SExtractor catalog " + infile, end=' ')
 
     #req = {'fwhm': 1, 'mag': 99, 'flags': 4}  # REQUIREMENTS FOR DATA TO BE INCLUDED (NOT PURGED)
     req = {}
@@ -1890,7 +1901,7 @@ def loadsexcat(infile,
 
     if magname:
         magname = string.upper(magname)
-        if magname[:4] <> 'MAG_':
+        if magname[:4] != 'MAG_':
             magname = 'MAG_' + magname
         #magerrname = 'MAGERR_' + magname[-4:]
         magerrname = 'MAGERR_' + magname[4:]
@@ -1903,7 +1914,7 @@ def loadsexcat(infile,
     # REMOVE HEADLINES FROM sin, CREATE header
     header = []
     while sin[0][0] == "#":
-        if sin[0][1] <> '#':
+        if sin[0][1] != '#':
             header.append(sin[0])  # Only add lines beginning with single #
         sin = sin[1:]
 
@@ -1917,8 +1928,8 @@ def loadsexcat(infile,
             try:
                 data[iy, ix] = string.atof(ss[ix])
             except:
-                print iy, ix, nx
-                print ss
+                print(iy, ix, nx)
+                print(ss)
                 die()
 
     data = transpose(data)
@@ -1979,7 +1990,7 @@ def loadsexcat(infile,
 #paramcol[param] = col
 #if vector > 1
 # ASSIGN COLUMN(S), NOW THAT WE KNOW HOW MANY THERE ARE
-        if param <> lastparam and param:
+        if param != lastparam and param:
             if lastcol:
                 paramcol[lastparam] = arange(ncols) + lastcol
             lastcol = col
@@ -2015,26 +2026,26 @@ def loadsexcat(infile,
 
     good = ones(ny)
     if not silent:
-        print sum(good),
+        print(sum(good), end=' ')
     if purge:
-        if req.has_key("FLAGS") and (flags <> None):
+        if "FLAGS" in req and (flags != None):
             good = less(flags, maxflags)
-        if req.has_key("FWHM") and (fwhm <> None):
+        if "FWHM" in req and (fwhm != None):
             good = good * greater(fwhm, minfwhm)
-        if req.has_key("RF") and (rf <> None):
+        if "RF" in req and (rf != None):
             good = good * greater(rf, minrf)
-        if req.has_key("MAG") and (mag <> None):
+        if "MAG" in req and (mag != None):
             good = good * less(mag, maxmag)
 
     if not silent:
-        print sum(good)
+        print(sum(good))
 
     if purge and not alltrue(good):
         data = compress(good, data)
-        if (flags <> None): flags = compress(good, flags)
-        if (mag <> None): mag = compress(good, mag)
-        if (fwhm <> None): fwhm = compress(good, fwhm)
-        if (rf <> None): rf = compress(good, rf)
+        if (flags != None): flags = compress(good, flags)
+        if (mag != None): mag = compress(good, mag)
+        if (fwhm != None): fwhm = compress(good, fwhm)
+        if (rf != None): rf = compress(good, rf)
 
     outdata = []
     #params = paramcol.keys()
@@ -2094,12 +2105,12 @@ def loadsexcat(infile,
             a = outdata[params.index('a')]
             b = outdata[params.index('b')]
             try:
-                ell = 1 - b / a
+                ell = 1 - old_div(b, a)
             except:
                 ell = a * 0.
                 for ii in range(len(a)):
                     if a[ii]:
-                        ell[ii] = 1 - b[ii] / a[ii]
+                        ell[ii] = 1 - old_div(b[ii], a[ii])
                     else:
                         ell[ii] = 99
             params.append('ell')
@@ -2195,11 +2206,11 @@ def loadsexdict(sexfile):
     sexdict = {}
     for line in sextext:
         if line:
-            if line[0] <> '#':
+            if line[0] != '#':
                 words = string.split(line)
                 if len(words) > 1:
                     key = words[0]
-                    if key[0] <> '#':
+                    if key[0] != '#':
                         # sexdict[words[0]] = str2num(words[1])
                         restofline = string.join(words[1:])
                         value = string.split(restofline, '#')[0]
@@ -2214,7 +2225,7 @@ def savesexdict(sexdict, sexfile):
     """SAVES A SEXTRACTOR CONFIGURATION (.sex) FILE
     BASED ON THE sexdict DICTIONARY"""
     fout = open(sexfile, 'w')
-    keys = sexdict.keys()
+    keys = list(sexdict.keys())
     keys.sort()
     for key in keys:
         fout.write('%s\t%s\n' % (key, sexdict[key]))
@@ -2289,7 +2300,7 @@ def saveregions(x,
         if i < len(labels):
             label = "%%.%df" % precision % labels[i]
             sout += ' # text={%s}' % label
-        print sout
+        print(sout)
         sout += '\n'
         fout.write(sout)
 
@@ -2335,7 +2346,7 @@ def savefits(data, filename, dir="", silent=0, xx=None, yy=None):
     filename = capfile(filename, '.fits')
     filename = dirfile(filename, dir)
     if not silent:
-        print 'savefits:', filename
+        print('savefits:', filename)
     #print type(data)
     if os.path.exists(filename):
         os.remove(filename)
@@ -2343,7 +2354,7 @@ def savefits(data, filename, dir="", silent=0, xx=None, yy=None):
     if not pyfitsusesnumpy:
         data = numarray.array(data.tolist())
     pyfits.writeto(filename, data)
-    if xx <> None:
+    if xx != None:
         f = pyfits.open(filename)
         hdu = f[0]
         hdu.header.update('XMIN', min(xx))
@@ -2368,8 +2379,8 @@ def loadfits(filename, dir="", index=0):
             data = array(data)  # .tolist() ??
         return data
     else:
-        print
-        print filename, "DOESN'T EXIST"
+        print()
+        print(filename, "DOESN'T EXIST")
         FILE_DOESNT_EXIST[9] = 3
 
 
@@ -2487,12 +2498,12 @@ def txt2fits(textfile, fitsfile):
 def loadpixelscale(image):
     if os.path.exists('temp.txt'):
         os.remove('temp.txt')
-    print 'imsize ' + capfile(image, '.fits') + ' > temp.txt'
+    print('imsize ' + capfile(image, '.fits') + ' > temp.txt')
     os.system('imsize ' + capfile(image, '.fits') + ' > temp.txt')
     s = loadfile('temp.txt')[0]
     if string.find(s, '/pix') == -1:
-        print 'PIXEL SCALE NOT GIVEN IN IMAGE HEADER OF', capfile(image,
-                                                                  '.fits')
+        print('PIXEL SCALE NOT GIVEN IN IMAGE HEADER OF', capfile(image,
+                                                                  '.fits'))
         pixelscale = 0
     else:
         s = string.split(s, '/pix')[0]

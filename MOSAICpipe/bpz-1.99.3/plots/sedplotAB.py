@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import division
 # sedplotAB.py
 
 # python $BPZPATH/plots/sedplotAB.py XXX
@@ -16,6 +18,11 @@
 
 # -VERBOSE give more info
 
+from builtins import map
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 from useful import *
 from bpz_tools import *
 from coeplott import *  # pylab, prange, rectangle
@@ -48,7 +55,7 @@ def legend1(lab, color, ms=12):
     iyl += 1
 
 
-class bpzPlots:
+class bpzPlots(object):
     """
     Usage:
     python bpzPlots.py
@@ -104,7 +111,7 @@ class bpzPlots:
         self.verbose = verbose
         params = params_cl()
         if verbose:
-            print 'params', params
+            print('params', params)
 
         self.bw = 'BW' in params
         self.thick = 'THICK' in params
@@ -112,8 +119,8 @@ class bpzPlots:
         #Look for the corresponding ID number
 
         if ',' in str(
-                id_str) and xy_cols <> None:  #If the input is a pair of X,Y coordinates
-            x, y = map(float, tuple(split(id_str), ','))
+                id_str) and xy_cols != None:  #If the input is a pair of X,Y coordinates
+            x, y = list(map(float, tuple(split(id_str), ',')))
             x_cat, y_cat = get_data(self.cat, xy_cols)
             self.id = argmin(dist(x_cat, y_cat, x, y)) + 1
         elif id_str == None:
@@ -141,7 +148,7 @@ class bpzPlots:
                               redo=False):
         verbose = self.verbose
         if verbose:
-            print 'Reading flux comparison data from %s' % self.flux_comparison
+            print('Reading flux comparison data from %s' % self.flux_comparison)
         #Get the flux comparison data
         #z = zeros(4, Float)
         #print less(z, 1)
@@ -164,18 +171,18 @@ class bpzPlots:
                 for selfid in self.id:
                     i_id = findmatch1(id, selfid)
                     if i_id == -1:
-                        print 'OBJECT #%d NOT FOUND.' % selfid
+                        print('OBJECT #%d NOT FOUND.' % selfid)
                         sys.exit()
                     i_ids.append(i_id)
             except:
                 i_id = findmatch1(id, self.id)
                 if i_id == -1:
-                    print 'OBJECT NOT FOUND.'
+                    print('OBJECT NOT FOUND.')
                     sys.exit()
                 else:
                     i_ids = [i_id]
         ncols = len(all[0, :])
-        nf = (ncols - 5) / 3
+        nf = old_div((ncols - 5), 3)
         for i_id in i_ids:
             if nomargins:
                 figure(1, figsize=(2, 2))
@@ -187,11 +194,11 @@ class bpzPlots:
                 figure(1)
                 clf()
             ioff()
-            print 'sed plot %d / %d : #%d' % (i_id + 1, len(i_ids), id[i_id])
+            print('sed plot %d / %d : #%d' % (i_id + 1, len(i_ids), id[i_id]))
             if save_plots:
                 outimg = self.run_name + '_sed_%d.png' % id[i_id]
                 if exists(join(outdir, outimg)) and not redo:
-                    print join(outdir, outimg), 'ALREADY EXISTS'
+                    print(join(outdir, outimg), 'ALREADY EXISTS')
                     continue
             ft = all[i_id, 5:5 + nf]  # FLUX (from spectrum for that TYPE)
             fo = all[i_id, 5 + nf:5 + 2 * nf]  # FLUX (OBSERVED)
@@ -207,8 +214,8 @@ class bpzPlots:
             #print 'efo', efo
             prar = array([ft, fo, efo])
             if 0:
-                print '         ft                fo              efo'
-                print transpose(prar)
+                print('         ft                fo              efo')
+                print(transpose(prar))
 
             #Get the redshift, type and magnitude of the galaxy
             m, z, t = all[i_id, 1], all[i_id, 2], all[i_id, 3]
@@ -233,38 +240,38 @@ class bpzPlots:
                 #zspec = ravel(loaddata(params['ZSPEC']))
             if 'ZSPEC' in params:
                 z = zspec[i_id]
-                print "z SET TO SPECTROSCOPIC VALUE OF %.3f" % z
+                print("z SET TO SPECTROSCOPIC VALUE OF %.3f" % z)
                 ## 	z = 0.1972
                 ## 	print "z ARTIFICIALLY SET TO ", z
 
                 #print "USING INTERP=2 (YOUR RESULTS MAY VARY)"
             if verbose:
-                print "type=", t
+                print("type=", t)
             interp = self.interp
             if verbose:
-                print "USING INTERP=%d" % interp
-            t = (t + interp) / (1. * interp + 1)
+                print("USING INTERP=%d" % interp)
+            t = old_div((t + interp), (1. * interp + 1))
             #print 'ARTIFICIALLY SETTING z & TYPE'
             # NOTE: THIS DOESN'T MOVE THE BLUE BOXES!
             #z, t = 3.14, 1
             #t, z = 5.33, 2.77
             #t = (t + 2) / 3.
-            print "%.3f" % t,
+            print("%.3f" % t, end=' ')
             betweentypes = ndec(t)
             ## 	t = int(round(t))
             ## 	print t,
             sed = self.templates[int(t - 1)]
-            print sed,
-            print "z=", z,
+            print(sed, end=' ')
+            print("z=", z, end=' ')
             #odds = [odds]
-            print 'odds=%.2f' % odds[i_id]
+            print('odds=%.2f' % odds[i_id])
             #print 'odds=%.2f' % odds
             if 'Z_S' in self.bpzcols:
-                print 'zspec=%.3f' % zspec[i_id]
+                print('zspec=%.3f' % zspec[i_id])
 
             #Get the filter wavelengths
             if verbose:
-                print 'Reading filter information from %s' % self.columns
+                print('Reading filter information from %s' % self.columns)
             filters = get_str(self.columns,
                               0,
                               nrows=nf, )
@@ -276,7 +283,7 @@ class bpzPlots:
             #print lambda_m
 
             # chisq 2
-            eft = ft / 15.
+            eft = old_div(ft, 15.)
             #eft = zeros(nf) + max(eft)
             #print eft
             #print max(eft)
@@ -294,7 +301,7 @@ class bpzPlots:
             #eft = array(eft.tolist())
             ef = hypot(efo, eft)
             #
-            dfosq = ((ft - fo) / ef)**2
+            dfosq = (old_div((ft - fo), ef))**2
             dfosqsum = sum(dfosq)
             #
             #observed = less(efo, 1)
@@ -309,16 +316,16 @@ class bpzPlots:
 #
             if nfobs > 1:
                 dof = max([nfobs - 3, 1])  # 3 params (z, t, a)
-                chisq2 = dfosqsum / dof
+                chisq2 = old_div(dfosqsum, dof)
             elif nfobs:  # == 1
                 chisq2 = 999.
             else:
                 chisq2 = 9999.
 
-            print 'chisq2 = ', chisq2
+            print('chisq2 = ', chisq2)
 
             #Convert back to AB magnitudes
-            efo1 = e_frac2mag(efo / fo)
+            efo1 = e_frac2mag(old_div(efo, fo))
             efo2 = flux2mag(efo)
             fo = flux2mag(fo)
             ft = flux2mag(ft)
@@ -397,7 +404,7 @@ class bpzPlots:
                 #print y_norm_seen
                 #print ft_seen
             else:
-                print 'OBSERVED FIT MINIZED & COMPRIMISED!!'
+                print('OBSERVED FIT MINIZED & COMPRIMISED!!')
 
             black = 'grey60'
 
@@ -467,7 +474,7 @@ class bpzPlots:
 
             def customfiltcolor(filt, lam):
                 color = 'red'
-                for key in colors.keys():
+                for key in list(colors.keys()):
                     if string.find(filt, key) > -1:
                         color = colors[key]
                         color = str(color)  # for 0.50
@@ -479,7 +486,7 @@ class bpzPlots:
             #print '  filt     lambda     fo        efo         ft        chi'
             #print 'filt     lambda   fo      efo     ft      chi'
             if verbose:
-                print ' filt      lambda    m      dm      mt      chi'
+                print(' filt      lambda    m      dm      mt      chi')
 
             for i in range(len(filters)):
                 color = 'red'
@@ -488,7 +495,7 @@ class bpzPlots:
                 if 1:
                     color = customfiltcolor(filters[i], lambda_m[i])
 
-                if filters[i] in filtdict.keys():
+                if filters[i] in list(filtdict.keys()):
                     filtnick = filtdict[filters[i]][1:-1]
                 else:
                     filtnick = filters[i]
@@ -496,8 +503,8 @@ class bpzPlots:
                         filtnick = filtnick[:8]
 
                 if verbose:
-                    print '%8s  %7.1f  %5.2f  %6.3f  %5.3f   %.3f' \
-                        % (filtnick, lambda_m[i], fo[i], efo[i], ft[i], sqrt(dfosq[i]))
+                    print('%8s  %7.1f  %5.2f  %6.3f  %5.3f   %.3f' \
+                        % (filtnick, lambda_m[i], fo[i], efo[i], ft[i], sqrt(dfosq[i])))
                 ms = [7, 4][nomargins]
                 if observed[i]:  # OBSERVED
                     if max(eft) < yyymax * 10:
@@ -514,7 +521,7 @@ class bpzPlots:
                                 color=blue,
                                 linewidth=linewidth)
                     else:
-                        print 'NOT max(eft) < yyymax*10'
+                        print('NOT max(eft) < yyymax*10')
                         plot([lambda_m[i]], [ft[i]],
                              'v',
                              markersize=6,
@@ -553,9 +560,9 @@ class bpzPlots:
                         yl = min([fo[i], ft[i] - eft[i] * 0.7])
                     else:  # NOT DETECTED
                         if 0:
-                            print 'NOT DETECTED'
-                            print[lambda_m[i]], [fo[i]]
-                            print[lambda_m[i], lambda_m[i]], [0, efo[i]]
+                            print('NOT DETECTED')
+                            print([lambda_m[i]], [fo[i]])
+                            print([lambda_m[i], lambda_m[i]], [0, efo[i]])
                         plot([lambda_m[i]], [fo[i]],
                              '^',
                              markerfacecolor=color,
@@ -595,18 +602,18 @@ class bpzPlots:
 
             if show_plots:
                 if show_plots == True:
-                    print 'KILL PLOT WINOW TO TERMINATE OR CONTINUE.'
+                    print('KILL PLOT WINOW TO TERMINATE OR CONTINUE.')
                     show()
-                    print
+                    print()
                 elif show_plots > 1:
-                    print 'Hit <Enter> to CONTINUE.'
+                    print('Hit <Enter> to CONTINUE.')
                     show()
                     pause()
                 show_plots += 1
 
 # ZSPEC thick bw show? save?:eps/png
             if save_plots:
-                print 'SAVING', join(outdir, outimg)
+                print('SAVING', join(outdir, outimg))
                 if save_plots == 'png':
                     savepng(join(outdir, decapfile(outimg)))
                 elif save_plots == 'pdf':
@@ -616,7 +623,7 @@ class bpzPlots:
                 clear()  # OR ELSE SUBSEQUENT PLOTS WILL PILE ON
 
                 #print self.thick
-                print
+                print()
 
 nobox = False
 plotlogx = False
@@ -626,7 +633,7 @@ def run():
     global nobox, plotlogx
     id_str = None
     if len(sys.argv) > 2:
-        if sys.argv[2][0] <> '-':
+        if sys.argv[2][0] != '-':
             id_str = sys.argv[2]
     params = params_cl()
     save_plots = 'SAVE' in params

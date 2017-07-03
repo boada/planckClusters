@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import division
 ## Automatically adapted for numpy Jun 08, 2006 by
 
 ## Automatically adapted for numpy Jun 08, 2006 by
@@ -5,6 +7,12 @@
 # PYTHON TOOLS
 # Dan Coe
 
+from builtins import input
+from builtins import hex
+from builtins import map
+from builtins import zip
+from builtins import range
+from past.utils import old_div
 import os
 import sys
 #import shutil
@@ -28,7 +36,7 @@ from MLab_coe import *  #median, std, mean
 #import numarray
 #import pyfits
 from compress2 import compress2 as compress
-import popen2
+import subprocess
 import string  # LOAD THIS AFTER numpy, BECAUSE numpy HAS ITS OWN string
 
 # ORIGINALLY ksbtools.py
@@ -54,7 +62,8 @@ def color1to255(color):
 
 
 def color255to1(color):
-    return tuple((array(color) / 255.).tolist())  # CONVERT TO 0-255 SCALE
+    return tuple((old_div(
+        array(color), 255.)).tolist())  # CONVERT TO 0-255 SCALE
 
 
 def color2hex(color):
@@ -75,10 +84,10 @@ def color2hex(color):
 def keyvals(k, keys, vals):
     """GIVEN {keys: vals}, RETURNS VALUES FOR k
     THERE MUST BE A BUILT-IN WAY OF DOING THIS!"""
-    d = dict(zip(keys, vals))
+    d = dict(list(zip(keys, vals)))
     d[0] = 0
     f = lambda x: d[x]
-    v = map(f, ravel(k))
+    v = list(map(f, ravel(k)))
     if type(k) == type(array([])):
         v = array(v)
         v.shape = k.shape
@@ -87,7 +96,7 @@ def keyvals(k, keys, vals):
 
 def printmult(x, n):
     if not (x % n):
-        print x
+        print(x)
 
 
 def cd(dir):
@@ -109,7 +118,7 @@ def splitparagraphs(txt):
         line = string.strip(line)
         if not line:
             line = '\n'
-        if line[-1] <> '\n':
+        if line[-1] != '\n':
             line += '\n'
         if line == '\n':
             paragraphs.append('')
@@ -123,8 +132,10 @@ def splitparagraphs(txt):
 
 def echo(word):
     cmd = 'echo ' + word
-    subproc = popen2.Popen4(cmd)
-    out = subproc.fromchild.readlines()  # SExtractor output
+    subproc = subprocess.Popen(cmd, stderr=subprocess.PIPE,
+                               stdout=subprocess.PIPE)
+    out = subproc.stdout.read()
+    #out = subproc.fromchild.readlines()  # SExtractor output
     out = out[0][:-1]  # LIST OF 1 STRING WITH \n AT END
     return out
 
@@ -202,7 +213,7 @@ def str2num(str, rf=0):
             num = string.atof(str)
             format = 'f'
         except:
-            if not string.strip(str):
+            if not str.strip():
                 num = None
                 format = ''
             else:
@@ -261,7 +272,7 @@ def striskey(str):
 
 
 def pause(text=''):
-    inp = raw_input(text)
+    inp = input(text)
 
 
 def wait(seconds):
@@ -274,7 +285,7 @@ def wait(seconds):
 def inputnum(question=''):
     done = 0
     while not done:
-        rinp = raw_input(question)
+        rinp = input(question)
         try:
             x = string.atof(rinp)
             done = 1
@@ -393,7 +404,7 @@ def strbtw(s, left, right=None, r=False):
 def getanswer(question=''):
     ans = -1
     while ans == -1:
-        inp = raw_input(question)
+        inp = input(question)
         if inp:
             if string.upper(inp[0]) == 'Y':
                 ans = 1
@@ -455,14 +466,14 @@ def census(a, returndict=1):
     s = s[1:] - s[:-1]
     i = i[:-1]
     if returndict:
-        print i
-        print s
+        print(i)
+        print(s)
         #i, s = compress(s, (i, s))
         i = compress(s, i)
         s = compress(s, s)
-        print 'is'
-        print i
-        print s
+        print('is')
+        print(i)
+        print(s)
         d = {}
         for ii in range(len(i)):
             d[i[ii]] = s[ii]
@@ -501,7 +512,7 @@ def findmatch1(x, xsearch, tol=1e-4):
     i = argmin(abs(x - xsearch))
     if tol:
         if abs(x[i] - xsearch) > tol:
-            print xsearch, 'NOT FOUND IN findmatch1'
+            print(xsearch, 'NOT FOUND IN findmatch1')
             i = -1
     return i
 
@@ -519,7 +530,7 @@ def findmatch(x,
 
     n = len(x)
     if silent < 0:
-        print 'n=', n
+        print('n=', n)
     if not xsorted:
         SI = argsort(x)
         x = take(x, SI)
@@ -538,12 +549,12 @@ def findmatch(x,
         i = 0
         while xsearch - x[i] > dtol:
             if silent < 0:
-                print i, xsearch, x[i]
+                print(i, xsearch, x[i])
             i = i + 1
 
     while not done:
         if silent < 0:
-            print i, x[i], xsearch
+            print(i, x[i], xsearch)
         if x[i] - xsearch > dtol:
             done = 'too far'
         else:
@@ -555,16 +566,16 @@ def findmatch(x,
             else:
                 i = i + 1
         if silent < 0:
-            print done
+            print(done)
 
     if done == 'found':
         if not silent:
-            print 'MATCH FOUND %1.f PIXELS AWAY AT (%.1f, %.1f)' % (dist, x[i],
-                                                                    y[i])
+            print('MATCH FOUND %1.f PIXELS AWAY AT (%.1f, %.1f)' % (dist, x[i],
+                                                                    y[i]))
         ii = SI[i]
     else:
         if not silent:
-            print 'MATCH NOT FOUND'
+            print('MATCH NOT FOUND')
         ii = n
     if returndist:
         return ii, dist
@@ -617,7 +628,7 @@ def takeid(data, id):
     id = int(id)
     outdata = []
     i = 0
-    while id <> dataids[i]:
+    while id != dataids[i]:
         i += 1
     return data[:, i]
 
@@ -691,7 +702,7 @@ def addmags(m1, m2, dm1=0, dm2=0):
         #dF2 = 0.921034 * F2 * dm2
         #dF = sqrt(dF1 ** 2 + dF2 ** 2)
         #dm = dF / F / 0.921034
-        dm = sqrt((F1 * dm1)**2 + (F2 * dm2)**2) / F
+        dm = old_div(sqrt((F1 * dm1)**2 + (F2 * dm2)**2), F)
     output = (m, dm)
 
     return output
@@ -726,7 +737,7 @@ def sex2bpzmags(f, ef, zp=0., sn_min=1.):
     ef = clip(ef, 1e-100, 1e10)
     nonobserved += equal(ef, 1e10)
     nondetected += less_equal(
-        f / ef,
+        old_div(f, ef),
         sn_min)  #Less than sn_min sigma detections: consider non-detections
 
     detected = logical_not(nondetected + nonobserved)
@@ -738,7 +749,7 @@ def sex2bpzmags(f, ef, zp=0., sn_min=1.):
     m = where(nondetected, 99., m)
     m = where(nonobserved, -99., m)
 
-    em = where(detected, 2.5 * log10(1. + ef / f), em)
+    em = where(detected, 2.5 * log10(1. + old_div(ef, f)), em)
     #em = where(nondetected,2.5*log10(ef)-zp,em)
     em = where(nondetected, zp - 2.5 * log10(ef), em)
     #print "NOW WITH CORRECT SIGN FOR em"

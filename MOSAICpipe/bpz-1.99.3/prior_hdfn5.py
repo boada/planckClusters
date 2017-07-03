@@ -1,3 +1,6 @@
+from __future__ import print_function
+from __future__ import division
+from past.utils import old_div
 from bpz_tools import *
 
 
@@ -8,8 +11,8 @@ def function(z, m, nt):
     """
     mmax = 28.
 
-    if nt <> 5:
-        print "Wrong number of template spectra!"
+    if nt != 5:
+        print("Wrong number of template spectra!")
         sys.exit()
 
     global zt_at_a
@@ -36,17 +39,18 @@ def function(z, m, nt):
         #Morphological fractions
     f_t = zeros((len(a), ), Float)
     f_t[:3] = fo_t * exp(-k_t * dm)
-    f_t[3:] = (1. - add.reduce(f_t[:3])) / 3.
+    f_t[3:] = old_div((1. - add.reduce(f_t[:3])), 3.)
     #Formula:
     #zm=zo+km*(m_m_min)
     #p(z|T,m)=(z**a)*exp(-(z/zm)**a)
-    p_i = zt_at_a[:nz, :5] * exp(-clip(zt_at_a[:nz, :5] / zmt_at_a[:5], 0.,
-                                       700.))
+    p_i = zt_at_a[:nz, :5] * exp(-clip(
+        old_div(zt_at_a[:nz, :5], zmt_at_a[:5]), 0., 700.))
     #This eliminates the very low level tails of the priors
     norm = add.reduce(p_i[:nz, :5], 0)
     p_i[:nz, :5] = where(
-        less(p_i[:nz, :5] / norm[:5], 1e-2 / float(nz)), 0.,
-        p_i[:nz, :5] / norm[:5])
+        less(
+            old_div(p_i[:nz, :5], norm[:5]), old_div(1e-2, float(nz))), 0.,
+        old_div(p_i[:nz, :5], norm[:5]))
     norm = add.reduce(p_i[:nz, :5], 0)
     p_i[:nz, :5] = p_i[:nz, :5] / norm[:5] * f_t[:5]
     return p_i

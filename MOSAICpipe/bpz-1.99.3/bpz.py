@@ -2,10 +2,17 @@
    bpz: Bayesian Photo-Z estimation
    Reference: Benitez 2000, ApJ, 536, p.571
    Usage:
-   python bpz.py catalog.cat 
+   python bpz.py catalog.cat
    Needs a catalog.columns file which describes the contents of catalog.cat
 """
+from __future__ import print_function
+from __future__ import division
 
+from builtins import str
+from builtins import map
+from builtins import input
+from builtins import range
+from past.utils import old_div
 from useful import *
 rolex = watch()
 rolex.set()
@@ -53,7 +60,7 @@ homedir = os.getcwd()
 pars = params()
 
 pars.d = {
-    'SPECTRA': 'CWWSB4.list',  # template list 
+    'SPECTRA': 'CWWSB4.list',  # template list
     #'PRIOR':   'hdfn_SB',      # prior name
     'PRIOR': 'hdfn_gen',  # prior name
     'NTYPES':
@@ -81,7 +88,7 @@ pars.d = {
     'MADAU': 'yes',  #Apply Madau correction to spectra
     'Z_THR': 0,  #Integrate probability for z>z_thr
     'COLOR': 'no',  #Use colors instead of fluxes
-    'PLOTS': 'no',  #Don't produce plots 
+    'PLOTS': 'no',  #Don't produce plots
     'INTERACTIVE': 'yes',  #Don't query the user
     'PHOTO_ERRORS':
     'no',  #Define the confidence interval using only the photometric errors
@@ -141,7 +148,7 @@ if nargs > 2:  #Check for parameter file and update parameters
         pars.fromfile(sys.argv[3])
         ipar = 4
 # Update the parameters using command line additions
-#pars.fromcommandline(sys.argv[ipar:]) 
+#pars.fromcommandline(sys.argv[ipar:])
 #for key in pars.d:
 #    print key, pars.d[key]
 #pause()
@@ -164,32 +171,32 @@ updateblank('PROBS2', 'chisq')
 #    pars.d['CHECK'] = root+'.flux_comparison'
 
 #This allows to change the auxiliary directories used by BPZ
-if pars.d['SED_DIR'] <> sed_dir:
-    print "Changing sed_dir to ", pars.d['SED_DIR']
+if pars.d['SED_DIR'] != sed_dir:
+    print("Changing sed_dir to ", pars.d['SED_DIR'])
     sed_dir = pars.d['SED_DIR']
-    if sed_dir[-1] <> '/': sed_dir += '/'
-if pars.d['AB_DIR'] <> ab_dir:
-    print "Changing ab_dir to ", pars.d['AB_DIR']
+    if sed_dir[-1] != '/': sed_dir += '/'
+if pars.d['AB_DIR'] != ab_dir:
+    print("Changing ab_dir to ", pars.d['AB_DIR'])
     ab_dir = pars.d['AB_DIR']
-    if ab_dir[-1] <> '/': ab_dir += '/'
-if pars.d['FILTER_DIR'] <> fil_dir:
-    print "Changing fil_dir to ", pars.d['FILTER_DIR']
+    if ab_dir[-1] != '/': ab_dir += '/'
+if pars.d['FILTER_DIR'] != fil_dir:
+    print("Changing fil_dir to ", pars.d['FILTER_DIR'])
     fil_dir = pars.d['FILTER_DIR']
-    if fil_dir[-1] <> '/': fil_dir += '/'
+    if fil_dir[-1] != '/': fil_dir += '/'
 
 #Better safe than sorry
 if pars.d['OUTPUT'] == obs_file or pars.d['PROBS'] == obs_file or pars.d[
         'PROBS2'] == obs_file or pars.d['PROBS_LITE'] == obs_file:
-    print "This would delete the input file!"
+    print("This would delete the input file!")
     sys.exit()
 if pars.d['OUTPUT'] == pars.d['COLUMNS'] or pars.d['PROBS_LITE'] == pars.d[
         'COLUMNS'] or pars.d['PROBS'] == pars.d['COLUMNS']:
-    print "This would delete the .columns file!"
+    print("This would delete the .columns file!")
     sys.exit()
 
 #Assign the intrinsin rms
 if pars.d['SPECTRA'] == 'CWWSB.list':
-    print 'Setting the intrinsic rms to 0.067(1+z)'
+    print('Setting the intrinsic rms to 0.067(1+z)')
     pars.d['MIN_RMS'] = 0.067
 
 pars.d['MIN_RMS'] = float(pars.d['MIN_RMS'])
@@ -197,25 +204,26 @@ pars.d['MIN_MAGERR'] = float(pars.d['MIN_MAGERR'])
 if pars.d['INTERACTIVE'] == 'no': interactive = 0
 else: interactive = 1
 if pars.d['VERBOSE'] == 'yes':
-    print "Current parameters"
+    print("Current parameters")
     view_keys(pars.d)
 pars.d['N_PEAKS'] = int(pars.d['N_PEAKS'])
-if pars.d["ADD_SPEC_PROB"] <> None:
+if pars.d["ADD_SPEC_PROB"] != None:
     specprob = 1
     specfile = pars.d["ADD_SPEC_PROB"]
     spec = get_2Darray(specfile)
     ns = spec.shape[1]
-    if ns / 2 <> (ns / 2.):
-        print "Number of columns in SPEC_PROB is odd"
+    if old_div(ns, 2) != (old_div(ns, 2.)):
+        print("Number of columns in SPEC_PROB is odd")
         sys.exit()
-    z_spec = spec[:, :ns / 2]
-    p_spec = spec[:, ns / 2:]
+    z_spec = spec[:, :old_div(ns, 2)]
+    p_spec = spec[:, old_div(ns, 2):]
     # Write output file header
     header = "#ID "
     header += ns / 2 * " z_spec%i"
     header += ns / 2 * " p_spec%i"
     header += "\n"
-    header = header % tuple(list(range(ns / 2)) + list(range(ns / 2)))
+    header = header % tuple(list(range(old_div(ns, 2))) + list(range(old_div(
+        ns, 2))))
     specout = open(specfile.split()[0] + ".p_spec", "w")
     specout.write(header)
 else:
@@ -240,7 +248,7 @@ linear = 1
 if linear:
     z = arange(zmin, zmax + dz, dz)
 else:
-    if zmax <> 0.:
+    if zmax != 0.:
         zi = zmin
         z = []
         while zi <= zmax:
@@ -280,7 +288,7 @@ filters = get_str(col_file, 0)
 for cosa in nofilters:
     if filters.count(cosa): filters.remove(cosa)
 
-if pars.d['EXCLUDE'] <> 'none':
+if pars.d['EXCLUDE'] != 'none':
     if type(pars.d['EXCLUDE']) == type(' '):
         pars.d['EXCLUDE'] = [pars.d['EXCLUDE']]
     for cosa in pars.d['EXCLUDE']:
@@ -289,14 +297,14 @@ if pars.d['EXCLUDE'] <> 'none':
 for filter in filters:
     if filter[-4:] == '.res': filter = filter[:-4]
     if filter not in filters_db:
-        print 'filter ', filter, 'not in database at', fil_dir, ':'
+        print('filter ', filter, 'not in database at', fil_dir, ':')
         if ask('Print filters in database?'):
             for line in filters_db:
-                print line
+                print(line)
         sys.exit()
 
 #Get a list with the spectrum names and check whether they're in stock
-#Look for the list in the home directory first, 
+#Look for the list in the home directory first,
 #if it's not there, look in the SED directory
 spectra_file = os.path.join(homedir, pars.d['SPECTRA'])
 if not os.path.exists(spectra_file):
@@ -318,19 +326,20 @@ for it in range(nt):
     for jf in range(nf):
         if filters[jf][-4:] == '.res': filtro = filters[jf][:-4]
         else: filtro = filters[jf]
-        model = join([spectra[it], filtro, 'AB'], '.')
+        #model = join([spectra[it], filtro, 'AB'], '.')
+        model = '.'.join([spectra[it], filtro, 'AB'])
         model_path = os.path.join(ab_dir, model)
         abfiles.append(model)
         #Generate new ABflux files if not present
         # or if new_ab flag on
         if pars.d['NEW_AB'] == 'yes' or model[:-3] not in ab_db:
             if spectra[it] not in sed_db:
-                print 'SED ', spectra[it], 'not in database at', sed_dir
+                print('SED ', spectra[it], 'not in database at', sed_dir)
                 #		for line in sed_db:
                 #                    print line
                 sys.exit()
         #print spectra[it],filters[jf]
-            print '     Generating ', model, '....'
+            print('     Generating ', model, '....')
             ABflux(spectra[it], filtro, madau=pars.d['MADAU'])
             #z_ab=arange(0.,zmax_ab,dz_ab) #zmax_ab and dz_ab are def. in bpz_tools
             # abflux=f_z_sed(spectra[it],filters[jf], z_ab,units='nu',madau=pars.d['MADAU'])
@@ -349,9 +358,9 @@ for it in range(nt):
         f_mod[:, it, jf] = match_resol(zo, f_mod_0, z)
         #if sometrue(less(f_mod[:,it,jf],0.)):
         if less(f_mod[:, it, jf], 0.).any():
-            print 'Warning: some values of the model AB fluxes are <0'
-            print 'due to the interpolation '
-            print 'Clipping them to f>=0 values'
+            print('Warning: some values of the model AB fluxes are <0')
+            print('due to the interpolation ')
+            print('Clipping them to f>=0 values')
             #To avoid rounding errors in the calculation of the likelihood
             f_mod[:, it, jf] = clip(f_mod[:, it, jf], 0., 1e300)
 
@@ -367,18 +376,19 @@ if ntypes == None:
 else:
     nt0 = list(ntypes)
     for i, nt1 in enumerate(nt0):
-        print i, nt1
+        print(i, nt1)
         nt0[i] = int(nt1)
-    if (len(nt0) <> 3) or (sum(nt0) <> nt):
-        print
-        print '%d ellipticals + %d spirals + %d ellipticals' % tuple(nt0)
-        print 'does not add up to %d templates' % nt
-        print 'USAGE: -NTYPES nell,nsp,nsb'
-        print 'nell = # of elliptical templates'
-        print 'nsp  = # of spiral templates'
-        print 'nsb  = # of starburst templates'
-        print 'These must add up to the number of templates in the SPECTRA list'
-        print 'Quitting BPZ.'
+    if (len(nt0) != 3) or (sum(nt0) != nt):
+        print()
+        print('%d ellipticals + %d spirals + %d ellipticals' % tuple(nt0))
+        print('does not add up to %d templates' % nt)
+        print('USAGE: -NTYPES nell,nsp,nsb')
+        print('nell = # of elliptical templates')
+        print('nsp  = # of spiral templates')
+        print('nsb  = # of starburst templates')
+        print(
+            'These must add up to the number of templates in the SPECTRA list')
+        print('Quitting BPZ.')
         sys.exit()
 
 if ninterp:
@@ -415,9 +425,9 @@ for filter in filters:
     cals.append(datos[2])
     zp_errors.append(datos[3])
     zp_offsets.append(datos[4])
-zp_offsets = array(map(float, zp_offsets))
+zp_offsets = array(list(map(float, zp_offsets)))
 if pars.d['ZP_OFFSETS']:
-    zp_offsets += array(map(float, pars.d['ZP_OFFSETS']))
+    zp_offsets += array(list(map(float, pars.d['ZP_OFFSETS'])))
 
 flux_cols = tuple(flux_cols)
 eflux_cols = tuple(eflux_cols)
@@ -437,38 +447,41 @@ if pars.d['MAG'] == 'yes':
     ef_obs = where(
         greater_equal(ef_obs, 0.), clip(ef_obs, pars.d['MIN_MAGERR'], 1e10),
         ef_obs)
-    if add.reduce(add.reduce(todo)) <> todo.shape[0] * todo.shape[1]:
-        print 'Objects with unexpected magnitudes!'
-        print """Allowed values for magnitudes are 
-	0<m<""" + ` undet ` + " m=" + ` undet ` + "(non detection), m=" + ` unobs ` + "(not observed)"
+    if add.reduce(add.reduce(todo)) != todo.shape[0] * todo.shape[1]:
+        print('Objects with unexpected magnitudes!')
+        print("""Allowed values for magnitudes are
+	0<m<""" + repr(undet) + " m=" + repr(undet) + "(non detection), m=" + repr(
+            unobs) + "(not observed)")
         for i in range(len(todo)):
             if not alltrue(todo[i, :]):
-                print i + 1, f_obs[i, :], ef_obs[i, :]
+                print(i + 1, f_obs[i, :], ef_obs[i, :])
         sys.exit()
 
 #Detected objects
     try:
         f_obs = where(seen, 10.**(-.4 * f_obs), f_obs)
     except OverflowError:
-        print 'Some of the input magnitudes have values which are >700 or <-700'
-        print 'Purge the input photometric catalog'
-        print 'Minimum value', min(f_obs)
-        print 'Maximum value', max(f_obs)
-        print 'Indexes for minimum values', argmin(f_obs, 0.)
-        print 'Indexes for maximum values', argmax(f_obs, 0.)
-        print 'Bye.'
+        print(
+            'Some of the input magnitudes have values which are >700 or <-700')
+        print('Purge the input photometric catalog')
+        print('Minimum value', min(f_obs))
+        print('Maximum value', max(f_obs))
+        print('Indexes for minimum values', argmin(f_obs, 0.))
+        print('Indexes for maximum values', argmax(f_obs, 0.))
+        print('Bye.')
         sys.exit()
 
     try:
         ef_obs = where(seen, (10.**(.4 * ef_obs) - 1.) * f_obs, ef_obs)
     except OverflowError:
-        print 'Some of the input magnitude errors have values which are >700 or <-700'
-        print 'Purge the input photometric catalog'
-        print 'Minimum value', min(ef_obs)
-        print 'Maximum value', max(ef_obs)
-        print 'Indexes for minimum values', argmin(ef_obs, 0.)
-        print 'Indexes for maximum values', argmax(ef_obs, 0.)
-        print 'Bye.'
+        print(
+            'Some of the input magnitude errors have values which are >700 or <-700')
+        print('Purge the input photometric catalog')
+        print('Minimum value', min(ef_obs))
+        print('Maximum value', max(ef_obs))
+        print('Indexes for minimum values', argmin(ef_obs, 0.))
+        print('Indexes for maximum values', argmax(ef_obs, 0.))
+        print('Bye.')
         sys.exit()
 
     #print 'ef', ef_obs[0,:nf]
@@ -507,8 +520,8 @@ no_seen = equal(f_obs, 0.) * greater(ef_obs, 0.)
 no_observed = equal(f_obs, 0.) * equal(ef_obs, 0.)
 
 todo = seen + no_seen + no_observed
-if add.reduce(add.reduce(todo)) <> todo.shape[0] * todo.shape[1]:
-    print 'Objects with unexpected fluxes/errors'
+if add.reduce(add.reduce(todo)) != todo.shape[0] * todo.shape[1]:
+    print('Objects with unexpected fluxes/errors')
 
 #Convert (internally) objects with zero flux and zero error(non observed)
 #to objects with almost infinite (~1e108) error and still zero flux
@@ -516,16 +529,17 @@ if add.reduce(add.reduce(todo)) <> todo.shape[0] * todo.shape[1]:
 ef_obs = where(no_observed, 1e108, ef_obs)
 
 #Include the zero point errors
-zp_errors = array(map(float, zp_errors))
+zp_errors = array(list(map(float, zp_errors)))
 zp_frac = e_mag2frac(zp_errors)
 #zp_frac=10.**(.4*zp_errors)-1.
 ef_obs = where(seen, sqrt(ef_obs * ef_obs + (zp_frac * f_obs)**2), ef_obs)
-ef_obs = where(no_seen, sqrt(ef_obs * ef_obs + (zp_frac * (ef_obs / 2.))**2),
+ef_obs = where(no_seen,
+               sqrt(ef_obs * ef_obs + (zp_frac * (old_div(ef_obs, 2.)))**2),
                ef_obs)
 
 #Add the zero-points offset
 #The offsets are defined as m_new-m_old
-zp_offsets = array(map(float, zp_offsets))
+zp_offsets = array(list(map(float, zp_offsets)))
 zp_offsets = where(not_equal(zp_offsets, 0.), 10.**(-.4 * zp_offsets), 1.)
 f_obs = f_obs * zp_offsets
 ef_obs = ef_obs * zp_offsets
@@ -539,35 +553,35 @@ for i in range(f_obs.shape[1]):
     elif cals[i] == 'AB':
         continue
     else:
-        print 'AB or Vega?. Check ' + col_file + ' file'
+        print('AB or Vega?. Check ' + col_file + ' file')
         sys.exit()
 
         #Get m_0 (if present)
-if col_pars.d.has_key('M_0'):
+if 'M_0' in col_pars.d:
     m_0_col = int(col_pars.d['M_0']) - 1
     m_0 = get_data(obs_file, m_0_col)
     m_0 += pars.d['DELTA_M_0']
 
 #Get the objects ID (as a string)
-if col_pars.d.has_key('ID'):
+if 'ID' in col_pars.d:
     #    print col_pars.d['ID']
     id_col = int(col_pars.d['ID']) - 1
     id = get_str(obs_file, id_col)
 else:
-    id = map(str, range(1, len(f_obs[:, 0]) + 1))
+    id = list(map(str, list(range(1, len(f_obs[:, 0]) + 1))))
 
 #Get spectroscopic redshifts (if present)
-if col_pars.d.has_key('Z_S'):
+if 'Z_S' in col_pars.d:
     z_s_col = int(col_pars.d['Z_S']) - 1
     z_s = get_data(obs_file, z_s_col)
 
 #Get the X,Y coordinates
-if col_pars.d.has_key('X'):
+if 'X' in col_pars.d:
     datos = col_pars.d['X']
     if len(datos) == 1:  # OTHERWISE IT'S A FILTER!
         x_col = int(col_pars.d['X']) - 1
         x = get_data(obs_file, x_col)
-if col_pars.d.has_key('Y'):
+if 'Y' in col_pars.d:
     datos = col_pars.d['Y']
     if len(datos) == 1:  # OTHERWISE IT'S A FILTER!
         y_col = int(datos) - 1
@@ -579,7 +593,7 @@ check = pars.d['CHECK']
 # This generates a file with m,z,T and observed/expected colors
 #if check=='yes': pars.d['FLUX_COMPARISON']=root+'.flux_comparison'
 
-checkSED = check <> 'no'
+checkSED = check != 'no'
 
 ng = f_obs.shape[0]
 if checkSED:
@@ -595,13 +609,13 @@ if checkSED:
 #Visualize the colors of the galaxies and the templates
 
 #When there are spectroscopic redshifts available
-if interactive and col_pars.d.has_key('Z_S') and plots and checkSED and ask(
+if interactive and 'Z_S' in col_pars.d and plots and checkSED and ask(
         'Plot colors vs spectroscopic redshifts?'):
     color_m = zeros((nz, nt, nf - 1)) * 1.
     if plots == 'pylab':
         figure(1)
     nrows = 2
-    ncols = (nf - 1) / nrows
+    ncols = old_div((nf - 1), nrows)
     if (nf - 1) % nrows: ncols += 1
     for i in range(nf - 1):
         ##plot=FramedPlot()
@@ -610,7 +624,7 @@ if interactive and col_pars.d.has_key('Z_S') and plots and checkSED and ask(
         fml = f_obs[:, i]
         good = greater(fml, 1e-100) * greater(fmu, 1e-100)
         zz, fmu, fml = multicompress(good, (z_s, fmu, fml))
-        colour = fmu / fml
+        colour = old_div(fmu, fml)
         colour = clip(colour, 1e-5, 1e5)
         colour = 2.5 * log10(colour)
         if plots == 'pylab':
@@ -625,7 +639,7 @@ if interactive and col_pars.d.has_key('Z_S') and plots and checkSED and ask(
             fml = f_mod[:, it, i]
             good = greater(fml, 1e-100)
             zz, fmu, fml = multicompress(good, (z, fmu, fml))
-            colour = fmu / fml
+            colour = old_div(fmu, fml)
             colour = clip(colour, 1e-5, 1e5)
             colour = 2.5 * log10(colour)
             if plots == 'pylab':
@@ -643,21 +657,21 @@ if interactive and col_pars.d.has_key('Z_S') and plots and checkSED and ask(
             plot.show()
     if plots == 'pylab':
         show()
-        inp = raw_input('Hit Enter to continue.')
+        inp = eval(input('Hit Enter to continue.'))
 
 #Get other information which will go in the output file (as strings)
-if col_pars.d.has_key('OTHER'):
-    if col_pars.d['OTHER'] <> 'all':
+if 'OTHER' in col_pars.d:
+    if col_pars.d['OTHER'] != 'all':
         other_cols = col_pars.d['OTHER']
         if type(other_cols) == type((2, )):
             other_cols = tuple(map(int, other_cols))
         else:
             other_cols = (int(other_cols), )
-        other_cols = map(lambda x: x - 1, other_cols)
+        other_cols = [x - 1 for x in other_cols]
         n_other = len(other_cols)
     else:
         n_other = get_2Darray(obs_file, cols='all', nrows=1).shape[1]
-        other_cols = range(n_other)
+        other_cols = list(range(n_other))
 
     others = get_str(obs_file, other_cols)
 
@@ -679,7 +693,7 @@ out_name = pars.d['OUTPUT']
 if get_z:
     if os.path.exists(out_name):
         os.system('cp %s %s.bak' % (out_name, out_name))
-        print "File %s exists. Copying it to %s.bak" % (out_name, out_name)
+        print("File %s exists. Copying it to %s.bak" % (out_name, out_name))
     output = open(out_name, 'w')
 
 if pars.d['PROBS_LITE'] == 'no': save_probs = 0
@@ -702,14 +716,14 @@ if get_z: output.write("""##
 ##Parameters used to run BPZ:
 ##
 """)
-claves = pars.d.keys()
+claves = list(pars.d.keys())
 claves.sort()
 for key in claves:
     if type(pars.d[key]) == type((1, )):
         cosa = join(list(pars.d[key]), ',')
     else:
         cosa = str(pars.d[key])
-    if get_z: output.write('##' + upper(key) + '=' + cosa + '\n')
+    if get_z: output.write('##' + key.upper() + '=' + cosa + '\n')
 
 if save_full_probs:
     #Shelve some info on the run
@@ -732,22 +746,25 @@ if save_probs2:
     #Use a empirical prior?
 tipo_prior = pars.d['PRIOR']
 useprior = 0
-if col_pars.d.has_key('M_0'): has_mags = 1
-else: has_mags = 0
-if has_mags and tipo_prior <> 'none' and tipo_prior <> 'flat': useprior = 1
+if 'M_0' in col_pars.d:
+    has_mags = 1
+else:
+    has_mags = 0
+if has_mags and tipo_prior != 'none' and tipo_prior != 'flat':
+    useprior = 1
 
 #Add cluster 'spikes' to the prior?
 cluster_prior = 0.
 if pars.d['ZC']:
     cluster_prior = 1
     if type(pars.d['ZC']) == type(""): zc = array([float(pars.d['ZC'])])
-    else: zc = array(map(float, pars.d['ZC']))
+    else: zc = array(list(map(float, pars.d['ZC'])))
     if type(pars.d['FC']) == type(""): fc = array([float(pars.d['FC'])])
-    else: fc = array(map(float, pars.d['FC']))
+    else: fc = array(list(map(float, pars.d['FC'])))
 
     fcc = add.reduce(fc)
     if fcc > 1.:
-        print ftc
+        print(ftc)
         raise 'Too many galaxies in clusters!'
     pi_c = zeros((nz, nt)) * 1.
     #Go over the different cluster spikes
@@ -762,12 +779,12 @@ if pars.d['ZC']:
         pi_c[:, 0] = pi_c[:, 0] + g / norm * fc[i]
 
     #Go over the different types
-    print 'We only apply the cluster prior to the early type galaxies'
+    print('We only apply the cluster prior to the early type galaxies')
     for i in range(1, 3 + 2 * ninterp):
         pi_c[:, i] = pi_c[:, i] + pi_c[:, 0]
 
 #Output format
-format = '%' + ` maximum(5, len(id[0])) ` + 's'  #ID format
+format = '%' + repr(maximum(5, len(id[0]))) + 's'  #ID format
 format = format + pars.d[
     'N_PEAKS'] * ' %.3f %.3f  %.3f %.3f %.5f' + ' %.3f %.3f %10.3f'
 
@@ -797,13 +814,13 @@ else:
 # %i ODDS""" % (k + 1, k + 2, k + 3, k + 4, k + 5)
     k += 5
 
-sxhdr += """    
+sxhdr += """
 # %i Z_ML
 # %i T_ML
 # %i CHI-SQUARED\n""" % (k + 1, k + 2, k + 3)
 
 nh = k + 4
-if col_pars.d.has_key('Z_S'):
+if 'Z_S' in col_pars.d:
     sxhdr = sxhdr + '# %i Z_S\n' % nh
     format = format + '  %.3f'
     nh += 1
@@ -811,7 +828,7 @@ if has_mags:
     format = format + '  %.3f'
     sxhdr = sxhdr + '# %i M_0\n' % nh
     nh += 1
-if col_pars.d.has_key('OTHER'):
+if 'OTHER' in col_pars.d:
     sxhdr = sxhdr + '# %i OTHER\n' % nh
     format = format + ' %s'
     nh += n_other
@@ -823,7 +840,7 @@ if get_z: output.write(sxhdr + '##\n')
 odds_i = float(pars.d['ODDS'])
 oi = inv_gauss_int(odds_i)
 
-print odds_i, oi
+print(odds_i, oi)
 
 #Proceed to redshift estimation
 
@@ -833,11 +850,11 @@ if pars.d['CONVOLVE_P'] == 'yes':
     # Will Convolve with a dz=0.03 gaussian to make probabilities smoother
     # This is necessary; if not there are too many close peaks
     sigma_g = 0.03
-    x = arange(-3. * sigma_g, 3. * sigma_g + dz / 10.,
+    x = arange(-3. * sigma_g, 3. * sigma_g + old_div(dz, 10.),
                dz)  # made symmetric --DC
-    gaus = exp(-(x / sigma_g)**2)
+    gaus = exp(-(old_div(x, sigma_g))**2)
 
-if pars.d["NMAX"] <> None: ng = int(pars.d["NMAX"])
+if pars.d["NMAX"] != None: ng = int(pars.d["NMAX"])
 for ig in range(ng):
     #Don't run BPZ on galaxies with have z_s > z_max
     #if col_pars.d.has_key('Z_S'):
@@ -851,18 +868,18 @@ for ig in range(ng):
                              f_mod[:nz, :nt, :nf])
 
     if 0:
-        print f_obs[ig, :nf]
-        print ef_obs[ig, :nf]
+        print(f_obs[ig, :nf])
+        print(ef_obs[ig, :nf])
 
     iz_ml = likelihood.i_z_ml
     t_ml = likelihood.i_t_ml
-    red_chi2 = likelihood.min_chi2 / float(nf - 1.)
+    red_chi2 = old_div(likelihood.min_chi2, float(nf - 1.))
     #p=likelihood.Bayes_likelihood
     #likelihood.various_plots()
     #print 'FULL BAYESAIN LIKELIHOOD'
     p = likelihood.likelihood
     if not ig:
-        print 'ML * prior -- NOT QUITE BAYESIAN'
+        print('ML * prior -- NOT QUITE BAYESIAN')
 
     #plo=FramedPlot()
     #for i in range(p.shape[1]):
@@ -878,7 +895,7 @@ for ig in range(ng):
         j = searchsorted(z, z_s[ig])
         #print j,nt,z_s[ig]
         try:
-            p_i[j, :] = 1. / float(nt)
+            p_i[j, :] = old_div(1., float(nt))
         except IndexError:
             pass
     else:
@@ -888,7 +905,7 @@ for ig in range(ng):
             else:
                 p_i = prior(z, m_0[ig], tipo_prior, nt0, ninterp)
         else:
-            p_i = ones((nz, nt), float) / float(nz * nt)
+            p_i = old_div(ones((nz, nt), float), float(nz * nt))
         if cluster_prior: p_i = (1. - fcc) * p_i + pi_c
 
     if save_full_probs:
@@ -931,7 +948,7 @@ for ig in range(ng):
         greater(p_bayes, pmax * float(pars.d['P_MIN'])), p_bayes, 0.)
 
     norm = add.reduce(p_bayes)
-    p_bayes = p_bayes / norm
+    p_bayes = old_div(p_bayes, norm)
 
     if specprob:
         p_spec[ig, :] = match_resol(z, p_bayes, z_spec[ig, :]) * p_spec[ig, :]
@@ -945,7 +962,7 @@ for ig in range(ng):
         formato += 5 * " %.3f"
         #formato+="  %4f %i"
         formato += "\n"
-        print formato % vyjod
+        print(formato % vyjod)
         specout.write(formato % vyjod)
 
     if pars.d['N_PEAKS'] > 1:
@@ -981,7 +998,7 @@ for ig in range(ng):
         z_peaks = []
         t_peaks = []
         # Sort them by probability values
-        p_max, i_max = multisort(1. / p_max, (p_max, i_max))
+        p_max, i_max = multisort(old_div(1., p_max), (p_max, i_max))
         # For each maximum, define the minima which sandwich it
         # Assign minima to each maximum
         jm = searchsorted(i_min, i_max)
@@ -994,7 +1011,7 @@ for ig in range(ng):
             # print z_peaks[-1][0],f_mod[i_max[i],t_peaks[-1]-1,:nf]
 
         if ninterp:
-            t_peaks = list(array(t_peaks) / (1. + ninterp))
+            t_peaks = list(old_div(array(t_peaks), (1. + ninterp)))
 
         if pars.d['MERGE_PEAKS'] == 'yes':
             # Merge peaks which are very close 0.03(1+z)
@@ -1028,8 +1045,8 @@ for ig in range(ng):
             for j in merged:
                 p_max.remove(copia[j])
 
-        if sum(array(p_tot)) <> 1.:
-            p_tot = array(p_tot) / sum(array(p_tot))
+        if sum(array(p_tot)) != 1.:
+            p_tot = old_div(array(p_tot), sum(array(p_tot)))
 
             # Define the peak
     iz_b = argmax(p_bayes)
@@ -1038,9 +1055,9 @@ for ig in range(ng):
     # if pars.d['ONLY_TYPE']=='yes': zb=zb-dz/2. #This corrects a small bias
     # else: zb=zb-dz #This corrects another small bias --DC
 
-    #Integrate within a ~ oi*sigma interval to estimate 
+    #Integrate within a ~ oi*sigma interval to estimate
     # the odds. (based on a sigma=pars.d['MIN_RMS']*(1+z))
-    #Look for the number of sigma corresponding 
+    #Look for the number of sigma corresponding
     #to the odds_i confidence limit
 
     zo1 = zb - oi * pars.d['MIN_RMS'] * (1. + zb)
@@ -1059,48 +1076,48 @@ for ig in range(ng):
     t_b = it_b + 1
 
     if ninterp:
-        tt_b = float(it_b) / (1. + ninterp)
-        tt_ml = float(t_ml) / (1. + ninterp)
+        tt_b = old_div(float(it_b), (1. + ninterp))
+        tt_ml = old_div(float(t_ml), (1. + ninterp))
     else:
         tt_b = it_b
         tt_ml = t_ml
 
     if max(pb[iz_b, :]) < 1e-300:
-        print 'NO CLEAR BEST t_b; ALL PROBABILITIES ZERO'
+        print('NO CLEAR BEST t_b; ALL PROBABILITIES ZERO')
         t_b = -1.
         tt_b = -1.
 
     #print it_b, t_b, tt_b, pb.shape
 
     if 0:
-        print f_mod[iz_b, it_b, :nf]
+        print(f_mod[iz_b, it_b, :nf])
 
-        print min(ravel(p_i)), max(ravel(p_i))
-        print min(ravel(p)), max(ravel(p))
-        print p_i[iz_b, :]
-        print p[iz_b, :]
-        print p_i[iz_b, it_b]  # prior
-        print p[iz_b, it_b]  # chisq
-        print likelihood.likelihood[iz_b, it_b]
-        print likelihood.chi2[iz_b, it_b]
-        print likelihood.ftt[iz_b, it_b]
-        print likelihood.foo
+        print(min(ravel(p_i)), max(ravel(p_i)))
+        print(min(ravel(p)), max(ravel(p)))
+        print(p_i[iz_b, :])
+        print(p[iz_b, :])
+        print(p_i[iz_b, it_b])  # prior
+        print(p[iz_b, it_b])  # chisq
+        print(likelihood.likelihood[iz_b, it_b])
+        print(likelihood.chi2[iz_b, it_b])
+        print(likelihood.ftt[iz_b, it_b])
+        print(likelihood.foo)
 
-        print
-        print 't_b', t_b
-        print 'iz_b', iz_b
-        print 'nt', nt
-        print max(ravel(pb))
+        print()
+        print('t_b', t_b)
+        print('iz_b', iz_b)
+        print('nt', nt)
+        print(max(ravel(pb)))
         impb = argmax(ravel(pb))
-        impbz = impb / nt
+        impbz = old_div(impb, nt)
         impbt = impb % nt
-        print impb, impbz, impbt
-        print ravel(pb)[impb]
-        print pb.shape, (nz, nt)
-        print pb[impbz, impbt]
-        print pb[iz_b, it_b]
-        print 'z, t', z[impbz], t_b
-        print t_b
+        print(impb, impbz, impbt)
+        print(ravel(pb)[impb])
+        print(pb.shape, (nz, nt))
+        print(pb[impbz, impbt])
+        print(pb[iz_b, it_b])
+        print('z, t', z[impbz], t_b)
+        print(t_b)
 
     # Redshift confidence limits
     z1, z2 = interval(p_bayes[:nz], z, odds_i)
@@ -1124,17 +1141,17 @@ for ig in range(ng):
                 salida += [-1., -1., -1., -1., -1.]
         salida += [z[iz_ml], tt_ml + 1, red_chi2]
 
-    if col_pars.d.has_key('Z_S'): salida.append(z_s[ig])
+    if 'Z_S' in col_pars.d: salida.append(z_s[ig])
     if has_mags: salida.append(m_0[ig] - pars.d['DELTA_M_0'])
-    if col_pars.d.has_key('OTHER'): salida.append(other[ig])
+    if 'OTHER' in col_pars.d: salida.append(other[ig])
 
     if get_z: output.write(format % tuple(salida) + '\n')
-    if pars.d['VERBOSE'] == 'yes': print format % tuple(salida)
+    if pars.d['VERBOSE'] == 'yes': print(format % tuple(salida))
 
     #try:
     #    if sometrue(greater(z_peaks,7.5)):
     #        connect(z,p_bayes)
-    #        ask('More?')        
+    #        ask('More?')
     #except:
     #    pass
 
@@ -1144,25 +1161,25 @@ for ig in range(ng):
         ft = f_mod[iz_b, it_b, :]
         fo = f_obs[ig, :]
         efo = ef_obs[ig, :]
-        dfosq = ((ft - fo) / efo)**2
+        dfosq = (old_div((ft - fo), efo))**2
         if 0:
-            print ft
-            print fo
-            print efo
-            print dfosq
+            print(ft)
+            print(fo)
+            print(efo)
+            print(dfosq)
             pause()
         factor = ft / efo / efo
         ftt = add.reduce(ft * factor)
         fot = add.reduce(fo * factor)
-        am = fot / ftt
+        am = old_div(fot, ftt)
         ft = ft * am
         if 0:
-            print factor
-            print ftt
-            print fot
-            print am
-            print ft
-            print
+            print(factor)
+            print(ftt)
+            print(fot)
+            print(am)
+            print(ft)
+            print()
             pause()
 
         flux_comparison = [id[ig], m_0[ig], z[iz_b], t_b, am] + list(
@@ -1174,7 +1191,7 @@ for ig in range(ng):
             flux_comparison)
         if o >= odd_check:
             # PHOTOMETRIC CALIBRATION CHECK
-            # Calculate flux ratios, but only for objects with ODDS >= odd_check 
+            # Calculate flux ratios, but only for objects with ODDS >= odd_check
             #  (odd_check = 0.95 by default)
             # otherwise, leave weight w = 0 by default
             eps = 1e-10
@@ -1190,9 +1207,9 @@ for ig in range(ng):
             #Avoid overflow by setting r to 0.
             fo = where(bad, 0., fo)
             ft = where(bad, 1., ft)
-            r[ig, :] = fo / ft
+            r[ig, :] = old_div(fo, ft)
             try:
-                dm[ig, :] = -flux2mag(fo / ft)
+                dm[ig, :] = -flux2mag(old_div(fo, ft))
             except:
                 dm[ig, :] = -100
     # Clip ratio between 0.01 & 100
@@ -1253,9 +1270,9 @@ if checkSED:
     #try:
     if 1:
         if interactive:
-            print ""
-            print ""
-            print "PHOTOMETRIC CALIBRATION TESTS"
+            print("")
+            print("")
+            print("PHOTOMETRIC CALIBRATION TESTS")
             # See PHOTOMETRIC CALIBRATION CHECK above
             #ratios=add.reduce(w*r,0)/add.reduce(w,0)
             #print "Average, weighted by flux ratios f_obs/f_model for objects with odds >= %g" % odd_check
@@ -1265,28 +1282,35 @@ if checkSED:
             #print  nf*' % 7.3f       ' % tuple(-flux2mag(ratios))
             #print
 
-            fratavg = sum(fw * frat, axis=0) / sum(fw, axis=0)
+            fratavg = old_div(sum(fw * frat, axis=0), sum(fw, axis=0))
             dmavg = -flux2mag(fratavg)
             fnobj = sum(greater(fw, 0), axis=0)
             #print 'fratavg', fratavg
             #print 'dmavg', dmavg
             #print 'fnobj', fnobj
             #fnobj = sum(greater(w[:,i],0))
-            print "If the dmag are large, add them to the .columns file (zp_offset), then re-run BPZ."
-            print "(For better results, first re-run with -ONLY_TYPE yes to fit SEDs to known spec-z.)"
-            print
-            print '  fo/ft    dmag   nobj   filter'
+            print(
+                "If the dmag are large, add them to the .columns file (zp_offset), then re-run BPZ.")
+            print(
+                "(For better results, first re-run with -ONLY_TYPE yes to fit SEDs to known spec-z.)")
+            print()
+            print('  fo/ft    dmag   nobj   filter')
             #print nf
             for i in range(nf):
-                print '% 7.3f  % 7.3f %5d   %s'\
-                    % (fratavg[i], dmavg[i], fnobj[i], filters[i])
+                print('% 7.3f  % 7.3f %5d   %s'\
+                    % (fratavg[i], dmavg[i], fnobj[i], filters[i]))
                 #% (ratios[i], -flux2mag(ratios)[i], sum(greater(w[:,i],0)), filters[i])
                 #print '  fo/ft    dmag    filter'
                 #for i in range(nf):
                 #    print '% 7.3f  % 7.3f   %s'  % (ratios[i], -flux2mag(ratios)[i], filters[i])
-            print "fo/ft = Average f_obs/f_model weighted by f_obs/ef_obs for objects with ODDS >= %g" % odd_check
-            print "dmag = magnitude offset which should be applied (added) to the photometry (zp_offset)"
-            print "nobj = # of galaxies considered in that filter (detected and high ODDS >= %g)" % odd_check
+            print(
+                "fo/ft = Average f_obs/f_model weighted by f_obs/ef_obs for objects with ODDS >= %g"
+                % odd_check)
+            print(
+                "dmag = magnitude offset which should be applied (added) to the photometry (zp_offset)")
+            print(
+                "nobj = # of galaxies considered in that filter (detected and high ODDS >= %g)"
+                % odd_check)
             # print r
             # print w
             #print
@@ -1307,7 +1331,7 @@ if checkSED:
             #for j in range(nf):
             #    ee=where(greater(f_obs[:,j],0.),f_obs[:,j],2.)
             #    zz=e_frac2mag(ef_obs[:,j]/ee)
-            #    
+            #
             #    xer=arange(0.,1.,.02)
             #    hr=hist(abs(r[:,j]),xer)
             #    hee=hist(zz,xer)
@@ -1316,7 +1340,7 @@ if checkSED:
             #    efobs.append(sqrt(mean(zz*zz)))
 
             #print  nf*' %.3f       ' % tuple(rms)
-            #print  nf*' %.3f       ' % tuple(efobs) 
+            #print  nf*' %.3f       ' % tuple(efobs)
             #print  nf*' %.3f       ' % tuple(sqrt(abs(array(rms)**2-array(efobs)**2)))
 
             #except: pass
@@ -1329,37 +1353,39 @@ if plots and checkSED:
     zb, zm, zb1, zb2, o, tb = get_data(out_name, (1, 6, 2, 3, 5, 4))
     #Plot the comparison between z_spec and z_B
 
-    if col_pars.d.has_key('Z_S'):
+    if 'Z_S' in col_pars.d:
         if not interactive or ask('Compare z_B vs z_spec?'):
             good = less(z_s, 9.99)
-            print 'Total initial number of objects with spectroscopic redshifts= ', sum(
-                good)
+            print(
+                'Total initial number of objects with spectroscopic redshifts= ',
+                sum(good))
             od_th = 0.
             if ask('Select for galaxy characteristics?\n'):
-                od_th = input('Odds threshold?\n')
+                od_th = eval(input('Odds threshold?\n'))
                 good *= greater_equal(o, od_th)
-                t_min = input('Minimum spectral type\n')
-                t_max = input('Maximum spectral type\n')
+                t_min = eval(input('Minimum spectral type\n'))
+                t_max = eval(input('Maximum spectral type\n'))
                 good *= less_equal(tb, t_max) * greater_equal(tb, t_min)
                 if has_mags:
-                    mg_min = input('Bright magnitude limit?\n')
-                    mg_max = input('Faint magnitude limit?\n')
+                    mg_min = eval(input('Bright magnitude limit?\n'))
+                    mg_max = eval(input('Faint magnitude limit?\n'))
                     good = good * less_equal(m_0, mg_max) * greater_equal(
                         m_0, mg_min)
 
             zmo, zso, zbo, zb1o, zb2o, tb = multicompress(good, (zm, z_s, zb,
                                                                  zb1, zb2, tb))
-            print 'Number of objects with odds > %.2f= %i ' % (od_th, len(zbo))
-            deltaz = (zso - zbo) / (1. + zso)
+            print('Number of objects with odds > %.2f= %i ' %
+                  (od_th, len(zbo)))
+            deltaz = old_div((zso - zbo), (1. + zso))
             sz = stat_robust(deltaz, 3., 3)
             sz.run()
             outliers = greater_equal(abs(deltaz), 3. * sz.rms)
-            print 'Number of outliers [dz >%.2f*(1+z)]=%i' % (
-                3. * sz.rms, add.reduce(outliers))
+            print('Number of outliers [dz >%.2f*(1+z)]=%i' %
+                  (3. * sz.rms, add.reduce(outliers)))
             catastrophic = greater_equal(deltaz * (1. + zso), 1.)
             n_catast = sum(catastrophic)
-            print 'Number of catastrophic outliers [dz >1]=', n_catast
-            print 'Delta z/(1+z) = %.4f +- %.4f' % (sz.median, sz.rms)
+            print('Number of catastrophic outliers [dz >1]=', n_catast)
+            print('Delta z/(1+z) = %.4f +- %.4f' % (sz.median, sz.rms))
             if interactive and plots:
                 if plots == 'pylab':
                     figure(2)
@@ -1404,12 +1430,12 @@ if plots and checkSED:
 
     if interactive and plots and ask('Plot Bayesian photo-z histogram?'):
         if plots == 'biggles':
-            dz = input('Redshift interval?\n')
-            od_th = input('Odds threshold?\n')
+            dz = eval(input('Redshift interval?\n'))
+            od_th = eval(input('Odds threshold?\n'))
             good = greater_equal(o, od_th)
             if has_mags:
-                mg_min = input('Bright magnitude limit?\n')
-                mg_max = input('Faint magnitude limit?\n')
+                mg_min = eval(input('Bright magnitude limit?\n'))
+                mg_max = eval(input('Faint magnitude limit?\n'))
                 good = good * less_equal(m_0, mg_max) * greater_equal(m_0,
                                                                       mg_min)
             z = compress(good, zb)
@@ -1422,8 +1448,8 @@ if plots and checkSED:
             plot.ylabel = r'$N(z_{bpz})$'
             plot.show()
             if ask('Want to save plot as eps file?'):
-                file = raw_input('File name?\n')
-                if file[-2:] <> 'ps': file = file + '.eps'
+                file = eval(input('File name?\n'))
+                if file[-2:] != 'ps': file = file + '.eps'
                 plot.save_as_eps(file)
 
     if interactive and plots and ask(
@@ -1437,7 +1463,7 @@ if plots and checkSED:
                 fml = f_obs[:, i]
                 good = greater(fml, 1e-100) * greater(fmu, 1e-100)
                 zz, fmu, fml = multicompress(good, (zb, fmu, fml))
-                colour = fmu / fml
+                colour = old_div(fmu, fml)
                 colour = clip(colour, 1e-5, 1e5)
                 colour = 2.5 * log10(colour)
                 d = Points(zz, colour, color='blue')
@@ -1448,7 +1474,7 @@ if plots and checkSED:
                     fml = f_mod[:, it, i]
                     good = greater(fml, 1e-100)
                     zz, fmu, fml = multicompress(good, (z, fmu, fml))
-                    colour = fmu / fml
+                    colour = old_div(fmu, fml)
                     colour = clip(colour, 1e-5, 1e5)
                     colour = 2.5 * log10(colour)
                     d = Curve(zz, colour, color='red')

@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import division
 # python bpzchisq2run.py ACS-Subaru
 # PRODUCES ACS-Subaru_bpz.cat
 
@@ -13,6 +15,8 @@
 # ALSO USING NEW i-band CATALOG istel.cat -- w/ CORRECT IDs
 
 # python bpzfinalize.py bvizjh_cut_sexseg2_allobjs_newres_offset3_djh_Burst_1M
+from builtins import range
+from past.utils import old_div
 from coetools import *
 sum = add.reduce  # Just to make sure
 
@@ -45,7 +49,7 @@ elif npeaks == 3:
     labels = string.split(
         'id   zb   zbmin  zbmax  tb    odds    zb2   zb2min  zb2max  tb2    odds2    zb3   zb3min  zb3max  tb3    odds3    zml   tml  chisq')
 else:
-    print 'N_PEAKS = %d!?' % npeaks
+    print('N_PEAKS = %d!?' % npeaks)
     sys.exit(1)
 
 labelnicks = {'Z_S': 'zspec', 'M_0': 'M0'}
@@ -79,7 +83,7 @@ if os.path.exists(inroot + '.flux_comparison'):
     data = loaddata(inroot + '.flux_comparison+')
 
     #nf = 6
-    nf = (len(data) - 5) / 3
+    nf = old_div((len(data) - 5), 3)
     # id  M0  zb  tb*3
     id = data[0]
     ft = data[5:5 + nf]  # FLUX (from spectrum for that TYPE)
@@ -87,11 +91,11 @@ if os.path.exists(inroot + '.flux_comparison'):
     efo = data[5 + 2 * nf:5 + 3 * nf]  # FLUX_ERROR (OBSERVED)
 
     # chisq 2
-    eft = ft / 15.
+    eft = old_div(ft, 15.)
     eft = max(eft)  # for each galaxy, take max eft among filters
     ef = sqrt(efo**2 + eft**2)  # (6, 18981) + (18981) done correctly
 
-    dfosq = ((ft - fo) / ef)**2
+    dfosq = (old_div((ft - fo), ef))**2
     dfosqsum = sum(dfosq)
 
     detected = greater(fo, 0)
@@ -103,7 +107,7 @@ if os.path.exists(inroot + '.flux_comparison'):
     # DEGREES OF FREEDOM
     dof = clip2(nfobs - 3., 1, None)  # 3 params (z, t, a)
 
-    chisq2clip = dfosqsum / dof
+    chisq2clip = old_div(dfosqsum, dof)
 
     sedfrac = divsafe(max(fo - efo), max(ft), -1)  # SEDzero
 
@@ -136,10 +140,10 @@ if 'sig' in mycat.labels:
 if 'zspec' not in mybpz.labels:
     if 'zspec' in mycat.labels:
         mybpz.add('zspec', mycat.zspec)
-        print mycat.zspec
+        print(mycat.zspec)
         if 'zqual' in mycat.labels:
             mybpz.add('zqual', mycat.zqual)
-print mybpz.labels
+print(mybpz.labels)
 mybpz.save(outbpz, maxy=None)
 
 ##################
