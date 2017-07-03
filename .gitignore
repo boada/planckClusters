@@ -16,3 +16,7 @@ legacy/
 *.reg
 *.csv
 MOSAICpipe/bpz_felipe/
+
+BCSpipe/
+
+SOARpipe/
