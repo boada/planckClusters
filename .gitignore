@@ -9,14 +9,12 @@
 *.bz2
 **.png
 legacy/
-**spec1d_IRAF/
-**pyraf/
+spec1d_IRAF/
+pyraf/
 *.ps
 *.txt
 *.reg
 *.csv
 MOSAICpipe/bpz_felipe/
-
 BCSpipe/
-
 SOARpipe/
