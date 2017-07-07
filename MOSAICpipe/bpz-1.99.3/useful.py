@@ -439,7 +439,11 @@ def match_resol(xg, yg, xf, method="linear"):
         #Get positions of the new x coordinates
         ind = clip(searchsorted(xg, xf) - 1, 0, ng - 2)
         ygn = take(yg, ind) + take(d, ind) * (xf - take(xg, ind))
-        if len(ygn) == 1: ygn = ygn[0]
+        try:
+            if len(ygn) == 1:
+                ygn = ygn[0]
+        except TypeError:
+            pass
         return ygn
     else:
         low_slope = old_div((yg[1] - yg[0]), (xg[1] - xg[0]))
