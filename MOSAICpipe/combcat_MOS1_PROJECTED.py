@@ -677,8 +677,7 @@ class combcat:
             pass
 
         # make the diagnostics file too
-        with open('diagnostics.html', 'a') as f:
-            pass
+        open('diagnostics.html', 'a').close()
 
         try:
             if ':' in self.xo or ':' in self.yo:
