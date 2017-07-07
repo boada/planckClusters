@@ -3,24 +3,21 @@
 import os
 import sys
 import numpy
-import numpy.random as nrandom
-import glob
 import math
-from pyfits import getheader, getval
-#import astrometry_hack as astrometry
 import astrometry
 import re
 import time
 import extras
-#import bpz_mix
 import scipy
-#import scipy.misc.pilutil as pilutil
 import scipy.misc as sci_misc
 import pylab
-import cosmopy
+from cosmopy import cosmopy
 import tableio
 import cosmology
 import aux
+import matplotlib.patches
+
+Polygon = matplotlib.patches.Polygon
 
 float32 = numpy.float32
 float64 = numpy.float64
@@ -45,20 +42,22 @@ class finder:
                  cosmo=(0.3, 0.7, 0.7),
                  zuse="ZB", # Use ZB (Bayesian) or ML (Max Like)
                  outpath='plots',
-                 path=os.path.join(os.environ['HOME'], "SOAR-data/COMB"),
+                 path='./',
                  evolfile="0_1gyr_hr_m62_salp.color",
                  p_lim=0.4,
                  verb='yes'):
 
         # Check for environ vars
         self.home = os.environ['HOME']
-        if not os.getenv('SOARpipe'):
-            os.environ['SOARpipe'] = os.path.join(self.home, 'SOARpipe')
-        self.SOARpipe = os.getenv('SOARpipe')
+        if not os.getenv('MOSAICpipe'):
+            os.environ['MOSAICpipe'] = os.path.join(self.home, 'Projects',
+                                                    'planckClusters',
+                                                    'MOSAICpipe')
+        self.MOSAICpipe = os.getenv('MOSAICpipe')
 
         self.zlim = zlim
         self.cosmo = cosmo
-        self.evolfile = os.path.join(self.SOARpipe, "LIB/evol", evolfile)
+        self.evolfile = os.path.join(self.MOSAICpipe, "LIB/evol", evolfile)
         self.dz = dz
         self.zuse = zuse
         self.outpath = outpath
@@ -304,7 +303,6 @@ class finder:
                     dz = float(point.group('dz'))
                     zx = numpy.arange(z1, z2, dz)
                 continue
-            ID = fields[0]
             probs.append(numpy.asarray(list(map(float, fields[1:]))))
 
         # Transform the list into an N array
@@ -439,7 +437,7 @@ class finder:
 
             # Construct the final mask now
             self.mask_BCG = (mask_t * mask_g * mask_r * mask_i * mask_br *
-                             mask_bi * mask_p)
+                             mask_bi * mask_p * mask_star)
             self.BCG_masked = True
             sout.write(" \t Done: %s\n" % extras.elapsed_time_str(t0))
 
@@ -493,10 +491,8 @@ class finder:
     def jpg_read(self, dx=1200, dy=1200):
 
         # The fitsfile with the wcs information
-        self.fitsfile = os.path.join(self.datapath, self.ctile,
-                                     self.ctile + 'i.fits')
-        self.jpgfile = os.path.join(self.datapath, self.ctile,
-                                    self.ctile + '.tiff')
+        self.fitsfile = os.path.join(self.datapath, self.ctile + 'i.fits')
+        self.jpgfile = os.path.join(self.datapath, self.ctile + '.tiff')
         t0 = time.time()
         print("Reading %s" % self.jpgfile, file=sys.stderr)
         #self.jpg_array  = pilutil.imread(self.jpgfile)
@@ -507,26 +503,27 @@ class finder:
         print(self.jpg_array.shape)
         (self.ny, self.nx, self.nz) = self.jpg_array.shape
 
-        self.dx = self.nx / 2.0
-        self.dy = self.ny / 2.0
-        self.xcenter = self.nx / 2.0
-        self.ycenter = self.ny / 2.0
+        if float(dx) < 0 or float(dy) < 0:
+            self.dx = self.nx / 2.0
+            self.dy = self.ny / 2.0
+
+        else:
+            self.dx = float(dx)
+            self.dy = float(dy)
+
+        #self.xcenter = self.nx / 2.0
+        #self.ycenter = self.ny / 2.0
         self.xo = self.nx / 2.0
         self.yo = self.ny / 2.0
 
         # Select the limits of the image to display
-        #self.dx = dx
-        #self.dy = dy
-        #yo = self.yo
-        #xo = self.xo
-        #x1 = int(xo - dx)
-        #x2 = int(xo + dx)
-        #y1 = int(yo - dy)
-        #y2 = int(yo + dy)
+        x1 = int(self.xo - self.dx)
+        x2 = int(self.xo + self.dx)
+        y1 = int(self.yo - self.dy)
+        y2 = int(self.yo + self.dy)
 
         # Get the region to use for plotting
-        #self.jpg_region = self.jpg_array[x1:x2, y1:y2, :]
-        self.jpg_region = self.jpg_array
+        self.jpg_region = self.jpg_array[x1:x2, y1:y2, :]
 
         return
 
@@ -581,8 +578,7 @@ class finder:
         print("Displaying... be patient", file=sys.stderr)
         # Display
         self.ax = pylab.figure(1, figsize=(12, 12))
-        #self.ax = pylab.figure(1,figsize=(9,9))
-        pylab.imshow(self.jpg_region)
+        pylab.imshow(self.jpg_region, origin='upper')
         # Change ax to arcmin
         self.ax_to_arcmin(ds=2.0)
         pylab.xlabel("x[arcmin]")
@@ -722,8 +718,8 @@ class finder:
         ra0 = self.ra[i]
         dec0 = self.dec[i]
         Mi_BCG = self.Mi[i]
-        DM = self.DM[i]
-        ID_BCG = self.id[i]
+        #DM = self.DM[i]
+        #ID_BCG = self.id[i]
 
         # 1 - Select in position around ra0,dec0
         # Define 1h^-1 Mpc radius in degress @ zo
@@ -752,7 +748,7 @@ class finder:
         mask_L2 = numpy.where(self.Mi >= Mi_BCG, 1, 0)  # Bright cut < L_BCG
 
         # The final selection mask, position x redshift x Luminosity
-        idx = numpy.where(mask_R1Mpc * mask_L1 * mask_L2 * mask_z == 1)
+        #idx = numpy.where(mask_R1Mpc * mask_L1 * mask_L2 * mask_z == 1)
         idc = numpy.where(mask_rcore * mask_L1 * mask_L2 * mask_z == 1)
 
         # Shot versions handles
@@ -792,7 +788,7 @@ class finder:
         sout.write("# Total: %s objects selected in 1h^-1Mpc around %s\n" %
                    (Ngal, self.ID))
 
-        #############################################################################
+#############################################################################
         # We'll skip 200 measurement as they depend on the corrected values of Ngal
         # Now let's get R200 and N200
         R200 = 0.156 * (Ngal**0.6) / self.h  # In Mpc
@@ -807,7 +803,7 @@ class finder:
         self.R200 = R200
         self.r200 = r200
         self.L200 = self.Lr[i200].sum()
-        ############################################################################
+###########################################################################
 
         # And the value for all galaxies up NxR1Mpc -- change if required.
         mask_R = numpy.where(dist <= 10 * r1Mpc, 1, 0)
@@ -843,7 +839,7 @@ class finder:
         ra0 = self.ra[i]
         dec0 = self.dec[i]
         Mi_BCG = self.Mi[i]
-        DM = self.DM[i]
+        #DM = self.DM[i]
         ID_BCG = self.id[i]
         if zo:
             print("Will use z:%.3f for cluster" % zo)
@@ -875,7 +871,7 @@ class finder:
         mask_L2 = numpy.where(self.Mi >= Mi_BCG, 1, 0)  # Bright cut < L_BCG
 
         # The final selection mask, position x redshift x Luminosity
-        idx = numpy.where(mask_R * mask_L1 * mask_L2 * mask_z == 1)[0]
+        #idx = numpy.where(mask_R * mask_L1 * mask_L2 * mask_z == 1)[0]
         idc = numpy.where(mask_rcore * mask_L1 * mask_L2 * mask_z == 1)[0]
 
         # Shot versions handles
@@ -1291,8 +1287,7 @@ class finder:
         m = open(filename, "w")
         print("Will write members to %s" % filename)
 
-        head = "# %-23s %15s %15s  %6s %6s %6s %6s %6s  %6s  %6s  %6s  %6s  %6s \n" % (
-            "ID", "RA", "DEC", "ZB", "TB", "ZML", "TML", "g_mag", "g_err",
+        head = "# %-23s %15s %15s  %6s %6s %6s %6s %6s  %6s  %6s  %6s  %6s  %6s \n" % ("ID", "RA", "DEC", "ZB", "TB", "ZML", "TML", "g_mag", "g_err",
             "r_mag", "r_err", "i_mag", "i_err")
         m.write(head)
         for i in self.iRadius[0]:
@@ -1418,9 +1413,6 @@ def mi_star(z, cosmo=(0.3, 0.7, 0.7)):
 ####################################################
 # Fake an ellipse using an N-sided polygon
 #####################################################
-import matplotlib.patches
-import math
-Polygon = matplotlib.patches.Polygon
 
 
 def PEllipse(xxx_todo_changeme,
@@ -1450,8 +1442,6 @@ def PEllipse(xxx_todo_changeme,
 def PCircle(xxx_todo_changeme2, radius, resolution=100, **kwargs):
     (xo, yo) = xxx_todo_changeme2
     pi = math.pi
-    cos = math.cos
-    sin = math.sin
     t = 2 * pi / resolution * numpy.arange(resolution)
     xtmp = radius * numpy.cos(t)
     ytmp = radius * numpy.sin(t)
@@ -1480,10 +1470,10 @@ def cmdline():
                       help="Radius in kpc")
 
     parser.add_option("--zo", dest="zo", default=None, help="zo of cluster")
-
     parser.add_option("--dz", dest="dz", default=0.08, help="dz of shell")
-
     parser.add_option("--zuse", dest="zuse", default="ZB", help="use ZB or ML")
+    parser.add_option("--dx", dest="dx", default=-1, help="cutout width")
+    parser.add_option("--dy", dest="dy", default=-1, help="cutout heigth")
 
     (options, args) = parser.parse_args()
     if len(args) < 1:
@@ -1520,7 +1510,7 @@ def main():
                p_lim=0.4,
                verb='yes')
 
-    f.jpg_read()
+    f.jpg_read(dx=opt.dx, dy=opt.dy)
     f.jpg_display()
 
     return
