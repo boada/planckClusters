@@ -420,14 +420,15 @@ class finder:
             self.BCG_probs = True
 
             i_lim = 25.0
-            star_lim = 0.5
+            star_lim = 0.8
             mask_p = numpy.where(self.p >= p_lim, 1, 0)
             mask_g = numpy.where(self.g < i_lim + 5, 1, 0)
             mask_r = numpy.where(self.r < i_lim + 5, 1, 0)
             mask_i = numpy.where(self.i < i_lim, 1, 0)
             mask_t = numpy.where(self.type < 2.0, 1, 0)
 
-            # Avoid freakishly bright objects, 2.5 mags brighter than the M_BCG_limit
+            # Avoid freakishly bright objects, 2.5 mags brighter than the
+            # M_BCG_limit
             mask_br = numpy.where(self.Mr > Mr_BCG_limit - 3.5, 1, 0)
             mask_bi = numpy.where(self.Mi > Mi_BCG_limit - 3.5, 1, 0)
 
@@ -634,6 +635,7 @@ class finder:
 
         # Plot BCG candidates
         if event.key == 'b':
+            self.click(event)
             self.ellipse_BCGs()
             return
 
@@ -690,6 +692,7 @@ class finder:
             sys.exit()
             return
         # Print info
+        self.click(event)
         self.print_info()
         self.handle_ellipses(event)
 
