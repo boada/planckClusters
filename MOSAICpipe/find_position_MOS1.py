@@ -175,14 +175,14 @@ class finder:
         sout.write("# Will use %s redshifts\n" % self.zuse)
         if self.zuse == "ML":
             z_ph = z_ml
-            t = t_ml
+            #t = t_ml
         elif self.zuse == "ZB":
             z_ph = z_b
-            t = t_b
+            #t = t_b
 
-        i_lim = self.maglim
-        odds_lim = 0.80
-        star_lim = 0.80
+        #i_lim = self.maglim
+        #odds_lim = 0.80
+        #star_lim = 0.80
 
         # Clean up according to BPZ
         #sout.write( "# Avoiding magnitudes -99 and 99 in BPZ \n")
@@ -578,7 +578,7 @@ class finder:
         t0 = time.time()
         print("Displaying... be patient", file=sys.stderr)
         # Display
-        self.ax = pylab.figure(1, figsize=(12, 12))
+        self.ax = pylab.figure(1, figsize=(10, 10))
         pylab.imshow(self.jpg_region, origin='upper')
         # Change ax to arcmin
         self.ax_to_arcmin(ds=2.0)
@@ -792,7 +792,8 @@ class finder:
                    (Ngal, self.ID))
 
 #############################################################################
-        # We'll skip 200 measurement as they depend on the corrected values of Ngal
+        # We'll skip 200 measurement as they depend on the corrected values of
+        # Ngal
         # Now let's get R200 and N200
         R200 = 0.156 * (Ngal**0.6) / self.h  # In Mpc
         r200 = astrometry.kpc2arc(zo, R200 * 1000.0,
@@ -944,9 +945,9 @@ class finder:
     #####################################
     def ellipse_members(self, k=0):
 
-        nx = self.nz
+        #nx = self.nz
         ny = self.ny
-        nz = self.nz
+        #nz = self.nz
 
         iclose = self.iclose
 
@@ -954,13 +955,13 @@ class finder:
         # Delete all patches, reset ellipses before redraw
         del ax.patches[:]
         self.ellipses = {}
-        zo = self.z_ph[iclose]
+        #zo = self.z_ph[iclose]
         pylab.title("%s" % (self.ctile))
 
         # construct the ellipses for each members
         for i in self.iRadius[0]:
-            ra = self.ra[i]
-            dec = self.dec[i]
+            #ra = self.ra[i]
+            #dec = self.dec[i]
             a = self.a_image[i]
             b = self.b_image[i]
             theta = self.theta[i]  # *math.pi/180.0
@@ -1018,17 +1019,17 @@ class finder:
         #####################################
     def ellipse_BCGs(self):
 
-        nx = self.nz
+        #nx = self.nz
         ny = self.ny
-        nz = self.nz
+        #nz = self.nz
         ax = pylab.gca()
         # Delete all patches, reset ellipses before redraw
         del ax.patches[:]
         self.ellipses = {}
         # construct the ellipses for each members
         for i in self.idx_BCG[0]:
-            ra = self.ra[i]
-            dec = self.dec[i]
+            #ra = self.ra[i]
+            #dec = self.dec[i]
             a = self.a_image[i]
             b = self.b_image[i]
             theta = self.theta[i]  # *math.pi/180.0
@@ -1077,18 +1078,19 @@ class finder:
         dec = astrometry.dec2deg(self.dec[i])
         print("-------------------------------")
         print(" Object %s" % self.ID)
-        print(" RA,DEC:%s %s" % (ra, dec))
-        print(" T_B:   %6.3f " % self.t_b[i])
-        print(" Z_B:   %6.3f (%.3f)" % (self.z_b[i], self.odds[i]))
-        print(" Z_ML:  %6.3f (%.3f)" % (self.z_ml[i], self.chi[i]))
-        print(" Mi:    %6.2f " % self.Mi[i])
-        print(" Mr:    %6.2f " % self.Mr[i])
-        print(" p_BCG: %6.3f " % self.p[i])
-        print(" i :    %6.2f (%.3f) " % (self.i[i], self.i_err[i]))
-        print(" r :    %6.2f (%.3f) " % (self.r[i], self.r_err[i]))
-        print(" g :    %6.2f (%.3f) " % (self.g[i], self.g_err[i]))
-        print(" g-r:   %6.2f " % gr)
-        print(" r-i:   %6.2f " % ri)
+        print(" RA,DEC: %s %s" % (ra, dec))
+        print(" X,Y:\t%s %s" % (self.x_image[i], self.y_image[i]))
+        print(" T_B:\t%6.3f " % self.t_b[i])
+        print(" Z_B:\t%6.3f (%.3f)" % (self.z_b[i], self.odds[i]))
+        print(" Z_ML:\t%6.3f (%.3f)" % (self.z_ml[i], self.chi[i]))
+        print(" Mi:\t%6.2f " % self.Mi[i])
+        print(" Mr:\t%6.2f " % self.Mr[i])
+        print(" p_BCG:\t%6.3f " % self.p[i])
+        print(" i :\t%6.2f (%.3f) " % (self.i[i], self.i_err[i]))
+        print(" r :\t%6.2f (%.3f) " % (self.r[i], self.r_err[i]))
+        print(" g :\t%6.2f (%.3f) " % (self.g[i], self.g_err[i]))
+        print(" g-r:\t%6.2f " % gr)
+        print(" r-i:\t%6.2f " % ri)
         print("--------------------------------")
         return
 
@@ -1168,7 +1170,8 @@ class finder:
             try:
                 del self.ellipse[i]
             except:
-                print("Ellipse for ID:%s is not defined" % ID)
+                print('PROBLEM! Line 1173')
+                #print("Ellipse for ID:%s is not defined" % ID)
             current_ell = None
         else:
             self.ellipse[i] = PEllipse((xo, yo), (a, b),
@@ -1220,16 +1223,16 @@ class finder:
         i2 = numpy.where(Psum > 0.841)[0][0]
         z1_68 = x[i1]
         z2_68 = x[i2]
-        dz1 = zo - x[i1]
-        dz2 = x[i2] - zo
+        #dz1 = zo - x[i1]
+        #dz2 = x[i2] - zo
 
         # And the 2-sigma (95.4%)
         i1 = numpy.where(Psum >= 0.023)[0][0]
         i2 = numpy.where(Psum > 0.977)[0][0]
         z1_95 = x[i1]
         z2_95 = x[i2]
-        dz1 = zo - x[i1]
-        dz2 = x[i2] - zo
+        #dz1 = zo - x[i1]
+        #dz2 = x[i2] - zo
 
         s = open(filename, "w")
         head = ("# %-18s " + "%8s " * 7 + "\n") % (
