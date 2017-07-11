@@ -496,12 +496,11 @@ class finder:
         self.jpgfile = os.path.join(self.datapath, self.ctile + '.tiff')
         t0 = time.time()
         print("Reading %s" % self.jpgfile, file=sys.stderr)
-        #self.jpg_array  = pilutil.imread(self.jpgfile)
         self.jpg_array = sci_misc.imread(self.jpgfile)
         print("Done in %.3f sec." % (time.time() - t0), file=sys.stderr)
 
         # Get the shape of the array
-        print(self.jpg_array.shape)
+        print('Orig. Image Size: %s, %s, %s' % self.jpg_array.shape)
         (self.ny, self.nx, self.nz) = self.jpg_array.shape
 
         if float(dx) < 0 or float(dy) < 0:
@@ -524,7 +523,15 @@ class finder:
         y2 = int(self.yo + self.dy)
 
         # Get the region to use for plotting
-        self.jpg_region = self.jpg_array[x1:x2, y1:y2, :]
+        self.jpg_region = self.jpg_array[y1:y2, x1:x2, :]
+        (self.ny, self.nx, self.nz) = self.jpg_region.shape
+
+        # print the cropped region's size
+        print('New Image Size: %s, %s, %s' % self.jpg_region.shape)
+        print('xo : %s' % self.xo)
+        print('yo : %s' % self.yo)
+        print('dx : %s' % self.dx)
+        print('dy : %s' % self.dy)
 
         return
 
@@ -613,7 +620,7 @@ class finder:
         dy = ny / n
         xx = [dx, (n - 1) * dx, (n - 1) * dx, dx, dx]
         yy = [dy, dy, (n - 1) * dy, (n - 1) * dy, dy]
-        pylab.plot(xx, yy, 'w--', linewidth=0.05)
+        pylab.plot(xx, yy, 'w--', linewidth=0.5)
         return
 
     #######################################
@@ -628,6 +635,12 @@ class finder:
         # Remap to right positions
         ximage = event.xdata
         yimage = self.ny - event.ydata
+        # Remap to original coordinate system
+        ximage = event.xdata + (self.xo - self.dx)
+        yimage = yimage + (self.yo - self.dy)
+
+        print('clicked location: %s, %s' % (event.xdata, self.ny - event.ydata))
+        print('interp. location: %s, %s' % (ximage, yimage))
 
         # Fins the closest one
         self.get_nearest(ximage, yimage)
@@ -946,7 +959,7 @@ class finder:
     def ellipse_members(self, k=0):
 
         #nx = self.nz
-        ny = self.ny
+        #ny = self.ny
         #nz = self.nz
 
         iclose = self.iclose
@@ -965,17 +978,18 @@ class finder:
             a = self.a_image[i]
             b = self.b_image[i]
             theta = self.theta[i]  # *math.pi/180.0
-            xo = self.x_image[i]
-            yo = self.y_image[i]
-            #(xo,yo) = astrometry.rd2xy(ra,dec,self.fitsfile)
+            # move to cropped reference frame
+            xgal = self.x_image[i] - (self.xo - self.dx)
+            ygal = self.y_image[i] - (self.yo - self.dy)
             # Change the referece pixel to reflect jpg standards where the
             # origin is at (0,ny), is the upper left corner
-            yo = ny - yo
+            ygal = self.ny - ygal
+
             if i == self.iclose:
                 ec = 'yellow'
             else:
                 ec = 'red'
-            E = PEllipse((xo, yo), (a, b),
+            E = PEllipse((xgal, ygal), (a, b),
                          resolution=80,
                          angle=theta,
                          fill=0,
@@ -984,8 +998,12 @@ class finder:
             self.ellipse[i] = E
             ax.add_patch(E)
 
-        Xo = self.x_image[iclose]
-        Yo = ny - self.y_image[iclose]
+        Xo = self.x_image[iclose] - (self.xo - self.dx)
+        Yo = self.y_image[iclose] - (self.yo - self.dy)
+        # Change the referece pixel to reflect jpg standards where the
+        # origin is at (0,ny), is the upper left corner
+        Yo = self.ny - Yo
+
         ## And a circle of [kpc] in radius
         r_pixels = self.rdeg * 3600.0 / self.pixscale
         C = PCircle((Xo, Yo),
@@ -1020,7 +1038,7 @@ class finder:
     def ellipse_BCGs(self):
 
         #nx = self.nz
-        ny = self.ny
+        #ny = self.ny
         #nz = self.nz
         ax = pylab.gca()
         # Delete all patches, reset ellipses before redraw
@@ -1033,13 +1051,21 @@ class finder:
             a = self.a_image[i]
             b = self.b_image[i]
             theta = self.theta[i]  # *math.pi/180.0
-            xo = self.x_image[i]
-            yo = self.y_image[i]
+            #xo = self.x_image[i]
+            #yo = self.y_image[i]
+
+            #print(ra, dec)
+
+            # move to cropped reference frame
+            xgal = self.x_image[i] - (self.xo - self.dx)
+            ygal = self.y_image[i] - (self.yo - self.dy)
             # Change the referece pixel to reflect jpg standards where the
             # origin is at (0,ny), is the upper left corner
-            yo = ny - yo
+            ygal = self.ny - ygal
+
+            print(self.x_image[i], self.y_image[i], xgal, ygal)
             ec = 'red'
-            E = PEllipse((xo, yo), (a, b),
+            E = PEllipse((xgal, ygal), (a, b),
                          resolution=80,
                          angle=theta,
                          fill=0,
@@ -1123,10 +1149,12 @@ class finder:
         xo = self.xo
         yo = self.yo
 
-        ximage = event.xdata
+        #ximage = event.xdata
         yimage = self.ny - event.ydata
+        ximage = event.xdata + (self.xo - self.dx)
+        #yimage = event.ydata + (self.yo - self.dy)
 
-        print('you clicked', event.xdata, event.ydata)
+        print('you clicked', event.xdata, self.ny - event.ydata)
         print('xo,yo      ', xo, yo)
         print('ximage,yimage', ximage, yimage)
 
@@ -1150,13 +1178,15 @@ class finder:
         a = self.a_image[i]
         b = self.b_image[i]
         theta = self.theta[i]  # *math.pi/180.0
-        xo = self.x_image[i]
-        yo = self.y_image[i]
+        # move to cropped reference frame
+        xgal = self.x_image[i] - (self.xo - self.dx)
+        ygal = self.y_image[i] - (self.yo - self.dy)
         # Change the referece pixel to reflect jpg standards where the
         # origin is at (0,ny), is the upper left corner
-        yo = self.ny - yo
+        ygal = self.ny - ygal
+
         ec = 'white'
-        E = PEllipse((xo, yo), (a, b),
+        E = PEllipse((xgal, ygal), (a, b),
                      resolution=80,
                      angle=theta,
                      fill=0,
@@ -1174,12 +1204,12 @@ class finder:
                 #print("Ellipse for ID:%s is not defined" % ID)
             current_ell = None
         else:
-            self.ellipse[i] = PEllipse((xo, yo), (a, b),
+            self.ellipse[i] = PEllipse((xgal, ygal), (a, b),
                                        resolution=100,
                                        angle=theta,
                                        fill=0,
                                        edgecolor="yellow")
-            current_ell = PEllipse((xo, yo), (a, b),
+            current_ell = PEllipse((xgal, ygal), (a, b),
                                    resolution=100,
                                    angle=theta,
                                    fill=0,
