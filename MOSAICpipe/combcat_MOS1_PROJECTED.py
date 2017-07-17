@@ -2154,7 +2154,7 @@ def main():
     # make RGB images (pngs)
     if not opt.noRGB:
         print('make rgb')
-        c.make_RGB(kband=True)
+        c.make_RGB(kband=False)
 
     # cleanup
     if opt.noCleanUP or opt.noSWarp:
