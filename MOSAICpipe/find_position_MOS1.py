@@ -4,18 +4,23 @@ import os
 import sys
 import numpy
 import math
-import astrometry
 import re
 import time
-import extras
 import scipy
 import scipy.misc as sci_misc
 import pylab
 from cosmopy import cosmopy
-import tableio
-import cosmology
-import aux
 import matplotlib.patches
+
+try:
+    import cosmology
+except ImportError:
+    sys.path.append('/home/boada/Projects/MOSAICpipe')
+    import cosmology
+import aux
+import tableio
+import extras
+import astrometry
 
 Polygon = matplotlib.patches.Polygon
 
@@ -628,19 +633,30 @@ class finder:
     #######################################
     def get_object(self, event):
 
+        # Print the commands:
+        print('Hold one of the following keys and click the image to issue '
+              'associated command')
+        print('q:\t quit\n'
+              'b:\t identify BCG candidates\n'
+              'c:\t plot potential cluster members\n'
+              'j:\t plot the probabilities\n'
+              'v:\t write info onto the figure\n'
+              'w:\t write out the result')
+        print('You used:\t %s' % event.key)
+
         if event.key == 'q' or event.key == 'Q':
             sys.exit()
             return
 
         # Remap to right positions
-        ximage = event.xdata
-        yimage = self.ny - event.ydata
+        #ximage = event.xdata
+        #yimage = self.ny - event.ydata
         # Remap to original coordinate system
         ximage = event.xdata + (self.xo - self.dx)
-        yimage = yimage + (self.yo - self.dy)
+        yimage = (self.ny - event.ydata) + (self.yo - self.dy)
 
-        print('clicked location: %s, %s' % (event.xdata, self.ny - event.ydata))
-        print('interp. location: %s, %s' % (ximage, yimage))
+        #print('clicked location: %s, %s' % (event.xdata, self.ny - event.ydata))
+        #print('interp. location: %s, %s' % (ximage, yimage))
 
         # Fins the closest one
         self.get_nearest(ximage, yimage)
@@ -648,7 +664,6 @@ class finder:
 
         # Plot BCG candidates
         if event.key == 'b':
-            self.click(event)
             self.ellipse_BCGs()
             return
 
@@ -674,7 +689,7 @@ class finder:
             return
 
         # Plot probs
-        if event.key == 'p':
+        if event.key == 'j':
             self.plot_probs()
             return
 
@@ -704,14 +719,11 @@ class finder:
                           bbox_inches='tight')
             sys.exit()
             return
+
         # Print info
         self.click(event)
         self.print_info()
         self.handle_ellipses(event)
-
-        if event.key == 'p':
-            self.print_selection()
-            return
 
         pylab.draw()
         pylab.show()
@@ -958,10 +970,6 @@ class finder:
     #####################################
     def ellipse_members(self, k=0):
 
-        #nx = self.nz
-        #ny = self.ny
-        #nz = self.nz
-
         iclose = self.iclose
 
         ax = pylab.gca()
@@ -978,6 +986,7 @@ class finder:
             a = self.a_image[i]
             b = self.b_image[i]
             theta = self.theta[i]  # *math.pi/180.0
+
             # move to cropped reference frame
             xgal = self.x_image[i] - (self.xo - self.dx)
             ygal = self.y_image[i] - (self.yo - self.dy)
@@ -998,13 +1007,13 @@ class finder:
             self.ellipse[i] = E
             ax.add_patch(E)
 
+        ## And a circle of [kpc] in radius
         Xo = self.x_image[iclose] - (self.xo - self.dx)
         Yo = self.y_image[iclose] - (self.yo - self.dy)
         # Change the referece pixel to reflect jpg standards where the
         # origin is at (0,ny), is the upper left corner
         Yo = self.ny - Yo
 
-        ## And a circle of [kpc] in radius
         r_pixels = self.rdeg * 3600.0 / self.pixscale
         C = PCircle((Xo, Yo),
                     r_pixels,
@@ -1037,9 +1046,6 @@ class finder:
         #####################################
     def ellipse_BCGs(self):
 
-        #nx = self.nz
-        #ny = self.ny
-        #nz = self.nz
         ax = pylab.gca()
         # Delete all patches, reset ellipses before redraw
         del ax.patches[:]
@@ -1051,10 +1057,6 @@ class finder:
             a = self.a_image[i]
             b = self.b_image[i]
             theta = self.theta[i]  # *math.pi/180.0
-            #xo = self.x_image[i]
-            #yo = self.y_image[i]
-
-            #print(ra, dec)
 
             # move to cropped reference frame
             xgal = self.x_image[i] - (self.xo - self.dx)
@@ -1063,7 +1065,6 @@ class finder:
             # origin is at (0,ny), is the upper left corner
             ygal = self.ny - ygal
 
-            print(self.x_image[i], self.y_image[i], xgal, ygal)
             ec = 'red'
             E = PEllipse((xgal, ygal), (a, b),
                          resolution=80,
@@ -1117,6 +1118,7 @@ class finder:
         print(" g :\t%6.2f (%.3f) " % (self.g[i], self.g_err[i]))
         print(" g-r:\t%6.2f " % gr)
         print(" r-i:\t%6.2f " % ri)
+        print(" Stellarity:\t%.2f " % self.class_star[i])
         print("--------------------------------")
         return
 
@@ -1150,9 +1152,9 @@ class finder:
         yo = self.yo
 
         #ximage = event.xdata
-        yimage = self.ny - event.ydata
+        #yimage = self.ny - event.ydata
         ximage = event.xdata + (self.xo - self.dx)
-        #yimage = event.ydata + (self.yo - self.dy)
+        yimage = (self.ny - event.ydata) + (self.yo - self.dy)
 
         print('you clicked', event.xdata, self.ny - event.ydata)
         print('xo,yo      ', xo, yo)
@@ -1290,9 +1292,12 @@ class finder:
 
         pylab.close(2)
         pylab.figure(2)
-        pylab.plot(zx, p_zBCG, 'k-')
+        pylab.plot(zx, p_zBCG, 'k-', alpha=0.8)
         for k in self.idc:
-            pylab.plot(zx, self.p_z[k], 'r-', lw=0.2)
+            if k == iBCG:
+                pass
+            else:
+                pylab.plot(zx, self.p_z[k], 'r-', lw=0.5, alpha=0.8)
         pylab.xlabel("Redshift")
         pylab.ylabel("p(z)")
 
@@ -1312,7 +1317,10 @@ class finder:
                    color='k',
                    size=size,
                    horizontalalignment='right')
+
+        pylab.tight_layout()
         pylab.show()
+
         return
 
     # Write the members information out
