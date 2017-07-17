@@ -1,34 +1,29 @@
 from __future__ import print_function
 from __future__ import division
-# Converts Numeric arrays to numpy.arrays
-# Useful for ppgplot, use only Numeric
 from builtins import map
 from builtins import range
 from builtins import object
 from past.utils import old_div
 import sys
+import numpy
+from numpy.ma import logical_and
 
 def n2N(m, type='f'):
-    import Numeric
-    x = Numeric.resize(Numeric.ravel(m), m.shape)
+    x = numpy.resize(numpy.ravel(m), m.shape)
     return x.astype(type)
 
 
 # Converts numpy.arrays to Numeric arrays
 def N2n(m, type='Float'):
-    import numpy
     x = numpy.resize(numpy.ravel(m), m.shape)
     return x.astype(type)
 
 
 # Converts scalar value to Numeric arrays of 1-element
 def s2N(m):
-    import numpy
     return numpy.array([m])
 
-
 def map2numpy(m):
-    import numpy
     return numpy.array(list(map(float, list(m))))
 
 
@@ -44,7 +39,6 @@ def asnumpy(x):
         return numpy.array([x])
 
     try:
-        import numpy
         if type(x) is type(numpy.array([1])):
             return numpy.asarray(x)
     except:
@@ -56,7 +50,6 @@ def asnumpy(x):
 ###########################
 #  Weighted statitsics
 ###########################
-import numpy
 
 class stats(object):
     ''' a class to get the mean and std deviation fron a
@@ -87,8 +80,6 @@ class stats(object):
 def statsw(x, weight=None):
     ''' Same as the above class, but a function rather than class,
     it returns the mean and std, for an (optional) weight'''
-    import numpy
-    import os, sys
 
     x = numpy.asarray(x)
     if weight is None:
@@ -109,7 +100,6 @@ def statsw(x, weight=None):
 # Get the rms and variance of an numpy.array
 def rms(x):
     ''' Get the rms and variance of an numpy.array'''
-    import numpy
     var = (old_div((x - x.mean())**2, len(x))).sum()
     return numpy.sqrt(var)
 
@@ -131,7 +121,8 @@ def rfits(filename):
 
 # To write in a simple file
 def writefits(array, filename):
-    import pyfits, os
+    import pyfits
+    import os
     # Writes fits files of a given array
     newfits = pyfits.HDUList()
     hdu = pyfits.PrimaryHDU()
@@ -177,7 +168,6 @@ def numeric_string(x, y):
 def bin_data(x, y, x1, x2, dx, center=None):
     ''' to bin data in y acording to x, bewteen x1 and x2
     at a step dx'''
-    import numpy
 
     # Check if we want to use the center of the bin
     if center:
@@ -198,7 +188,6 @@ def bin_data(x, y, x1, x2, dx, center=None):
 def bin_data_ave(x, y, x1, x2, dx, center=None):
     ''' to bin data in y acording to x, bewteen x1 and x2
     at a step dx'''
-    import numpy
 
     # Check if we want to use the center of the bin
     if center:
@@ -219,7 +208,6 @@ def bin_data_ave(x, y, x1, x2, dx, center=None):
 def hist(x, x1, x2, dx, center=None):
     ''' Makes a histogram of the array x(n) between x1, x2 and at a
     step of with dx'''
-    import numpy
 
     # Check if we want to use the center of the bin
     if center == 'yes':
@@ -246,7 +234,6 @@ def hist(x, x1, x2, dx, center=None):
 def bin_by_data(x, y, x1, x2, dx, center=None):
     ''' to bin data in y acording to x, bewteen x1 and x2
     at a step dx --- NO SUM IS DONE!!!'''
-    import numpy
 
     # Check if we want to use the center of the bin
     if center:
@@ -270,6 +257,7 @@ def bin_by_data(x, y, x1, x2, dx, center=None):
 
 
 def FilterName(fitsfile):
+    import os
     ''' Return filters name for ACS images, uses fitshead'''
 
     cmd1 = 'fitshead %s | grep FILTER1' % fitsfile
@@ -277,11 +265,11 @@ def FilterName(fitsfile):
 
     (stdout) = os.popen(cmd1)
     vals = stdout.readline().split("'")
-    f1 = string.strip(vals[1])
+    f1 = vals[1].strip()
 
     (stdout) = os.popen(cmd2)
     vals = stdout.readline().split("'")
-    f2 = string.strip(vals[1])
+    f2 = vals[1].strip()
 
     # Select the filter name
     if (f1 == "CLEAR1L"):
@@ -317,9 +305,6 @@ def inpath(program, verb=None):
     return 0
 
 # Simple Sigma clipping
-import numpy
-from numpy.ma import logical_and
-
 
 def sigclip(x, Nsig=3.0, eps=1e-6, ids=None):
 
