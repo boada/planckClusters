@@ -1233,9 +1233,11 @@ class combcat:
         output = '{}{}.tiff'.format(self.tilename, bands)
 
         # options
-        opts = ['-MIN_LEVEL', '0.001',
-                '-MAX_LEVEL', '0.999',
+        opts = ['-MIN_LEVEL', '0.01',
+                '-MAX_LEVEL', '0.993',
+                '-MIN_TYPE', 'GREYLEVEL',
                 '-MAX_TYPE', 'QUANTILE',
+                '-COLOUR_SAT', '2.0',
                 '-DESCRIPTION', "'{} RGB'".format(self.tilename),
                 '-WRITE_XML', 'N',
                 '-COPYRIGHT', "'Steven Boada'"]
