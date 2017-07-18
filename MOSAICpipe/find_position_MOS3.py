@@ -591,7 +591,7 @@ class finder:
         print("Displaying... be patient", file=sys.stderr)
         # Display
         self.ax = pylab.figure(1, figsize=(10, 10))
-        pylab.imshow(self.jpg_region, origin='upper')
+        pylab.imshow(self.jpg_region, origin='upper', interpolation='bicubic')
         # Change ax to arcmin
         self.ax_to_arcmin(ds=2.0)
         pylab.xlabel("x[arcmin]")
