@@ -4,7 +4,6 @@ from __future__ import print_function
 from builtins import object
 from past.utils import old_div
 import string
-import glob
 import pyfits
 import os
 import sys
@@ -22,7 +21,6 @@ def list_prepend(list, string):
         new.append(string + l)
     return new
 
-
 def list_append(list, string, sep='.'):
     new = []
     for l in list:
@@ -38,8 +36,7 @@ def list_append(list, string, sep='.'):
 
 def list_trick(array, trick="-"):
     n = len(array)
-    return string.join(list(trick * n), ",")
-
+    return list(trick * n).join(",")
 
 def imlist(list, sep=".fits"):
 
@@ -53,8 +50,7 @@ def imlist(list, sep=".fits"):
         except:
             new.append(l)
 
-    return string.join(new, ", ")
-
+    return new.join(", ")
 
 def imlist_append(list, s=""):
 
@@ -62,8 +58,7 @@ def imlist_append(list, s=""):
     for l in list.split(","):
         new.append(l + s)
 
-    return string.join(new, ",")
-
+    return new.join(",")
 
 def imlist_prepend(list, s=""):
 
@@ -71,8 +66,7 @@ def imlist_prepend(list, s=""):
     for l in list.split(","):
         new.append(s + l)
 
-    return string.join(new, ",")
-
+    return new.join(",")
 
 def imfile(list, sep=".fits"):
 
