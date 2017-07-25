@@ -125,13 +125,13 @@ class finder:
                 29,
                 30,
                 3,
-                4,  #5,
+                4,
                 6,
-                7,  #8,
+                7,
                 9,
-                10,  #11,
+                10,
                 12,
-                13,  #14,
+                13,
                 15,
                 16,
                 17,
@@ -160,13 +160,13 @@ class finder:
          t_ml,
          chi,
          g,
-         g_err,  #g_sn,
+         g_err,  # g_sn,
          r,
-         r_err,  #r_sn,
+         r_err,  # r_sn,
          i,
-         i_err,  #i_sn,
+         i_err,  # i_sn,
          z,
-         z_err,  #z_sn,
+         z_err,  # z_sn,
          g_bpz,
          g_berr,
          r_bpz,
@@ -174,7 +174,7 @@ class finder:
          i_bpz,
          i_berr,
          z_bpz,
-         z_berr,  #) = tableio.get_data(self.catsfile,cols=cols)
+         z_berr,
          class_star,
          a_image,
          b_image,
@@ -206,7 +206,6 @@ class finder:
         i_mask = numpy.where(lor(i_bpz == 99, i_bpz == -99), 0, 1)
         z_mask = numpy.where(lor(z_bpz == 99, z_bpz == -99), 0, 1)
         bpz_mask = g_mask * r_mask * i_mask * z_mask
-        bpz_mask = 1
 
         # Clean up to avoid 99 values and very faint i_mag values
         sout.write("# Avoiding magnitudes 99 in MAG_AUTO \n")
@@ -367,15 +366,15 @@ class finder:
         self.DM = 25.0 + 5.0 * numpy.log10(self.dlum)
 
         t0 = time.time()
-        # Get the absolute magnitudes, *** not including evolution ***, only Kcorr
+        # Get the absolute magnitudes, *not including evolution*, only Kcorr
         # We use a BPZ E's template for Kcorr
         #sout.write("# Computing absolute magnitudes interpolating Kcorr ")
         #k = Kcorr_fit(sed='El_Benitez2003')
 
         # Alternatibely we can get both the kcorr and the evol from
         # the *.color file from BC03 *.ised file
-        sout.write(
-            "# Computing absolute magnitudes interpolating konly from BC03 model \n")
+        sout.write("# Computing absolute magnitudes interpolating "
+                   "konly from BC03 model \n")
         k, ev = KEfit(self.evolfile)
 
         self.Mg = self.g - self.DM - k['g'](self.z_ph)
@@ -460,7 +459,8 @@ class finder:
             mask_z = numpy.where(self.z < i_lim + 1, 1, 0)
             mask_t = numpy.where(self.type < 2.0, 1, 0)
 
-            # Avoid freakishly bright objects, 2.5 mags brighter than the M_BCG_limit
+            # Avoid freakishly bright objects, 2.5 mags brighter than the
+            # M_BCG_limit
             mask_br = numpy.where(self.Mr > Mr_BCG_limit - 2.5, 1, 0)
             mask_bi = numpy.where(self.Mi > Mi_BCG_limit - 2.5, 1, 0)
 
@@ -713,16 +713,15 @@ class finder:
 
         # Plot around ID's redshift
         if event.key == 'c':
-            radius = self.radius
             print(self.radius)
             if self.zo:
                 self.z_ph[iclose] = self.zo
             # Select members using distance and 3sigma clipping
             z_cl, z_err = self.select_members(self.iclose,
-                                                     #radius=radius,
+                                                     #radius=self.radius,
                                                      zo=self.zo)
             z_cl, z_err = self.select_members(self.iclose,
-                                                     #radius=radius,
+                                                     #radius=self.radius,
                                                      zo=z_cl)
             self.iBCG = self.iclose
             print("\t Ngal: %d" % self.Ngal)
@@ -1959,5 +1958,6 @@ def main():
     f.jpg_display()
 
     return
+
 
 main()
