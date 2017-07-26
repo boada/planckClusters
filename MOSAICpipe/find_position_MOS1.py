@@ -36,7 +36,6 @@ lor = numpy.logical_or
 
 sout = sys.stderr
 
-
 class finder:
 
     def __init__(self, ctile, maglim=25.0,
@@ -717,20 +716,22 @@ class finder:
             if self.zo:
                 self.z_ph[iclose] = self.zo
             # Select members using distance and 3sigma clipping
-            z_cl, z_err = self.select_members(self.iclose,
-                                                     #radius=self.radius,
+            z_cl, z_err = self.select_members_radius(self.iclose,
+                                                     radius=self.radius,
                                                      zo=self.zo)
-            z_cl, z_err = self.select_members(self.iclose,
-                                                     #radius=self.radius,
+            z_cl, z_err = self.select_members_radius(self.iclose,
+                                                     radius=self.radius,
                                                      zo=z_cl)
             self.iBCG = self.iclose
+            self.ellipse_members()
+            self.background()
             print("\t Ngal: %d" % self.Ngal)
+            print("\t Ngal_c: %d" % self.Ngal_c)
             print("\t z_cl: %.3f +/- %.3f" % (self.z_cl, self.z_clerr))
             print("\t L   : %.3e [Lsun]" % self.Lsum)
             print("\t Mi  : %6.2f " % self.Mi[iclose])
             print("\t Mr  : %6.2f " % self.Mr[iclose])
-            self.ellipse_members()
-            self.background()
+
             return
 
         # Plot probs
@@ -739,19 +740,29 @@ class finder:
             return
 
         if event.key == 'v':
+            try:
+                self.txt_back.remove()
+            except AttributeError:
+                pass
+            try:
+                self.txt_front.remove()
+            except AttributeError:
+                pass
+
             iclose = self.iclose
-            text = " z_cl = %.3f\n zBCG = %.3f\n Ngal = %d\n R  = %d[kpc]" % (
-                self.z_cl, self.z_ph[iclose], self.Ngal, self.radius)
+            text = "z$_{cl}$ = %.3f\nz$_{BCG}$ = %.3f\nN$_{galc}$ = %d (%d)\nR = %d[kpc]" % (
+                self.z_cl, self.z_ph[iclose], self.Ngal_c, self.Ngal, self.radius)
             xo = 80
             yo = 80
-            pylab.text(xo + 2,
+            self.txt_back = pylab.text(xo + 2,
                        self.ny - yo + 2,
                        text,
                        color='black',
                        fontsize=18)
-            pylab.text(xo, self.ny - yo, text, color='white', fontsize=18)
+            self.txt_front = pylab.text(xo, self.ny - yo, text, color='white',
+                                    fontsize=18)
             pylab.draw()
-            pylab.show()
+            #pylab.show()
             return
 
         if event.key == 'w':
@@ -759,7 +770,7 @@ class finder:
             self.write_redshift()
             self.write_members()
             pylab.savefig(self.figBname,
-                          transparent=True,
+                          transparent=False,
                           dpi=100,
                           bbox_inches='tight')
             sys.exit()
@@ -1024,13 +1035,19 @@ class finder:
         # Pass up
         self.iRadius = iRadius
         self.arcmin2Mpc = arcmin2Mpc
+        self.dist2BCG = dist
         self.Lsum = self.Lr[iRadius].sum()
         self.Ngal = Ngal
         self.z_cl = z_cl
         self.z_clerr = z_clrms
         self.rdeg = r  # in degress
+        self.r1Mpc = r # naming fix for background estimates
         self.idc = idc  # galaxies used for mean redshift
         self.ID_BCG = ID_BCG
+
+        # Sort indices radially for galaxies < N*R1Mpc, will be used later
+        i = numpy.argsort(self.dist2BCG[iRadius])
+        self.ix_radial = iRadius[0][i]
 
         print(self.rdeg)
 
@@ -1040,7 +1057,6 @@ class finder:
     # Compute the Background for the clusters
     ##########################################
     def background(self, k=0):
-
         ixr = self.ix_radial
         zo = self.z_cl
 
@@ -1118,44 +1134,44 @@ class finder:
         self.Ngal_c = self.Ngal - PN_mean * area_r1Mpc
         if self.Ngal_c < 0:
             self.Ngal_c = 0.0
-        self.R200_c = 0.156 * (self.Ngal_c**0.6) / self.h  # In Mpc
-        self.r200_c = old_div((old_div(self.R200_c, self.arcmin2Mpc)), 60.0)
-        area_r200_c = math.pi * (self.r200_c * 60.)**2  # in arcmin2
-        area_r200 = math.pi * (self.r200 * 60.)**2  # in arcmin2
-        self.i200_c = numpy.where(self.dist2BCG[ixr] <= self.r200_c)
-        self.N200_c = len(self.i200_c[0]) - PN_mean * area_r200_c
-        self.L200_c = Lr[self.i200_c].sum() - PL_mean * area_r200_c
-        #self.L200_c = Lr[self.i200_c].sum() - 0.3*PL_mean*area_r200_c # 0.3 factor from old code, why????
+        # self.R200_c = 0.156 * (self.Ngal_c**0.6) / self.h  # In Mpc
+        # self.r200_c = old_div((old_div(self.R200_c, self.arcmin2Mpc)), 60.0)
+        # area_r200_c = math.pi * (self.r200_c * 60.)**2  # in arcmin2
+        # area_r200 = math.pi * (self.r200 * 60.)**2  # in arcmin2
+        # self.i200_c = numpy.where(self.dist2BCG[ixr] <= self.r200_c)
+        # self.N200_c = len(self.i200_c[0]) - PN_mean * area_r200_c
+        # self.L200_c = Lr[self.i200_c].sum() - PL_mean * area_r200_c
+        # self.L200_c = Lr[self.i200_c].sum() - 0.3*PL_mean*area_r200_c # 0.3 factor from old code, why????
 
-        #print self.Ngal
-        #print PN
-        #print r1
-        #print rcenter
-        #print R1,R2
-        #print r.min(),r.max()
-        #print "PN_mean",PN_mean
-        #print PN_bgr
-        #print area_r1Mpc
+        # print self.Ngal
+        # print PN
+        # print r1
+        # print rcenter
+        # print R1,R2
+        # print r.min(),r.max()
+        # print "PN_mean",PN_mean
+        # print PN_bgr
+        # print area_r1Mpc
         print("Ngal ", self.Ngal)
         print("Ngal_c", self.Ngal_c)
-        #print "r200_c",self.r200_c
-        #print "R200_c",self.R200_c
+        # print "r200_c",self.r200_c
+        # print "R200_c",self.R200_c
 
         # Errors for uncorrected valyes
-        dL200 = self.Lr_err[self.i200].sum()
-        self.d_Ngal = math.sqrt(self.Ngal)
-        self.d_N200 = math.sqrt(self.N200)
-        self.d_L200 = math.sqrt(dL200**2)
+        # dL200 = self.Lr_err[self.i200].sum()
+        # self.d_Ngal = math.sqrt(self.Ngal)
+        # self.d_N200 = math.sqrt(self.N200)
+        # self.d_L200 = math.sqrt(dL200**2)
 
         # We estimate the errors
-        dL200_c = self.Lr_err[self.i200_c].sum()
+        # dL200_c = self.Lr_err[self.i200_c].sum()
 
         self.d_Ngal_c2 = self.Ngal_c + (
             (old_div(area_r1Mpc, area_bgr))**2) * N_bgr
-        self.d_N200_c2 = self.N200_c + (
-            (old_div(area_r200_c, area_bgr))**2) * N_bgr
-        self.d_L200_c2 = dL200_c**2 + (
-            (old_div(area_r200_c, area_bgr))**2) * dL200_c**2
+        # self.d_N200_c2 = self.N200_c + (
+        #    (old_div(area_r200_c, area_bgr))**2) * N_bgr
+        # self.d_L200_c2 = dL200_c**2 + (
+        #    (old_div(area_r200_c, area_bgr))**2) * dL200_c**2
 
         # Avoid sqrt of negative number
         if self.d_Ngal_c2 < 0:
@@ -1164,90 +1180,90 @@ class finder:
             self.d_Ngal_c = math.sqrt(self.Ngal_c + ((old_div(
                 area_r1Mpc, area_bgr))**2) * N_bgr)
 
-        if self.d_N200_c2 < 0:
-            self.d_N200_c = 0
-        else:
-            self.d_N200_c = math.sqrt(self.N200_c + ((old_div(
-                area_r200_c, area_bgr))**2) * N_bgr)
-
-        if self.d_L200_c2 < 0:
-            self.d_L200_c = 0
-        else:
-            self.d_L200_c = math.sqrt(dL200_c**2 + ((old_div(
-                area_r200_c, area_bgr))**2) * dL200_c**2)
+        # if self.d_N200_c2 < 0:
+        #     self.d_N200_c = 0
+        # else:
+        #     self.d_N200_c = math.sqrt(self.N200_c + ((old_div(
+        #         area_r200_c, area_bgr))**2) * N_bgr)
+        #
+        # if self.d_L200_c2 < 0:
+        #     self.d_L200_c = 0
+        # else:
+        #     self.d_L200_c = math.sqrt(dL200_c**2 + ((old_div(
+        #         area_r200_c, area_bgr))**2) * dL200_c**2)
 
         # Get the mass for corrected values
-        (self.M_N200, self.M_L200, self.M_LBCG) = Mass_calib(self.N200_c,
-                                                             self.L200_c,
-                                                             self.LBCG,
-                                                             zo,
-                                                             h=self.h)
+        # (self.M_N200, self.M_L200, self.M_LBCG) = Mass_calib(self.N200_c,
+        #                                                      self.L200_c,
+        #                                                      self.LBCG,
+        #                                                      zo,
+        #                                                      h=self.h)
 
         ####################################
         # Now plot the profiles + some info
         ####################################
-        x_bg = [R1, R2]
-        yN_bg = [PN_mean, PN_mean]
-        yL_bg = [PL_mean, PL_mean]
-
-        xx = [self.r1Mpc * 60., self.r1Mpc * 60.]
-        rr = [self.r200_c * 60., self.r200_c * 60.]
-        yy = [PN.min(), PN.max()]
-        pylab.figure(10, figsize=(8, 8))
-        pylab.subplot(2, 1, 1)
-        pylab.plot(rcenter, PN, 'k-')
-        pylab.plot(rcenter, PN, 'ko')
-        pylab.plot(xx, yy, 'r-')
-        pylab.plot(rr, yy, 'y-')
-        pylab.plot(x_bg, yN_bg, 'g--')
-        pylab.text(rcenter[0], PN.min() * 1.2, self.ctile, ha='left', size=10)
-        pylab.text(self.r1Mpc * 60.0 * 1.1,
-                   PN.max() * 0.2,
-                   "R1Mpc",
-                   rotation='vertical',
-                   ha='left',
-                   size=10)
-        pylab.text(self.r200_c * 60.0 * 1.1,
-                   PN.max() * 0.2,
-                   "R200",
-                   rotation='vertical',
-                   ha='left',
-                   size=10)
-        pylab.xlabel(r'$r {\rm (arcmin)}$', fontsize=14)
-        pylab.ylabel(r'$N(r) {\rm arcmin}^{-2}$', fontsize=14)
-        pylab.loglog()
-
-        pylab.subplot(2, 1, 2)
-        pylab.plot(rcenter, PL, 'k-')
-        pylab.plot(rcenter, PL, 'ko')
-        yy = [PL.min(), PL.max()]
-        pylab.plot(xx, yy, 'r-')
-        pylab.plot(rr, yy, 'y-')
-        pylab.plot(x_bg, yL_bg, 'g--')
-        pylab.text(rcenter[0], PL.min() * 1.2, self.ctile, ha='left', size=10)
-        pylab.text(self.r1Mpc * 60.0 * 1.1,
-                   PL.max() * 0.2,
-                   "R1Mpc",
-                   rotation='vertical',
-                   ha='left',
-                   size=10)
-        pylab.text(self.r200_c * 60.0 * 1.1,
-                   PL.max() * 0.2,
-                   "R200",
-                   rotation='vertical',
-                   ha='left',
-                   size=10)
-        pylab.xlabel(r'$r {\rm (arcmin)}$', fontsize=14)
-        pylab.ylabel(r'$L(r) {\rm arcmin}^{-2}$', fontsize=14)
-        outname = os.path.join("%s_prof.pdf" % self.rootname)
-        pylab.loglog()
-        try:
-            pylab.savefig(outname)
-            pylab.close()
-            print("# L(r) and N(r) Profile on: %s" % outname)
-        except:
-            print("** ERROR: Could not write %s ***" % outname)
-            pylab.close()
+        # x_bg = [R1, R2]
+        # yN_bg = [PN_mean, PN_mean]
+        # yL_bg = [PL_mean, PL_mean]
+        #
+        # xx = [self.r1Mpc * 60., self.r1Mpc * 60.]
+        # rr = [self.r200_c * 60., self.r200_c * 60.]
+        # yy = [PN.min(), PN.max()]
+        # pylab.figure(10, figsize=(8, 8))
+        # pylab.subplot(2, 1, 1)
+        # pylab.plot(rcenter, PN, 'k-')
+        # pylab.plot(rcenter, PN, 'ko')
+        # pylab.plot(xx, yy, 'r-')
+        # pylab.plot(rr, yy, 'y-')
+        # pylab.plot(x_bg, yN_bg, 'g--')
+        # pylab.text(rcenter[0], PN.min() * 1.2, self.ctile, ha='left', size=10)
+        # pylab.text(self.r1Mpc * 60.0 * 1.1,
+        #            PN.max() * 0.2,
+        #            "R1Mpc",
+        #            rotation='vertical',
+        #            ha='left',
+        #            size=10)
+        # pylab.text(self.r200_c * 60.0 * 1.1,
+        #            PN.max() * 0.2,
+        #            "R200",
+        #            rotation='vertical',
+        #            ha='left',
+        #            size=10)
+        # pylab.xlabel(r'$r {\rm (arcmin)}$', fontsize=14)
+        # pylab.ylabel(r'$N(r) {\rm arcmin}^{-2}$', fontsize=14)
+        # pylab.loglog()
+        #
+        # pylab.subplot(2, 1, 2)
+        # pylab.plot(rcenter, PL, 'k-')
+        # pylab.plot(rcenter, PL, 'ko')
+        # yy = [PL.min(), PL.max()]
+        # pylab.plot(xx, yy, 'r-')
+        # pylab.plot(rr, yy, 'y-')
+        # pylab.plot(x_bg, yL_bg, 'g--')
+        # pylab.text(rcenter[0], PL.min() * 1.2, self.ctile, ha='left', size=10)
+        # pylab.text(self.r1Mpc * 60.0 * 1.1,
+        #            PL.max() * 0.2,
+        #            "R1Mpc",
+        #            rotation='vertical',
+        #            ha='left',
+        #            size=10)
+        # pylab.text(self.r200_c * 60.0 * 1.1,
+        #            PL.max() * 0.2,
+        #            "R200",
+        #            rotation='vertical',
+        #            ha='left',
+        #            size=10)
+        # pylab.xlabel(r'$r {\rm (arcmin)}$', fontsize=14)
+        # pylab.ylabel(r'$L(r) {\rm arcmin}^{-2}$', fontsize=14)
+        # outname = os.path.join("%s_prof.pdf" % self.rootname)
+        # pylab.loglog()
+        # try:
+        #     pylab.savefig(outname)
+        #     pylab.close()
+        #     print("# L(r) and N(r) Profile on: %s" % outname)
+        # except:
+        #     print("** ERROR: Could not write %s ***" % outname)
+        #     pylab.close()
         return
 
     #####################################
@@ -1313,7 +1329,7 @@ class finder:
         self.area_in_circle(Xo, Yo, r_pixels)
 
         pylab.draw()
-        pylab.show()
+        #pylab.show()
         return
 
     # Get the area inside circle
@@ -1329,6 +1345,7 @@ class finder:
         #####################################
         # Draw the BGCs candidates
         #####################################
+
     def ellipse_BCGs(self):
 
         ax = pylab.gca()
