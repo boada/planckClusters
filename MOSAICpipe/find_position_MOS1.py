@@ -39,7 +39,7 @@ sout = sys.stderr
 class finder:
 
     def __init__(self, ctile, maglim=25.0,
-                 pixscale=0.2666,
+                 pixscale=0.25,
                  zlim=1.8,
                  zo=None,
                  dz=0.05,
@@ -1026,7 +1026,9 @@ class finder:
                                                                       ddof=1)
         mask_cm = numpy.where(lor(c1, c2), 0, 1)  # where condition fails
         iRadius = numpy.where(
-            mask_R * mask_L1 * mask_L2 * mask_z * mask_cm == 1)
+                    mask_R * mask_L1 * mask_L2 * mask_z * mask_cm == 1)
+        iRadius_all = numpy.where(
+                    mask_L1 * mask_L2 * mask_z * mask_cm == 1)
         Ngal = len(iRadius[0])
         sout.write("# Total: %s objects selected in %s [kpc] around %s\n" %
                    (Ngal, radius, self.ID))
@@ -1045,8 +1047,8 @@ class finder:
         self.ID_BCG = ID_BCG
 
         # Sort indices radially for galaxies < N*R1Mpc, will be used later
-        i = numpy.argsort(self.dist2BCG[iRadius])
-        self.ix_radial = iRadius[0][i]
+        i = numpy.argsort(self.dist2BCG[iRadius_all])
+        self.ix_radial = iRadius_all[0][i]
 
         return z_cl, z_clrms
 
@@ -1122,7 +1124,7 @@ class finder:
         # be the correction per arcmin^2
         PN_mean = numpy.mean(PN_bgr)
         PL_mean = numpy.mean(PL_bgr)
-        print('# mean number of BG galaxies -- {}'.format(PN_mean))
+        print('mean number of BG galaxies -- {}'.format(PN_mean))
 
         # Total number in area
         N_bgr = PN_bgr.sum()
@@ -1797,38 +1799,6 @@ def PCircle(xxx_todo_changeme2, radius, resolution=100, **kwargs):
     y = ytmp + yo
     return Polygon(list(zip(x, y)), **kwargs)
 
-
-def cmdline():
-
-    from optparse import OptionParser
-
-    # Read in the command line options
-    USAGE = " usage:\t %prog <tilename> [options] \n i.e.: %prog ACT-J0102-4915  --path ~/SOAR-data/COMB"
-    parser = OptionParser(usage=USAGE)
-
-    parser.add_option(
-        "--path",
-        dest="path",
-        default=os.path.join(os.environ['HOME'], "SOAR-data/COMB"),
-        help="Path to data")
-
-    parser.add_option("--radius",
-                      dest="radius",
-                      default=1000.0,
-                      help="Radius in kpc")
-
-    parser.add_option("--zo", dest="zo", default=None, help="zo of cluster")
-    parser.add_option("--dz", dest="dz", default=0.08, help="dz of shell")
-    parser.add_option("--zuse", dest="zuse", default="ZB", help="use ZB or ML")
-    parser.add_option("--dx", dest="dx", default=-1, help="cutout width")
-    parser.add_option("--dy", dest="dy", default=-1, help="cutout heigth")
-
-    (options, args) = parser.parse_args()
-    if len(args) < 1:
-        parser.error("Must supply at least one arguments required")
-
-    return options, args
-
 #######################################
 # make an array with power law growth
 ########################################
@@ -1945,12 +1915,40 @@ def Mass_calib(N200, L200, LBCG, z, h=1.0):
 
     return M_N200, M_L200, M_LBCG
 
+def cmdline():
+
+    from optparse import OptionParser
+
+    # Read in the command line options
+    USAGE = "usage:\t %prog <tilename> [options] \n"
+    USAGE += "i.e.: %prog   --path ./PSZ2_G137.24+53.93/mosaic3/resampled/"
+    parser = OptionParser(usage=USAGE)
+
+    parser.add_option("--path", dest="path", default='./', help="Path to data")
+    parser.add_option("--radius", dest="radius", default=1000.0,
+                        help="Radius in kpc")
+    parser.add_option("--zo", dest="zo", default=None, help="zo of cluster")
+    parser.add_option("--dz", dest="dz", default=0.08, help="dz of shell")
+    parser.add_option("--zuse", dest="zuse", default="ZB", help="use ZB or ML")
+    parser.add_option("--dx", dest="dx", default=-1, help="cutout width")
+    parser.add_option("--dy", dest="dy", default=-1, help="cutout heigth")
+
+    # add a bit to figure out Mosaic1/mosaic3
+    parser.add_option("--pixscale", dest='pixelscale', default=-1,
+                        help='pixel scale of the instrument used')
+
+    (options, args) = parser.parse_args()
+    if len(args) < 1:
+        parser.error("Must supply at least one arguments required")
+
+    return options, args
+
 def main():
 
     opt, arg = cmdline()
 
-    print(opt)
-    print(arg)
+    #print(opt)
+    #print(arg)
 
     ctile = arg[0]
     radius = float(opt.radius)
@@ -1959,19 +1957,35 @@ def main():
     else:
         zo = None
 
-    f = finder(ctile, maglim=26.0,
-               zlim=1.8,
-               zo=zo,
-               dz=float(opt.dz),
-               radius=radius,
-               cosmo=(0.3, 0.7, 0.7),
-               #zuse="ZB", # Use ZB (Bayesian) or ML (Max Like)
-               zuse=opt.zuse, # Use ZB (Bayesian) or ML (Max Like)
-               outpath='plots',
-               path=opt.path,
-               evolfile="0_1gyr_hr_m62_salp.color",
-               p_lim=0.4,
-               verb='yes')
+    if opt.pixelscale < 0:
+        print('--pixelscale not defined.... trying to figure out')
+        if 'mosaic3' in opt.path:
+            print('assuming MOSAIC3')
+            pixelscale = 0.25
+        elif 'mosaic' in opt.path:
+            print('assuming MOSAIC3')
+            pixelscale = 0.2666
+        else:
+            print("pixelscale can't be determined exiting")
+            return
+    else:
+        pixelscale = opt.pixelscale
+
+    f = finder(ctile,
+                maglim=26.0,
+                pixscale=pixelscale,
+                zlim=1.8,
+                zo=zo,
+                dz=float(opt.dz),
+                radius=radius,
+                cosmo=(0.3, 0.7, 0.7),
+                #zuse="ZB", # Use ZB (Bayesian) or ML (Max Like)
+                zuse=opt.zuse, # Use ZB (Bayesian) or ML (Max Like)
+                outpath='plots',
+                path=opt.path,
+                evolfile="0_1gyr_hr_m62_salp.color",
+                p_lim=0.4,
+                verb='yes')
 
     f.jpg_read(dx=opt.dx, dy=opt.dy)
     f.jpg_display()
