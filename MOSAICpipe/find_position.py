@@ -189,13 +189,13 @@ class finder:
         sout.write("# Will use %s redshifts\n" % self.zuse)
         if self.zuse == "ML":
             z_ph = z_ml
-            t = t_ml
+            # t = t_ml
         elif self.zuse == "ZB":
             z_ph = z_b
-            t = t_b
+            # t = t_b
 
         i_lim = self.maglim
-        odds_lim = 0.80
+        odds_lim = 0.80 # not currently used -- uncomment when using
         star_lim = 0.80
 
         # Clean up according to BPZ
@@ -220,17 +220,20 @@ class finder:
 
         # Clean up by odds
         #sout.write( "# Avoiding ODDS < %s in BPZ \n" % odds_lim)
-        #odds_mask = numpy.where( odds > odds_lim, 1, 0)
+        odds_mask = numpy.where(odds > odds_lim, 1, 0)
         odds_mask = 1
 
         # Avoid z> zlim objects too.
         #sout.write( "# Avoiding objects with z > %s " % self.zlim)
-        #zp_mask = numpy.where( z_ph > self.zlim, 0 , 1)
+        zp_mask = numpy.where(z_ph > self.zlim, 0, 1)
         zp_mask = 1
 
+        # Clean up by BPZ type
+        # sout.write('# Avoiding objects with type > %s' % t)
+        tp_mask = 1
+
         # The final 'good' mask
-        mask_good = g_mask * r_mask * i_mask * z_mask * zp_mask * \
-                    odds_mask * mask_star
+        mask_good = bpz_mask * odds_mask * mask_star * zp_mask * tp_mask
         idx = numpy.where(mask_good == 1)
 
         # Make ids a Char String in numarray
@@ -789,153 +792,6 @@ class finder:
     # Modified/updated from find_clusters_ext_auto.py
     # Select galaxies around ID galaxy un redshift range
     ########################################################
-    def select_members(self, i, Mi_lim=-20.25, zo=None):
-
-        # Width of the redshift shell
-        dz = self.dz
-
-        t0 = time.time()
-        sout.write("# Selecting Cluster members... Ngal, N200, R200 \n")
-        # Get the relevant info for ith BCG
-        zo = self.z_ph[i]
-        ra0 = self.ra[i]
-        dec0 = self.dec[i]
-        Mi_BCG = self.Mi[i]
-        #DM = self.DM[i]
-        ID_BCG = self.id[i]
-        if zo:
-            print("Will use z:%.3f for cluster" % zo)
-        else:
-            zo = self.z_ph[i]
-
-        # 1 - Select in position around ra0,dec0
-        # Define 1h^-1 Mpc radius in degress @ zo
-        #R1Mpc = 1000 * 1.0 / self.h  # in kpc
-        R1Mpc = 1000 # in kpc
-        r1Mpc = astrometry.kpc2arc(zo, R1Mpc,
-                                   self.cosmo) / 3600.  # in degrees.
-        rcore = r1Mpc / 2.0
-        dist = astrometry.circle_distance(ra0,
-                                          dec0,
-                                          self.ra,
-                                          self.dec,
-                                          units='deg')
-        mask_R1Mpc = numpy.where(dist <= r1Mpc, 1, 0)
-        mask_rcore = numpy.where(dist <= rcore, 1, 0)
-        arcmin2Mpc = astrometry.arc2kpc(
-            zo, 60.0, self.cosmo) / 1000.0  # scale between arcmin and Mpc
-
-        # 2 - Select in redshift
-        z1 = zo - dz
-        z2 = zo + dz
-        mask_z = numpy.where(land(self.z_ph >= z1, self.z_ph <= z2), 1, 0)
-
-        # 3 - Select in brightness
-        Mi_lim_zo = Mi_lim + self.evf['i'](zo) - self.evf['i'](0.1)
-        mask_L1 = numpy.where(self.Mi <= Mi_lim_zo, 1, 0)  # Faint  cut > 0.4L*
-        mask_L2 = numpy.where(self.Mi >= Mi_BCG, 1, 0)  # Bright cut < L_BCG
-
-        # The final selection mask, position x redshift x Luminosity
-        #idx = numpy.where(mask_R1Mpc * mask_L1 * mask_L2 * mask_z == 1)
-        idc = numpy.where(mask_rcore * mask_L1 * mask_L2 * mask_z == 1)
-
-        # Shot versions handles
-        gr = self.gr
-        ri = self.ri
-
-        # Some simple 3-sigma clipping defined using r< rcore
-        Nsigma = 3.0
-        loop = 1
-        converge = False
-        while not converge:
-            # The conditions to apply
-            c1 = numpy.abs(gr[idc] - gr[idc].mean()) > Nsigma * numpy.std(
-                gr[idc], ddof=1)
-            c2 = numpy.abs(ri[idc] - ri[idc].mean()) > Nsigma * numpy.std(
-                ri[idc], ddof=1)
-            iclip = numpy.where(lor(c1,
-                                    c2))  # where any of the conditions fails
-            if len(iclip[0]) > 0:
-                idc = numpy.delete(idc, iclip[0])  # Removed failed ones
-                converge = False
-            else:
-                converge = True
-            loop = loop + 1
-
-        #print(idc)
-        #print(self.z_ph[idc])
-
-        # Compute the weighted average and rms
-        dz = 0.5 * numpy.abs(self.z2[idc] - self.z1[idc])
-        # Fix zeros
-        dz[dz == 0] = 1e-5
-        z_cl, z_clrms = aux.statsw(self.z_ph[idc], weight=1.0 / dz)
-        sout.write(" \t Done: %s\n" % extras.elapsed_time_str(t0))
-
-        # Or we can make a new mask where the condition's are true
-        c1 = numpy.abs(self.gr - gr[idc].mean()) > Nsigma * numpy.std(gr[idc],
-                                                                      ddof=1)
-        c2 = numpy.abs(self.ri - ri[idc].mean()) > Nsigma * numpy.std(ri[idc],
-                                                                      ddof=1)
-        mask_cm = numpy.where(lor(c1, c2), 0, 1)  # where condition fails
-        iR1Mpc = numpy.where(
-            mask_R1Mpc * mask_L1 * mask_L2 * mask_z * mask_cm == 1)
-        Ngal = len(iR1Mpc[0])
-        sout.write("# Total: %s objects selected in 1h^-1Mpc around %s\n" %
-                   (Ngal, self.ID))
-
-        ########################################################################
-        # We'll skip 200 measurement as they depend on the corrected values of
-        # Ngal
-        # Now let's get R200 and N200
-        R200 = 0.156 * (Ngal**0.6) / self.h  # In Mpc
-        r200 = astrometry.kpc2arc(zo, R200 * 1000.0,
-                                  self.cosmo) / 3600.  # in degrees.
-        mask_r200 = numpy.where(dist <= r200, 1, 0)
-        i200 = numpy.where(
-            mask_r200 * mask_L1 * mask_L2 * mask_z * mask_cm == 1)
-        N200 = len(i200[0])
-        self.i200 = i200
-        self.N200 = N200
-        self.R200 = R200
-        self.r200 = r200
-        self.L200 = self.Lr[i200].sum()
-        ########################################################################
-
-        # And the value for all galaxies up NxR1Mpc -- change if required.
-        mask_R = numpy.where(dist <= 10 * r1Mpc, 1, 0)
-        iR = numpy.where(mask_R * mask_L1 * mask_L2 * mask_z * mask_cm == 1)
-
-        # Pass up
-        self.iR = iR
-        self.iRadius = iR # naming fix
-        self.iR1Mpc = iR1Mpc
-        self.N1Mpc = Ngal
-        self.r1Mpc = r1Mpc  # in degrees
-        self.rdeg = r1Mpc # naming fix
-        self.dist2BCG = dist
-        self.arcmin2Mpc = arcmin2Mpc
-        self.Lsum = self.L200 # naming fix
-        self.Ngal = Ngal
-        self.z_cl = z_cl
-        self.z_clerr = z_clrms
-        self.idc = idc  # galaxies used for mean redshift
-        self.ID_BCG = ID_BCG
-
-        # Sort indices radially for galaxies < N*R1Mpc, will be used later
-        i = numpy.argsort(self.dist2BCG[iR])
-        self.ix_radial = iR[0][i]
-
-        print(self.rdeg)
-
-        # We want to keep i200 and iR1Mpc to write out members.
-        #return Ngal, N200, R200  # iR1Mpc,i200
-        return z_cl, z_clrms
-
-    ########################################################
-    # Modified/updated from find_clusters_ext_auto.py
-    # Select galaxies around ID galaxy un redshift range
-    ########################################################
     def select_members_radius(self, i, Mi_lim=-20.25, radius=500.0, zo=None):
 
         # Width of the redshift shell
@@ -1003,7 +859,7 @@ class finder:
                 converge = False
             else:
                 converge = True
-            loop = loop + 1
+            loop += 1
 
             # Get the average redshift within the core:
             #z_cl    = self.z_ph[idc].mean()
@@ -1057,26 +913,10 @@ class finder:
     ##########################################
     def background(self, k=0):
         ixr = self.ix_radial
-        zo = self.z_cl
 
         # No back substraction
         if self.Ngal <= 2:
             self.Ngal_c = self.Ngal
-            # self.N200_c = self.N200
-            # self.L200_c = self.L200
-            # self.R200_c = self.R200
-            # self.r200_c = self.r200
-            # self.d_Ngal = 1.0
-            # self.d_N200 = 1.0
-            # self.d_L200 = 0.0
-            # self.d_Ngal_c = 1.0
-            # self.d_N200_c = 1.0
-            # self.d_L200_c = 0.0
-            # (self.M_N200, self.M_L200, self.M_LBCG) = Mass_calib(self.N200,
-            #                                                      self.L200,
-            #                                                      self.LBCG,
-            #                                                      zo,
-            #                                                      h=self.h)
             print('Background -- Not enough galaxies found in cluster')
             return
 
@@ -1098,7 +938,6 @@ class finder:
         r2 = rbin[ir2]
         abin = math.pi * (r2**2 - r1**2)
         PN = old_div(Nbin, abin)  # Number Surface density
-        PL = old_div(Lbin, abin)  # Luminosity surface density
 
         # Compute the background median density both in Lum and Ngal
         # Between 4.0 - 9.0 r1Mpc
@@ -1117,18 +956,14 @@ class finder:
               (R1, R2))
 
         PN_bgr = PN[land(rcenter > R1, rcenter < R2)]
-        PL_bgr = PL[land(rcenter > R1, rcenter < R2)]
-        r_bgr = rcenter[land(rcenter > R1, rcenter < R2)]
 
         # Get the mean values for the Ngal and Lr profiles, which will
         # be the correction per arcmin^2
         PN_mean = numpy.mean(PN_bgr)
-        PL_mean = numpy.mean(PL_bgr)
         print('mean number of BG galaxies -- {}'.format(PN_mean))
 
         # Total number in area
         N_bgr = PN_bgr.sum()
-        L_bgr = PL_bgr.sum()
         area_bgr = math.pi * (R2**2 - R1**2)
 
         # Get the correction for Number of galaxies and Luminosoty
@@ -1138,14 +973,6 @@ class finder:
         self.Ngal_c = self.Ngal - PN_mean * area_r1Mpc
         if self.Ngal_c < 0:
             self.Ngal_c = 0.0
-        # self.R200_c = 0.156 * (self.Ngal_c**0.6) / self.h  # In Mpc
-        # self.r200_c = old_div((old_div(self.R200_c, self.arcmin2Mpc)), 60.0)
-        # area_r200_c = math.pi * (self.r200_c * 60.)**2  # in arcmin2
-        # area_r200 = math.pi * (self.r200 * 60.)**2  # in arcmin2
-        # self.i200_c = numpy.where(self.dist2BCG[ixr] <= self.r200_c)
-        # self.N200_c = len(self.i200_c[0]) - PN_mean * area_r200_c
-        # self.L200_c = Lr[self.i200_c].sum() - PL_mean * area_r200_c
-        # self.L200_c = Lr[self.i200_c].sum() - 0.3*PL_mean*area_r200_c # 0.3 factor from old code, why????
 
         # print self.Ngal
         # print PN
@@ -1161,21 +988,8 @@ class finder:
         # print "r200_c",self.r200_c
         # print "R200_c",self.R200_c
 
-        # Errors for uncorrected valyes
-        # dL200 = self.Lr_err[self.i200].sum()
-        # self.d_Ngal = math.sqrt(self.Ngal)
-        # self.d_N200 = math.sqrt(self.N200)
-        # self.d_L200 = math.sqrt(dL200**2)
-
-        # We estimate the errors
-        # dL200_c = self.Lr_err[self.i200_c].sum()
-
         self.d_Ngal_c2 = self.Ngal_c + (
             (old_div(area_r1Mpc, area_bgr))**2) * N_bgr
-        # self.d_N200_c2 = self.N200_c + (
-        #    (old_div(area_r200_c, area_bgr))**2) * N_bgr
-        # self.d_L200_c2 = dL200_c**2 + (
-        #    (old_div(area_r200_c, area_bgr))**2) * dL200_c**2
 
         # Avoid sqrt of negative number
         if self.d_Ngal_c2 < 0:
@@ -1184,90 +998,6 @@ class finder:
             self.d_Ngal_c = math.sqrt(self.Ngal_c + ((old_div(
                 area_r1Mpc, area_bgr))**2) * N_bgr)
 
-        # if self.d_N200_c2 < 0:
-        #     self.d_N200_c = 0
-        # else:
-        #     self.d_N200_c = math.sqrt(self.N200_c + ((old_div(
-        #         area_r200_c, area_bgr))**2) * N_bgr)
-        #
-        # if self.d_L200_c2 < 0:
-        #     self.d_L200_c = 0
-        # else:
-        #     self.d_L200_c = math.sqrt(dL200_c**2 + ((old_div(
-        #         area_r200_c, area_bgr))**2) * dL200_c**2)
-
-        # Get the mass for corrected values
-        # (self.M_N200, self.M_L200, self.M_LBCG) = Mass_calib(self.N200_c,
-        #                                                      self.L200_c,
-        #                                                      self.LBCG,
-        #                                                      zo,
-        #                                                      h=self.h)
-
-        ####################################
-        # Now plot the profiles + some info
-        ####################################
-        # x_bg = [R1, R2]
-        # yN_bg = [PN_mean, PN_mean]
-        # yL_bg = [PL_mean, PL_mean]
-        #
-        # xx = [self.r1Mpc * 60., self.r1Mpc * 60.]
-        # rr = [self.r200_c * 60., self.r200_c * 60.]
-        # yy = [PN.min(), PN.max()]
-        # pylab.figure(10, figsize=(8, 8))
-        # pylab.subplot(2, 1, 1)
-        # pylab.plot(rcenter, PN, 'k-')
-        # pylab.plot(rcenter, PN, 'ko')
-        # pylab.plot(xx, yy, 'r-')
-        # pylab.plot(rr, yy, 'y-')
-        # pylab.plot(x_bg, yN_bg, 'g--')
-        # pylab.text(rcenter[0], PN.min() * 1.2, self.ctile, ha='left', size=10)
-        # pylab.text(self.r1Mpc * 60.0 * 1.1,
-        #            PN.max() * 0.2,
-        #            "R1Mpc",
-        #            rotation='vertical',
-        #            ha='left',
-        #            size=10)
-        # pylab.text(self.r200_c * 60.0 * 1.1,
-        #            PN.max() * 0.2,
-        #            "R200",
-        #            rotation='vertical',
-        #            ha='left',
-        #            size=10)
-        # pylab.xlabel(r'$r {\rm (arcmin)}$', fontsize=14)
-        # pylab.ylabel(r'$N(r) {\rm arcmin}^{-2}$', fontsize=14)
-        # pylab.loglog()
-        #
-        # pylab.subplot(2, 1, 2)
-        # pylab.plot(rcenter, PL, 'k-')
-        # pylab.plot(rcenter, PL, 'ko')
-        # yy = [PL.min(), PL.max()]
-        # pylab.plot(xx, yy, 'r-')
-        # pylab.plot(rr, yy, 'y-')
-        # pylab.plot(x_bg, yL_bg, 'g--')
-        # pylab.text(rcenter[0], PL.min() * 1.2, self.ctile, ha='left', size=10)
-        # pylab.text(self.r1Mpc * 60.0 * 1.1,
-        #            PL.max() * 0.2,
-        #            "R1Mpc",
-        #            rotation='vertical',
-        #            ha='left',
-        #            size=10)
-        # pylab.text(self.r200_c * 60.0 * 1.1,
-        #            PL.max() * 0.2,
-        #            "R200",
-        #            rotation='vertical',
-        #            ha='left',
-        #            size=10)
-        # pylab.xlabel(r'$r {\rm (arcmin)}$', fontsize=14)
-        # pylab.ylabel(r'$L(r) {\rm arcmin}^{-2}$', fontsize=14)
-        # outname = os.path.join("%s_prof.pdf" % self.rootname)
-        # pylab.loglog()
-        # try:
-        #     pylab.savefig(outname)
-        #     pylab.close()
-        #     print("# L(r) and N(r) Profile on: %s" % outname)
-        # except:
-        #     print("** ERROR: Could not write %s ***" % outname)
-        #     pylab.close()
         return
 
     #####################################
