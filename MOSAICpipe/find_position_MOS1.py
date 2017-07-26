@@ -712,7 +712,6 @@ class finder:
 
         # Plot around ID's redshift
         if event.key == 'c':
-            print(self.radius)
             if self.zo:
                 self.z_ph[iclose] = self.zo
             # Select members using distance and 3sigma clipping
@@ -1049,8 +1048,6 @@ class finder:
         i = numpy.argsort(self.dist2BCG[iRadius])
         self.ix_radial = iRadius[0][i]
 
-        print(self.rdeg)
-
         return z_cl, z_clrms
 
     ##########################################
@@ -1063,21 +1060,22 @@ class finder:
         # No back substraction
         if self.Ngal <= 2:
             self.Ngal_c = self.Ngal
-            self.N200_c = self.N200
-            self.L200_c = self.L200
-            self.R200_c = self.R200
-            self.r200_c = self.r200
-            self.d_Ngal = 1.0
-            self.d_N200 = 1.0
-            self.d_L200 = 0.0
-            self.d_Ngal_c = 1.0
-            self.d_N200_c = 1.0
-            self.d_L200_c = 0.0
-            (self.M_N200, self.M_L200, self.M_LBCG) = Mass_calib(self.N200,
-                                                                 self.L200,
-                                                                 self.LBCG,
-                                                                 zo,
-                                                                 h=self.h)
+            # self.N200_c = self.N200
+            # self.L200_c = self.L200
+            # self.R200_c = self.R200
+            # self.r200_c = self.r200
+            # self.d_Ngal = 1.0
+            # self.d_N200 = 1.0
+            # self.d_L200 = 0.0
+            # self.d_Ngal_c = 1.0
+            # self.d_N200_c = 1.0
+            # self.d_L200_c = 0.0
+            # (self.M_N200, self.M_L200, self.M_LBCG) = Mass_calib(self.N200,
+            #                                                      self.L200,
+            #                                                      self.LBCG,
+            #                                                      zo,
+            #                                                      h=self.h)
+            print('Background -- Not enough galaxies found in cluster')
             return
 
         # Store radially ordered
@@ -1107,6 +1105,9 @@ class finder:
         print("# Estimating Background between R1,R2 %.2f--%2.f[arcmin]" %
               (R1, R2))
 
+        print(r)
+        print(r.max())
+
         if R2 >= r.max():
             R2 = r2.max()
             R1 = R2 - 2.0 * self.r1Mpc * 60.0
@@ -1121,6 +1122,7 @@ class finder:
         # be the correction per arcmin^2
         PN_mean = numpy.mean(PN_bgr)
         PL_mean = numpy.mean(PL_bgr)
+        print('# mean number of BG galaxies -- {}'.format(PN_mean))
 
         # Total number in area
         N_bgr = PN_bgr.sum()
