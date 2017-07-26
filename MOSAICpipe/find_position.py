@@ -195,7 +195,7 @@ class finder:
             # t = t_b
 
         i_lim = self.maglim
-        odds_lim = 0.80 # not currently used -- uncomment when using
+        odds_lim = 0.80 # not currently used
         star_lim = 0.80
 
         # Clean up according to BPZ
@@ -476,7 +476,7 @@ class finder:
             self.BCG_masked = True
 
             # Model color only once
-            self.zx = numpy.arange(0.01, self.zlim, 0.01)
+            #self.zx = numpy.arange(0.01, self.zlim, 0.01)
             self.gr_model = cosmology.color_z(sed='El_Benitez2003',
                                               filter_new='g_MOSAICII',
                                               filter_old='r_MOSAICII',
@@ -946,9 +946,6 @@ class finder:
         print("# Estimating Background between R1,R2 %.2f--%2.f[arcmin]" %
               (R1, R2))
 
-        print(r)
-        print(r.max())
-
         if R2 >= r.max():
             R2 = r2.max()
             R1 = R2 - 2.0 * self.r1Mpc * 60.0
@@ -1123,6 +1120,7 @@ class finder:
         return
 
         # Plot the redshift distribution of the members
+        
     def redshift_members(self):
         pylab.figure(3)
         pylab.hist(self.z_ph[self.iRadius])
@@ -1264,7 +1262,7 @@ class finder:
             ax.add_patch(current_ell)
 
         pylab.draw()
-        pylab.show()
+        # pylab.show()
         return
 
     # Write down all relevant redshift information
@@ -1664,8 +1662,8 @@ def cmdline():
     parser.add_option("--dy", dest="dy", default=-1, help="cutout heigth")
 
     # add a bit to figure out Mosaic1/mosaic3
-    parser.add_option("--pixscale", dest='pixelscale', default=-1,
-                        help='pixel scale of the instrument used')
+    parser.add_option("--pixelscale", dest='pixelscale', default=-1,
+        help='pixel scale of the instrument used MOS1:0.2666 or MOS3:0.25')
 
     (options, args) = parser.parse_args()
     if len(args) < 1:
@@ -1687,7 +1685,7 @@ def main():
     else:
         zo = None
 
-    if opt.pixelscale < 0:
+    if float(opt.pixelscale) < 0:
         print('--pixelscale not defined.... trying to figure out')
         if 'mosaic3' in opt.path:
             print('assuming MOSAIC3')
@@ -1699,7 +1697,7 @@ def main():
             print("pixelscale can't be determined exiting")
             return
     else:
-        pixelscale = opt.pixelscale
+        pixelscale = float(opt.pixelscale)
 
     f = finder(ctile,
                 maglim=26.0,
