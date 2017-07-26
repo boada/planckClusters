@@ -11,6 +11,7 @@ import scipy.misc as sci_misc
 import pylab
 from cosmopy import cosmopy
 import matplotlib.patches
+from past.utils import old_div
 
 try:
     import cosmology
@@ -34,7 +35,6 @@ lle = numpy.less_equal
 lor = numpy.logical_or
 
 sout = sys.stderr
-
 
 class finder:
 
@@ -106,6 +106,8 @@ class finder:
             sout.write("# Will create new folder: %s\n" % self.outpath)
             os.mkdir(self.outpath)
 
+        self.rootname = os.path.join(self.datapath, self.ctile, self.ctile)
+
         return
 
     #########################################
@@ -116,24 +118,27 @@ class finder:
         cols = (1,
                 2,
                 23,
-                26,
                 27,
+                26,
                 28,
                 29,
                 30,
                 3,
-                4,  # 5,
+                4,
                 6,
-                7,  # 8,
+                7,
                 9,
-                10,  # 11,
-                #12,13,#14,
+                10,
+                12,
+                13,
                 15,
                 16,
                 17,
                 18,
                 19,
                 20,
+                21,
+                22,
                 31,
                 32,
                 33,
@@ -148,8 +153,8 @@ class finder:
         (ra,
          dec,
          z_b,
-         t_b,
          odds,
+         t_b,
          z_ml,
          t_ml,
          chi,
@@ -159,12 +164,16 @@ class finder:
          r_err,  # r_sn,
          i,
          i_err,  # i_sn,
+         z,
+         z_err,  # z_sn,
          g_bpz,
          g_berr,
          r_bpz,
          r_berr,
          i_bpz,
          i_berr,
+         z_bpz,
+         z_berr,
          class_star,
          a_image,
          b_image,
@@ -180,47 +189,51 @@ class finder:
         sout.write("# Will use %s redshifts\n" % self.zuse)
         if self.zuse == "ML":
             z_ph = z_ml
-            #t = t_ml
+            t = t_ml
         elif self.zuse == "ZB":
             z_ph = z_b
-            #t = t_b
+            t = t_b
 
-        #i_lim = self.maglim
-        #odds_lim = 0.80
-        #star_lim = 0.80
+        i_lim = self.maglim
+        odds_lim = 0.80
+        star_lim = 0.80
 
         # Clean up according to BPZ
-        #sout.write( "# Avoiding magnitudes -99 and 99 in BPZ \n")
-        #g_mask   = numpy.where(lor( g_bpz == 99,g_bpz == -99),0,1)
-        #r_mask   = numpy.where(lor( r_bpz == 99,r_bpz == -99),0,1)
-        #i_mask   = numpy.where(lor( i_bpz == 99,i_bpz == -99),0,1)
-        #bpz_mask = g_mask*r_mask*i_mask
+        sout.write("# Avoiding magnitudes -99 and 99 in BPZ \n")
+        g_mask = numpy.where(lor(g_bpz == 99, g_bpz == -99), 0, 1)
+        r_mask = numpy.where(lor(r_bpz == 99, r_bpz == -99), 0, 1)
+        i_mask = numpy.where(lor(i_bpz == 99, i_bpz == -99), 0, 1)
+        z_mask = numpy.where(lor(z_bpz == 99, z_bpz == -99), 0, 1)
+        bpz_mask = g_mask * r_mask * i_mask * z_mask
 
         # Clean up to avoid 99 values and very faint i_mag values
-        #sout.write( "# Avoiding magnitudes 99 in MAG_AUTO \n")
+        sout.write("# Avoiding magnitudes 99 in MAG_AUTO \n")
         #g_mask = numpy.where( g >= 99,    0 , 1)
         #r_mask = numpy.where( r >= 99,    0 , 1)
         #i_mask = numpy.where( i >= i_lim, 0 , 1)
-        #sout.write( "# Avoiding magnitudes i > %s in MAG_AUTO \n" % i_lim)
+        #z_mask = numpy.where( z >= 99,    0 , 1)
+        sout.write("# Avoiding magnitudes i > %s in MAG_AUTO \n" % i_lim)
 
         # Clean by class_star
-        #sout.write( "# Avoiding CLASS_STAR > %s \n" % star_lim)
-        #mask_star = numpy.where( class_star > star_lim, 0 , 1)
+        sout.write("# Avoiding CLASS_STAR > %s \n" % star_lim)
+        mask_star = numpy.where(class_star > star_lim, 0, 1)
 
         # Clean up by odds
         #sout.write( "# Avoiding ODDS < %s in BPZ \n" % odds_lim)
         #odds_mask = numpy.where( odds > odds_lim, 1, 0)
+        odds_mask = 1
 
         # Avoid z> zlim objects too.
-        sout.write("# Avoiding objects with z > %s " % self.zlim)
-        zp_mask = numpy.where(z_ph > self.zlim, 0, 1)
+        #sout.write( "# Avoiding objects with z > %s " % self.zlim)
+        #zp_mask = numpy.where( z_ph > self.zlim, 0 , 1)
+        zp_mask = 1
 
         # The final 'good' mask
-        #mask_good = g_mask*r_mask*i_mask*zp_mask * odds_mask * mask_star
-        mask_good = zp_mask
+        #mask_good = g_mask*r_mask*i_mask*z_mask*zp_mask * odds_mask * mask_star
+        mask_good = mask_star
         idx = numpy.where(mask_good == 1)
 
-        # Make ids a Char String in numpy
+        # Make ids a Char String in numarray
         self.id = nstr.array(id)[idx]
 
         # Only keep the 'good' one, avoid -99 and 99 values in BPZ mags
@@ -228,12 +241,12 @@ class finder:
         self.dec = dec[idx]
         self.z_b = z_b[idx]
         self.odds = odds[idx]
-        self.chi = chi[idx]
 
         self.z_ml = z_ml[idx]
         self.t_ml = t_ml[idx]
         self.t_b = t_b[idx]
         self.t_ml = t_ml[idx]
+        self.chi = chi[idx]
 
         ############################################
         # Choose the photo-z to use, ml or bayesian
@@ -248,16 +261,20 @@ class finder:
         self.g = g[idx]
         self.r = r[idx]
         self.i = i[idx]
+        self.z = z[idx]
         self.g_err = g_err[idx]
         self.r_err = r_err[idx]
         self.i_err = i_err[idx]
+        self.z_err = z_err[idx]
 
         self.g_bpz = g_bpz[idx]
         self.r_bpz = r_bpz[idx]
         self.i_bpz = i_bpz[idx]
+        self.z_bpz = z_bpz[idx]
         self.g_berr = g_berr[idx]
         self.r_berr = r_berr[idx]
         self.i_berr = i_berr[idx]
+        self.z_berr = z_berr[idx]
 
         self.class_star = class_star[idx]
         self.a_image = a_image[idx]
@@ -269,6 +286,7 @@ class finder:
         # Color of selected galaxies
         self.gr = self.g_bpz - self.r_bpz
         self.ri = self.r_bpz - self.i_bpz
+        self.iz = self.i_bpz - self.z_bpz
 
         # Min and and max values in RA/DEC
         self.ramin = self.ra.min()
@@ -347,25 +365,27 @@ class finder:
         self.DM = 25.0 + 5.0 * numpy.log10(self.dlum)
 
         t0 = time.time()
-        # Get the absolute magnitudes, *** not including evolution ***, only Kcorr
+        # Get the absolute magnitudes, *not including evolution*, only Kcorr
         # We use a BPZ E's template for Kcorr
         #sout.write("# Computing absolute magnitudes interpolating Kcorr ")
         #k = Kcorr_fit(sed='El_Benitez2003')
 
         # Alternatibely we can get both the kcorr and the evol from
         # the *.color file from BC03 *.ised file
-        sout.write("# Computing absolute magnitudes "
-                   "interpolating konly from BC03 model \n")
+        sout.write("# Computing absolute magnitudes interpolating "
+                   "konly from BC03 model \n")
         k, ev = KEfit(self.evolfile)
 
         self.Mg = self.g - self.DM - k['g'](self.z_ph)
         self.Mr = self.r - self.DM - k['r'](self.z_ph)
         self.Mi = self.i - self.DM - k['i'](self.z_ph)
+        self.Mz = self.z - self.DM - k['z'](self.z_ph)
 
         sout.write("# Computing evolution ev(z) for each galaxy ")
         self.ev_g = ev['g'](self.z_ph)
         self.ev_r = ev['r'](self.z_ph)
         self.ev_i = ev['i'](self.z_ph)
+        self.ev_z = ev['z'](self.z_ph)
 
         # Also get the luminosities in Msun
         # taken from http://www.ucolick.org/~cnaw/sun.html
@@ -373,23 +393,28 @@ class finder:
         self.Msun['g'] = 5.11
         self.Msun['r'] = 4.65
         self.Msun['i'] = 4.54
+        self.Msun['z'] = 4.52
 
         # Mags k-corrected to z=0.25 as done in Reyes el al 2009
-        #Mg = self.g - self.DM  -  k['g'](self.z_ph) + k['g'](0.25)
-        #Mr = self.r - self.DM  -  k['r'](self.z_ph) + k['r'](0.25)
-        #Mi = self.i - self.DM  -  k['i'](self.z_ph) + k['i'](0.25)
+        # Mg = self.g - self.DM - k['g'](self.z_ph) + k['g'](0.25)
+        # Mr = self.r - self.DM - k['r'](self.z_ph) + k['r'](0.25)
+        # Mi = self.i - self.DM - k['i'](self.z_ph) + k['i'](0.25)
+        # Mz = self.z - self.DM - k['z'](self.z_ph) + k['z'](0.25)
 
         # Mags k-corrected
         Mg = self.g - self.DM - k['g'](self.z_ph)
         Mr = self.r - self.DM - k['r'](self.z_ph)
         Mi = self.i - self.DM - k['i'](self.z_ph)
+        Mz = self.z - self.DM - k['z'](self.z_ph)
 
         self.Lg = 10.0**(-0.4 * (Mg - self.Msun['g']))
         self.Lr = 10.0**(-0.4 * (Mr - self.Msun['r']))
         self.Li = 10.0**(-0.4 * (Mi - self.Msun['i']))
+        self.Lz = 10.0**(-0.4 * (Mz - self.Msun['z']))
         self.Lg_err = self.Lg * self.g_err / 1.0857
         self.Lr_err = self.Lr * self.r_err / 1.0857
         self.Li_err = self.Li * self.i_err / 1.0857
+        self.Lz_err = self.Lz * self.z_err / 1.0857
 
         # Pass it up to the class
         self.kcorr = k
@@ -428,14 +453,15 @@ class finder:
             star_lim = 0.8
             mask_p = numpy.where(self.p >= p_lim, 1, 0)
             mask_g = numpy.where(self.g < i_lim + 5, 1, 0)
-            mask_r = numpy.where(self.r < i_lim + 5, 1, 0)
+            mask_r = numpy.where(self.r < i_lim + 2, 1, 0)
             mask_i = numpy.where(self.i < i_lim, 1, 0)
+            mask_z = numpy.where(self.z < i_lim + 1, 1, 0)
             mask_t = numpy.where(self.type < 2.0, 1, 0)
 
             # Avoid freakishly bright objects, 2.5 mags brighter than the
             # M_BCG_limit
-            mask_br = numpy.where(self.Mr > Mr_BCG_limit - 3.5, 1, 0)
-            mask_bi = numpy.where(self.Mi > Mi_BCG_limit - 3.5, 1, 0)
+            mask_br = numpy.where(self.Mr > Mr_BCG_limit - 2.5, 1, 0)
+            mask_bi = numpy.where(self.Mi > Mi_BCG_limit - 2.5, 1, 0)
 
             # Put a more strict cut in class_star for bcg candidates
             sout.write("# Avoiding CLASS_STAR > %s in BGCs\n" % star_lim)
@@ -445,14 +471,33 @@ class finder:
             self.mask_BCG = (mask_t * mask_g * mask_r * mask_i * mask_br *
                              mask_bi * mask_p * mask_star)
             self.BCG_masked = True
+
+            # Model color only once
+            self.zx = numpy.arange(0.01, self.zlim, 0.01)
+            self.gr_model = cosmology.color_z(sed='El_Benitez2003',
+                                              filter_new='g_MOSAICII',
+                                              filter_old='r_MOSAICII',
+                                              z=self.zx,
+                                              calibration='AB')
+            self.ri_model = cosmology.color_z(sed='El_Benitez2003',
+                                              filter_new='r_MOSAICII',
+                                              filter_old='i_MOSAICII',
+                                              z=self.zx,
+                                              calibration='AB')
+            self.iz_model = cosmology.color_z(sed='El_Benitez2003',
+                                              filter_new='i_MOSAICII',
+                                              filter_old='z_MOSAICII',
+                                              z=self.zx,
+                                              calibration='AB')
+
             sout.write(" \t Done: %s\n" % extras.elapsed_time_str(t0))
 
         # Select the candidates now
         idx = numpy.where(self.mask_BCG == 1)
 
         # And pass up to to class
-        # The index number
         self.idx_BCG = idx
+        self.id_BCG = self.id[idx]
         self.ra_BCG = self.ra[idx]
         self.dec_BCG = self.dec[idx]
         self.p_BCG = self.p[idx]
@@ -472,8 +517,6 @@ class finder:
         self.a_BCG = self.a_image[idx]
         self.b_BCG = self.b_image[idx]
         self.theta_BCG = self.theta[idx]
-        self.x_BCG = self.x_image[idx]
-        self.x_BCG = self.x_image[idx]
 
         # r,i-band stuff
         self.r_BCG = self.r[idx]
@@ -669,23 +712,25 @@ class finder:
 
         # Plot around ID's redshift
         if event.key == 'c':
-            radius = self.radius
             if self.zo:
                 self.z_ph[iclose] = self.zo
             # Select members using distance and 3sigma clipping
             z_cl, z_err = self.select_members_radius(self.iclose,
-                                                     radius=radius,
+                                                     radius=self.radius,
                                                      zo=self.zo)
             z_cl, z_err = self.select_members_radius(self.iclose,
-                                                     radius=radius,
+                                                     radius=self.radius,
                                                      zo=z_cl)
             self.iBCG = self.iclose
+            self.ellipse_members()
+            self.background()
             print("\t Ngal: %d" % self.Ngal)
+            print("\t Ngal_c: %d" % self.Ngal_c)
             print("\t z_cl: %.3f +/- %.3f" % (self.z_cl, self.z_clerr))
             print("\t L   : %.3e [Lsun]" % self.Lsum)
             print("\t Mi  : %6.2f " % self.Mi[iclose])
             print("\t Mr  : %6.2f " % self.Mr[iclose])
-            self.ellipse_members()
+
             return
 
         # Plot probs
@@ -694,19 +739,29 @@ class finder:
             return
 
         if event.key == 'v':
+            try:
+                self.txt_back.remove()
+            except AttributeError:
+                pass
+            try:
+                self.txt_front.remove()
+            except AttributeError:
+                pass
+
             iclose = self.iclose
-            text = " z_cl = %.3f\n zBCG = %.3f\n Ngal = %d\n R  = %d[kpc]" % (
-                self.z_cl, self.z_ph[iclose], self.Ngal, self.radius)
+            text = "z$_{cl}$ = %.3f\nz$_{BCG}$ = %.3f\nN$_{galc}$ = %d (%d)\nR = %d[kpc]" % (
+                self.z_cl, self.z_ph[iclose], self.Ngal_c, self.Ngal, self.radius)
             xo = 80
             yo = 80
-            pylab.text(xo + 2,
+            self.txt_back = pylab.text(xo + 2,
                        self.ny - yo + 2,
                        text,
                        color='black',
                        fontsize=18)
-            pylab.text(xo, self.ny - yo, text, color='white', fontsize=18)
+            self.txt_front = pylab.text(xo, self.ny - yo, text, color='white',
+                                    fontsize=18)
             pylab.draw()
-            pylab.show()
+            #pylab.show()
             return
 
         if event.key == 'w':
@@ -714,7 +769,7 @@ class finder:
             self.write_redshift()
             self.write_members()
             pylab.savefig(self.figBname,
-                          transparent=True,
+                          transparent=False,
                           dpi=100,
                           bbox_inches='tight')
             sys.exit()
@@ -734,7 +789,7 @@ class finder:
     # Modified/updated from find_clusters_ext_auto.py
     # Select galaxies around ID galaxy un redshift range
     ########################################################
-    def select_members(self, i, Mi_lim=-20.25):
+    def select_members(self, i, Mi_lim=-20.25, zo=None):
 
         # Width of the redshift shell
         dz = self.dz
@@ -747,11 +802,16 @@ class finder:
         dec0 = self.dec[i]
         Mi_BCG = self.Mi[i]
         #DM = self.DM[i]
-        #ID_BCG = self.id[i]
+        ID_BCG = self.id[i]
+        if zo:
+            print("Will use z:%.3f for cluster" % zo)
+        else:
+            zo = self.z_ph[i]
 
         # 1 - Select in position around ra0,dec0
         # Define 1h^-1 Mpc radius in degress @ zo
-        R1Mpc = 1000 * 1.0 / self.h  # in kpc
+        #R1Mpc = 1000 * 1.0 / self.h  # in kpc
+        R1Mpc = 1000 # in kpc
         r1Mpc = astrometry.kpc2arc(zo, R1Mpc,
                                    self.cosmo) / 3600.  # in degrees.
         rcore = r1Mpc / 2.0
@@ -802,6 +862,14 @@ class finder:
                 converge = True
             loop = loop + 1
 
+        #print(idc)
+        #print(self.z_ph[idc])
+
+        # Compute the weighted average and rms
+        dz = 0.5 * numpy.abs(self.z2[idc] - self.z1[idc])
+        # Fix zeros
+        dz[dz == 0] = 1e-5
+        z_cl, z_clrms = aux.statsw(self.z_ph[idc], weight=1.0 / dz)
         sout.write(" \t Done: %s\n" % extras.elapsed_time_str(t0))
 
         # Or we can make a new mask where the condition's are true
@@ -816,7 +884,7 @@ class finder:
         sout.write("# Total: %s objects selected in 1h^-1Mpc around %s\n" %
                    (Ngal, self.ID))
 
-#############################################################################
+        ########################################################################
         # We'll skip 200 measurement as they depend on the corrected values of
         # Ngal
         # Now let's get R200 and N200
@@ -832,7 +900,7 @@ class finder:
         self.R200 = R200
         self.r200 = r200
         self.L200 = self.Lr[i200].sum()
-###########################################################################
+        ########################################################################
 
         # And the value for all galaxies up NxR1Mpc -- change if required.
         mask_R = numpy.where(dist <= 10 * r1Mpc, 1, 0)
@@ -840,18 +908,29 @@ class finder:
 
         # Pass up
         self.iR = iR
+        self.iRadius = iR # naming fix
         self.iR1Mpc = iR1Mpc
         self.N1Mpc = Ngal
-        self.r1Mpc = r1Mpc  # in degress
+        self.r1Mpc = r1Mpc  # in degrees
+        self.rdeg = r1Mpc # naming fix
         self.dist2BCG = dist
         self.arcmin2Mpc = arcmin2Mpc
+        self.Lsum = self.L200 # naming fix
+        self.Ngal = Ngal
+        self.z_cl = z_cl
+        self.z_clerr = z_clrms
+        self.idc = idc  # galaxies used for mean redshift
+        self.ID_BCG = ID_BCG
 
         # Sort indices radially for galaxies < N*R1Mpc, will be used later
         i = numpy.argsort(self.dist2BCG[iR])
         self.ix_radial = iR[0][i]
 
+        print(self.rdeg)
+
         # We want to keep i200 and iR1Mpc to write out members.
-        return Ngal, N200, R200  # iR1Mpc,i200
+        #return Ngal, N200, R200  # iR1Mpc,i200
+        return z_cl, z_clrms
 
     ########################################################
     # Modified/updated from find_clusters_ext_auto.py
@@ -930,8 +1009,8 @@ class finder:
             #z_cl    = self.z_ph[idc].mean()
             #z_clrms = self.z_ph[idc].std()
 
-        print(idc)
-        print(self.z_ph[idc])
+        #print(idc)
+        #print(self.z_ph[idc])
 
         # Compute the weighted average and rms
         dz = 0.5 * numpy.abs(self.z2[idc] - self.z1[idc])
@@ -947,7 +1026,9 @@ class finder:
                                                                       ddof=1)
         mask_cm = numpy.where(lor(c1, c2), 0, 1)  # where condition fails
         iRadius = numpy.where(
-            mask_R * mask_L1 * mask_L2 * mask_z * mask_cm == 1)
+                    mask_R * mask_L1 * mask_L2 * mask_z * mask_cm == 1)
+        iRadius_all = numpy.where(
+                    mask_L1 * mask_L2 * mask_z * mask_cm == 1)
         Ngal = len(iRadius[0])
         sout.write("# Total: %s objects selected in %s [kpc] around %s\n" %
                    (Ngal, radius, self.ID))
@@ -955,15 +1036,239 @@ class finder:
         # Pass up
         self.iRadius = iRadius
         self.arcmin2Mpc = arcmin2Mpc
+        self.dist2BCG = dist
         self.Lsum = self.Lr[iRadius].sum()
         self.Ngal = Ngal
         self.z_cl = z_cl
         self.z_clerr = z_clrms
         self.rdeg = r  # in degress
+        self.r1Mpc = r # naming fix for background estimates
         self.idc = idc  # galaxies used for mean redshift
         self.ID_BCG = ID_BCG
 
+        # Sort indices radially for galaxies < N*R1Mpc, will be used later
+        i = numpy.argsort(self.dist2BCG[iRadius_all])
+        self.ix_radial = iRadius_all[0][i]
+
         return z_cl, z_clrms
+
+    ##########################################
+    # Compute the Background for the clusters
+    ##########################################
+    def background(self, k=0):
+        ixr = self.ix_radial
+        zo = self.z_cl
+
+        # No back substraction
+        if self.Ngal <= 2:
+            self.Ngal_c = self.Ngal
+            # self.N200_c = self.N200
+            # self.L200_c = self.L200
+            # self.R200_c = self.R200
+            # self.r200_c = self.r200
+            # self.d_Ngal = 1.0
+            # self.d_N200 = 1.0
+            # self.d_L200 = 0.0
+            # self.d_Ngal_c = 1.0
+            # self.d_N200_c = 1.0
+            # self.d_L200_c = 0.0
+            # (self.M_N200, self.M_L200, self.M_LBCG) = Mass_calib(self.N200,
+            #                                                      self.L200,
+            #                                                      self.LBCG,
+            #                                                      zo,
+            #                                                      h=self.h)
+            print('Background -- Not enough galaxies found in cluster')
+            return
+
+        # Store radially ordered
+        r = self.dist2BCG[ixr] * 60.0  # in arcmin
+        Lr = self.Lr[ixr]  # We do in the r-band as Reyes et al
+
+        # Bin the Ngal/Lum data in log spacing
+        n = 10
+        rbin = mklogarray(0.0, r.max(), n)
+        Nbin, rcenter = histo(r, rbin, center='yes')
+        Lbin, rcenter = bin_data(r, Lr, rbin, center='yes')
+
+        # Compute the area in each shell
+        ir = numpy.indices(rbin.shape)[0]
+        ir1 = ir[:-1]
+        ir2 = ir[1:]
+        r1 = rbin[ir1]
+        r2 = rbin[ir2]
+        abin = math.pi * (r2**2 - r1**2)
+        PN = old_div(Nbin, abin)  # Number Surface density
+        PL = old_div(Lbin, abin)  # Luminosity surface density
+
+        # Compute the background median density both in Lum and Ngal
+        # Between 4.0 - 9.0 r1Mpc
+        R1 = 4.0 * self.r1Mpc * 60.0
+        R2 = 9.0 * self.r1Mpc * 60.0
+        print("# Estimating Background between R1,R2 %.2f--%2.f[arcmin]" %
+              (R1, R2))
+
+        print(r)
+        print(r.max())
+
+        if R2 >= r.max():
+            R2 = r2.max()
+            R1 = R2 - 2.0 * self.r1Mpc * 60.0
+        print("# Estimating Background between R1,R2 %.2f--%2.f[arcmin]" %
+              (R1, R2))
+
+        PN_bgr = PN[land(rcenter > R1, rcenter < R2)]
+        PL_bgr = PL[land(rcenter > R1, rcenter < R2)]
+        r_bgr = rcenter[land(rcenter > R1, rcenter < R2)]
+
+        # Get the mean values for the Ngal and Lr profiles, which will
+        # be the correction per arcmin^2
+        PN_mean = numpy.mean(PN_bgr)
+        PL_mean = numpy.mean(PL_bgr)
+        print('mean number of BG galaxies -- {}'.format(PN_mean))
+
+        # Total number in area
+        N_bgr = PN_bgr.sum()
+        L_bgr = PL_bgr.sum()
+        area_bgr = math.pi * (R2**2 - R1**2)
+
+        # Get the correction for Number of galaxies and Luminosoty
+        # For R200 we need to recompute R200 and N200 based on new
+        # R200 value.
+        area_r1Mpc = math.pi * (self.r1Mpc * 60.)**2  # in arcmin2
+        self.Ngal_c = self.Ngal - PN_mean * area_r1Mpc
+        if self.Ngal_c < 0:
+            self.Ngal_c = 0.0
+        # self.R200_c = 0.156 * (self.Ngal_c**0.6) / self.h  # In Mpc
+        # self.r200_c = old_div((old_div(self.R200_c, self.arcmin2Mpc)), 60.0)
+        # area_r200_c = math.pi * (self.r200_c * 60.)**2  # in arcmin2
+        # area_r200 = math.pi * (self.r200 * 60.)**2  # in arcmin2
+        # self.i200_c = numpy.where(self.dist2BCG[ixr] <= self.r200_c)
+        # self.N200_c = len(self.i200_c[0]) - PN_mean * area_r200_c
+        # self.L200_c = Lr[self.i200_c].sum() - PL_mean * area_r200_c
+        # self.L200_c = Lr[self.i200_c].sum() - 0.3*PL_mean*area_r200_c # 0.3 factor from old code, why????
+
+        # print self.Ngal
+        # print PN
+        # print r1
+        # print rcenter
+        # print R1,R2
+        # print r.min(),r.max()
+        # print "PN_mean",PN_mean
+        # print PN_bgr
+        # print area_r1Mpc
+        print("Ngal ", self.Ngal)
+        print("Ngal_c", self.Ngal_c)
+        # print "r200_c",self.r200_c
+        # print "R200_c",self.R200_c
+
+        # Errors for uncorrected valyes
+        # dL200 = self.Lr_err[self.i200].sum()
+        # self.d_Ngal = math.sqrt(self.Ngal)
+        # self.d_N200 = math.sqrt(self.N200)
+        # self.d_L200 = math.sqrt(dL200**2)
+
+        # We estimate the errors
+        # dL200_c = self.Lr_err[self.i200_c].sum()
+
+        self.d_Ngal_c2 = self.Ngal_c + (
+            (old_div(area_r1Mpc, area_bgr))**2) * N_bgr
+        # self.d_N200_c2 = self.N200_c + (
+        #    (old_div(area_r200_c, area_bgr))**2) * N_bgr
+        # self.d_L200_c2 = dL200_c**2 + (
+        #    (old_div(area_r200_c, area_bgr))**2) * dL200_c**2
+
+        # Avoid sqrt of negative number
+        if self.d_Ngal_c2 < 0:
+            self.d_Ngal_c = 0
+        else:
+            self.d_Ngal_c = math.sqrt(self.Ngal_c + ((old_div(
+                area_r1Mpc, area_bgr))**2) * N_bgr)
+
+        # if self.d_N200_c2 < 0:
+        #     self.d_N200_c = 0
+        # else:
+        #     self.d_N200_c = math.sqrt(self.N200_c + ((old_div(
+        #         area_r200_c, area_bgr))**2) * N_bgr)
+        #
+        # if self.d_L200_c2 < 0:
+        #     self.d_L200_c = 0
+        # else:
+        #     self.d_L200_c = math.sqrt(dL200_c**2 + ((old_div(
+        #         area_r200_c, area_bgr))**2) * dL200_c**2)
+
+        # Get the mass for corrected values
+        # (self.M_N200, self.M_L200, self.M_LBCG) = Mass_calib(self.N200_c,
+        #                                                      self.L200_c,
+        #                                                      self.LBCG,
+        #                                                      zo,
+        #                                                      h=self.h)
+
+        ####################################
+        # Now plot the profiles + some info
+        ####################################
+        # x_bg = [R1, R2]
+        # yN_bg = [PN_mean, PN_mean]
+        # yL_bg = [PL_mean, PL_mean]
+        #
+        # xx = [self.r1Mpc * 60., self.r1Mpc * 60.]
+        # rr = [self.r200_c * 60., self.r200_c * 60.]
+        # yy = [PN.min(), PN.max()]
+        # pylab.figure(10, figsize=(8, 8))
+        # pylab.subplot(2, 1, 1)
+        # pylab.plot(rcenter, PN, 'k-')
+        # pylab.plot(rcenter, PN, 'ko')
+        # pylab.plot(xx, yy, 'r-')
+        # pylab.plot(rr, yy, 'y-')
+        # pylab.plot(x_bg, yN_bg, 'g--')
+        # pylab.text(rcenter[0], PN.min() * 1.2, self.ctile, ha='left', size=10)
+        # pylab.text(self.r1Mpc * 60.0 * 1.1,
+        #            PN.max() * 0.2,
+        #            "R1Mpc",
+        #            rotation='vertical',
+        #            ha='left',
+        #            size=10)
+        # pylab.text(self.r200_c * 60.0 * 1.1,
+        #            PN.max() * 0.2,
+        #            "R200",
+        #            rotation='vertical',
+        #            ha='left',
+        #            size=10)
+        # pylab.xlabel(r'$r {\rm (arcmin)}$', fontsize=14)
+        # pylab.ylabel(r'$N(r) {\rm arcmin}^{-2}$', fontsize=14)
+        # pylab.loglog()
+        #
+        # pylab.subplot(2, 1, 2)
+        # pylab.plot(rcenter, PL, 'k-')
+        # pylab.plot(rcenter, PL, 'ko')
+        # yy = [PL.min(), PL.max()]
+        # pylab.plot(xx, yy, 'r-')
+        # pylab.plot(rr, yy, 'y-')
+        # pylab.plot(x_bg, yL_bg, 'g--')
+        # pylab.text(rcenter[0], PL.min() * 1.2, self.ctile, ha='left', size=10)
+        # pylab.text(self.r1Mpc * 60.0 * 1.1,
+        #            PL.max() * 0.2,
+        #            "R1Mpc",
+        #            rotation='vertical',
+        #            ha='left',
+        #            size=10)
+        # pylab.text(self.r200_c * 60.0 * 1.1,
+        #            PL.max() * 0.2,
+        #            "R200",
+        #            rotation='vertical',
+        #            ha='left',
+        #            size=10)
+        # pylab.xlabel(r'$r {\rm (arcmin)}$', fontsize=14)
+        # pylab.ylabel(r'$L(r) {\rm arcmin}^{-2}$', fontsize=14)
+        # outname = os.path.join("%s_prof.pdf" % self.rootname)
+        # pylab.loglog()
+        # try:
+        #     pylab.savefig(outname)
+        #     pylab.close()
+        #     print("# L(r) and N(r) Profile on: %s" % outname)
+        # except:
+        #     print("** ERROR: Could not write %s ***" % outname)
+        #     pylab.close()
+        return
 
     #####################################
     # Draw the BGCs and cluster members
@@ -1028,7 +1333,7 @@ class finder:
         self.area_in_circle(Xo, Yo, r_pixels)
 
         pylab.draw()
-        pylab.show()
+        #pylab.show()
         return
 
     # Get the area inside circle
@@ -1044,6 +1349,7 @@ class finder:
         #####################################
         # Draw the BGCs candidates
         #####################################
+
     def ellipse_BCGs(self):
 
         ax = pylab.gca()
@@ -1369,11 +1675,13 @@ def KEfit(modelfile):
     k['g'] = scipy.interpolate.interp1d(z, k_g)
     k['r'] = scipy.interpolate.interp1d(z, k_r)
     k['i'] = scipy.interpolate.interp1d(z, k_i)
+    k['z'] = scipy.interpolate.interp1d(z, k_z)
 
     # Evolution term alone
     e['g'] = scipy.interpolate.interp1d(z, e_g)
     e['r'] = scipy.interpolate.interp1d(z, e_r)
     e['i'] = scipy.interpolate.interp1d(z, e_i)
+    e['z'] = scipy.interpolate.interp1d(z, e_z)
 
     return k, e
 
@@ -1458,7 +1766,6 @@ def mi_star(z, cosmo=(0.3, 0.7, 0.7)):
 # Fake an ellipse using an N-sided polygon
 #####################################################
 
-
 def PEllipse(xxx_todo_changeme,
              xxx_todo_changeme1,
              resolution=100,
@@ -1479,7 +1786,6 @@ def PEllipse(xxx_todo_changeme,
     y = xtmp * sin(angle) + ytmp * cos(angle) + yo
     return Polygon(list(zip(x, y)), **kwargs)
 
-
 ##############################
 # A circle as a polygon too
 ###############################
@@ -1493,31 +1799,143 @@ def PCircle(xxx_todo_changeme2, radius, resolution=100, **kwargs):
     y = ytmp + yo
     return Polygon(list(zip(x, y)), **kwargs)
 
+#######################################
+# make an array with power law growth
+########################################
+def mklogarray(x1, x2, n):
+
+    if x1 > 0:
+        i = numpy.indices((n + 1, ))[0] * 1.0
+        x = x1 * (old_div(x2, x1))**(old_div(i, n))
+        #dx = x1*( (x2/x1)**(i/n) - (x2/x1)**((i-1)/n))
+
+    elif x1 == 0:
+        i = numpy.indices((n, ))[0] * 1.0 + 1
+        x = numpy.zeros((n + 1, ))
+        #x[1:] = x2**(i/n)
+        dx = (x2 + 1)**(old_div(i, n)) - (x2 + 1)**(old_div((i - 1), n))
+        x[1:] = dx.cumsum()
+    else:
+        print("ERROR, x < 0")
+        return
+
+    return x
+
+
+#################################################
+# Make histogram using xbin, gives the same
+# results as numpy.histogram
+#################################################
+def histo(x, xbin, center=None):
+
+    n = len(xbin) - 1
+
+    nbin = numpy.zeros(n).astype(int16)
+    for i in range(n):
+        if i == 0:
+            nbin[i] = len(numpy.where(land(x >= xbin[i], x <= xbin[i + 1]))[
+                0])
+        else:
+            nbin[i] = len(numpy.where(land(x > xbin[i], x <= xbin[i + 1]))[
+                0])
+    # Center and reduce to n-1
+    if center:
+        ix = numpy.indices(xbin.shape)[0]
+        i1 = ix[:-1]
+        i2 = ix[1:]
+        dx = xbin[i2] - xbin[i1]
+        xbin = xbin[:-1] + old_div(dx, 2.0)
+
+    return nbin, xbin
+
+
+################################################################
+# Bin data in y(n) acoording to x(n) using bin spacing in xbin
+###############################################################
+def bin_data(x, y, xbin, center=None):
+
+    n = len(xbin) - 1
+    ybin = numpy.zeros(n).astype(float64)
+    for i in range(n):
+        if i == 0:
+            idx = numpy.where(land(x >= xbin[i], x <= xbin[i + 1]))
+        else:
+            idx = numpy.where(land(x > xbin[i], x <= xbin[i + 1]))
+        ybin[i] = y[idx].sum()
+    # Center and reduce to n-1
+    if center:
+        ix = numpy.indices(xbin.shape)[0]
+        i1 = ix[:-1]
+        i2 = ix[1:]
+        dx = xbin[i2] - xbin[i1]
+        xbin = xbin[:-1] + old_div(dx, 2.0)
+
+    return ybin, xbin
+
+def Mass_calib(N200, L200, LBCG, z, h=1.0):
+
+    # The best fit parameters
+    if z < 0.23:
+        M0_N = 1.27
+        M0_L = 1.81
+        alphaN = 1.20
+        alphaL = 1.27
+        gammaN = 0.71
+        gammaL = 0.40
+        aN = old_div(1.54, h**2)
+        #aL     = 7.77/h**2 # bad value
+        aL = old_div(0.61, h**2)
+        bN = 0.41
+        bL = 0.67
+
+    else:
+        M0_N = 1.57
+        M0_L = 1.76
+        alphaN = 1.12
+        alphaL = 1.30
+        gammaN = 0.34
+        gammaL = 0.26
+        aN = old_div(1.64, h**2)
+        #aL     = 7.92/h**2 # bad value
+        aL = old_div(0.58, h**2)
+        bN = 0.43
+        bL = 0.66
+
+    L200 = L200 * (h**2) / 1.e10
+    LBCG = LBCG * (h**2) / 1.e10
+
+    LBCG_N = aN * N200**bN
+    LBCG_L = aL * L200**bL
+
+    M_N200 = (old_div(1.e14, h)) * M0_N * (
+        (old_div(N200, 20.0))**alphaN) * (old_div(LBCG, LBCG_N))**gammaN
+    M_L200 = (old_div(1.e14, h)) * M0_L * (
+        (old_div(L200, 40.0))**alphaL) * (old_div(LBCG, LBCG_L))**gammaL
+    M_LBCG = (old_div(1.e14, h)) * 1.07 * (old_div(LBCG, 5.0))**1.10
+
+    return M_N200, M_L200, M_LBCG
 
 def cmdline():
 
     from optparse import OptionParser
 
     # Read in the command line options
-    USAGE = " usage:\t %prog <tilename> [options] \n i.e.: %prog ACT-J0102-4915  --path ~/SOAR-data/COMB"
+    USAGE = "usage:\t %prog <tilename> [options] \n"
+    USAGE += "i.e.: %prog   --path ./PSZ2_G137.24+53.93/mosaic3/resampled/"
     parser = OptionParser(usage=USAGE)
 
-    parser.add_option(
-        "--path",
-        dest="path",
-        default=os.path.join(os.environ['HOME'], "SOAR-data/COMB"),
-        help="Path to data")
-
-    parser.add_option("--radius",
-                      dest="radius",
-                      default=1000.0,
-                      help="Radius in kpc")
-
+    parser.add_option("--path", dest="path", default='./', help="Path to data")
+    parser.add_option("--radius", dest="radius", default=1000.0,
+                        help="Radius in kpc")
     parser.add_option("--zo", dest="zo", default=None, help="zo of cluster")
     parser.add_option("--dz", dest="dz", default=0.08, help="dz of shell")
     parser.add_option("--zuse", dest="zuse", default="ZB", help="use ZB or ML")
     parser.add_option("--dx", dest="dx", default=-1, help="cutout width")
     parser.add_option("--dy", dest="dy", default=-1, help="cutout heigth")
+
+    # add a bit to figure out Mosaic1/mosaic3
+    parser.add_option("--pixscale", dest='pixelscale', default=-1,
+                        help='pixel scale of the instrument used')
 
     (options, args) = parser.parse_args()
     if len(args) < 1:
@@ -1525,13 +1943,12 @@ def cmdline():
 
     return options, args
 
-
 def main():
 
     opt, arg = cmdline()
 
-    print(opt)
-    print(arg)
+    #print(opt)
+    #print(arg)
 
     ctile = arg[0]
     radius = float(opt.radius)
@@ -1540,19 +1957,35 @@ def main():
     else:
         zo = None
 
-    f = finder(ctile, maglim=26.0,
-               zlim=1.8,
-               zo=zo,
-               dz=float(opt.dz),
-               radius=radius,
-               cosmo=(0.3, 0.7, 0.7),
-               #zuse="ZB", # Use ZB (Bayesian) or ML (Max Like)
-               zuse=opt.zuse, # Use ZB (Bayesian) or ML (Max Like)
-               outpath='plots',
-               path=opt.path,
-               evolfile="0_1gyr_hr_m62_salp.color",
-               p_lim=0.4,
-               verb='yes')
+    if opt.pixelscale < 0:
+        print('--pixelscale not defined.... trying to figure out')
+        if 'mosaic3' in opt.path:
+            print('assuming MOSAIC3')
+            pixelscale = 0.25
+        elif 'mosaic' in opt.path:
+            print('assuming MOSAIC3')
+            pixelscale = 0.2666
+        else:
+            print("pixelscale can't be determined exiting")
+            return
+    else:
+        pixelscale = opt.pixelscale
+
+    f = finder(ctile,
+                maglim=26.0,
+                pixscale=pixelscale,
+                zlim=1.8,
+                zo=zo,
+                dz=float(opt.dz),
+                radius=radius,
+                cosmo=(0.3, 0.7, 0.7),
+                #zuse="ZB", # Use ZB (Bayesian) or ML (Max Like)
+                zuse=opt.zuse, # Use ZB (Bayesian) or ML (Max Like)
+                outpath='plots',
+                path=opt.path,
+                evolfile="0_1gyr_hr_m62_salp.color",
+                p_lim=0.4,
+                verb='yes')
 
     f.jpg_read(dx=opt.dx, dy=opt.dy)
     f.jpg_display()
