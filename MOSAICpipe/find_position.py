@@ -39,7 +39,7 @@ sout = sys.stderr
 class finder:
 
     def __init__(self, ctile, maglim=25.0,
-                 pixscale=0.25,
+                 pixscale=0.2666,
                  zlim=1.8,
                  zo=None,
                  dz=0.05,
@@ -229,8 +229,8 @@ class finder:
         zp_mask = 1
 
         # The final 'good' mask
-        #mask_good = g_mask*r_mask*i_mask*z_mask*zp_mask * odds_mask * mask_star
-        mask_good = mask_star
+        mask_good = g_mask * r_mask * i_mask * z_mask * zp_mask * \
+                    odds_mask * mask_star
         idx = numpy.where(mask_good == 1)
 
         # Make ids a Char String in numarray
@@ -468,8 +468,8 @@ class finder:
             mask_star = numpy.where(self.class_star <= star_lim, 1, 0)
 
             # Construct the final mask now
-            self.mask_BCG = (mask_t * mask_g * mask_r * mask_i * mask_br *
-                             mask_bi * mask_p * mask_star)
+            self.mask_BCG = (mask_t * mask_g * mask_r * mask_i * mask_z *
+                                mask_br * mask_bi * mask_p * mask_star)
             self.BCG_masked = True
 
             # Model color only once
