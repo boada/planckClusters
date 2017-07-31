@@ -1,13 +1,11 @@
 import numpy as np
-from astropy.io import fits
 from astropy import coordinates as coords
 from astroquery.sdss import SDSS
 import os
 from itertools import cycle
 
 # get file data
-data =\
-np.genfromtxt('../../PSZ2_unconfirmed_catalog_4NOAO_2016A_newSwift-PSZ2_unconfirmed_catalog_4NOAO_.csv',
+data = np.genfromtxt('../../PSZ2_unconfirmed_catalog - Master.csv',
            delimiter=',', names=True, dtype=None)
 
 # check to see if we are continuing
@@ -43,8 +41,8 @@ for i, (ra, dec, name) in enumerate(zip(data['RA'], data['Dec'],
         if os.path.isfile('./%s/%s_sdss_%s_%s.fits' % (name, name, band,
                                                        counter)):
             HDU.writeto('./%s/%s_sdss_%s_%s.fits' % (name, name, band,
-                                                     counter+1), clobber=True)
-            if band =='z':
+                                                     counter + 1), clobber=True)
+            if band == 'z':
                 counter += 1
         else:
             HDU.writeto('./%s/%s_sdss_%s_%s.fits' % (name, name, band,

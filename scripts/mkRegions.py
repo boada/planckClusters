@@ -3,6 +3,7 @@ import os
 from numpy import genfromtxt
 import sys
 
+
 def mk_regions(dir):
     if not os.path.isdir(dir):
         print('argument is not a directory')
@@ -11,7 +12,9 @@ def mk_regions(dir):
     for coords in os.listdir(dir):
         if coords.endswith('.csv'):
             print(coords)
-            d = genfromtxt('{}/{}'.format(dir,coords), names=True, dtype=None,
+            d = genfromtxt('{}/{}'.format(dir, coords),
+                           names=True,
+                           dtype=None,
                            delimiter=',')
             with open(coords.rstrip('csv') + 'reg', 'wt') as f1:
                 f1.writelines('# Region file formart: DS9 version 4.1\n')
@@ -25,6 +28,7 @@ def mk_regions(dir):
 
             f1.close()
 
+
 def mk_regions_array(output, ra, dec, info, tag='regions'):
     with open(output, 'wt') as f:
         f.writelines('# Region file formart: DS9 version 4.1\n')
@@ -36,6 +40,7 @@ def mk_regions_array(output, ra, dec, info, tag='regions'):
             f.writelines('# width=2 ')
             f.writelines('text={{{:.3f}}} '.format(i))
             f.writelines('tag={{{}}}\n'.format(tag))
+
 
 if __name__ == "__main__":
     mk_regions(sys.argv[1])
