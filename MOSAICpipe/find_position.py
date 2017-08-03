@@ -540,7 +540,7 @@ class finder:
     ##################################################
     # Read in the jpg file and corresponding fitsfile
     ##################################################
-    def jpg_read(self, dx=1200, dy=1200):
+    def jpg_read(self, dx=1200, dy=1200, RA=None, DEC=None):
 
         # The fitsfile with the wcs information
         self.fitsfile = os.path.join(self.datapath, self.ctile + 'i.fits')
@@ -562,16 +562,40 @@ class finder:
             self.dx = float(dx)
             self.dy = float(dy)
 
-        #self.xcenter = self.nx / 2.0
-        #self.ycenter = self.ny / 2.0
-        self.xo = self.nx / 2.0
-        self.yo = self.ny / 2.0
+        if isinstance(RA, str) and isinstance(DEC, str):
+            if ':' in RA and ':' in DEC:
+                RA = astrometry.hms2dec(RA)
+                DEC = astrometry.deg2dec(DEC)
+                self.xo, self.yo = astrometry.rd2xy(RA, DEC, self.fitsfile)
+                yo_tmp = self.yo
+            else:
+                RA = float(RA)
+                DEC = float(DEC)
+        if isinstance(RA, float) and isinstance(DEC, float):
+            self.xo = RA
+            self.yo = DEC
+            yo_tmp = self.yo
+        elif RA is None and DEC is None:
+            self.xo = self.nx / 2.0
+            self.yo = self.ny / 2.0
+            yo_tmp = self.yo
+        else:
+            print('Center not understood')
+            sys.exit()
+
+        # a little fix when not centered -- it has something to do with the way
+        # the image is being displayed. Without this fix, the the catalog is in
+        # the correct non-centered position, but the image was off. This fixes
+        # that bug, but I didn't think hard enough to understand why.
+        self.yo = self.ny - yo_tmp
 
         # Select the limits of the image to display
         x1 = int(self.xo - self.dx)
         x2 = int(self.xo + self.dx)
         y1 = int(self.yo - self.dy)
         y2 = int(self.yo + self.dy)
+
+        self.yo = yo_tmp
 
         # Get the region to use for plotting
         self.jpg_region = self.jpg_array[y1:y2, x1:x2, :]
@@ -633,6 +657,7 @@ class finder:
     def jpg_display(self):
 
         # Measure time
+        pylab.close(1)
         t0 = time.time()
         print("Displaying... be patient", file=sys.stderr)
         # Display
@@ -752,8 +777,13 @@ class finder:
                 pass
 
             iclose = self.iclose
-            text = "z$_{cl}$ = %.3f\nz$_{BCG}$ = %.3f\nN$_{galc}$ = %d (%d)\nR = %d[kpc]" % (
-                self.z_cl, self.z_ph[iclose], self.Ngal_c, self.Ngal, self.radius)
+            text = "z$_{cl}$ = %.3f\n" \
+                    "z$_{BCG}$ = %.3f\n" \
+                    "N$_{galc}$ = %d (%d)\n" \
+                    "R = %d[kpc]" % (self.z_cl, self.z_ph[iclose],
+                                                           self.Ngal_c,
+                                                           self.Ngal,
+                                                           self.radius)
             xo = 80
             yo = 80
             self.txt_back = pylab.text(xo + 2,
@@ -777,6 +807,11 @@ class finder:
                           bbox_inches='tight')
             sys.exit()
             return
+
+        if event.key == 'h':
+            xloc, yloc = self.click(event)
+            self.jpg_read(dx=self.dx, dy=self.dy, RA=xloc, DEC=yloc)
+            self.jpg_display()
 
         # Print info
         self.click(event)
@@ -1119,8 +1154,7 @@ class finder:
         self.ID = self.id[self.iclose]
         return
 
-        # Plot the redshift distribution of the members
-        
+    # Plot the redshift distribution of the members
     def redshift_members(self):
         pylab.figure(3)
         pylab.hist(self.z_ph[self.iRadius])
@@ -1185,8 +1219,6 @@ class finder:
         xo = self.xo
         yo = self.yo
 
-        #ximage = event.xdata
-        #yimage = self.ny - event.ydata
         ximage = event.xdata + (self.xo - self.dx)
         yimage = (self.ny - event.ydata) + (self.yo - self.dy)
 
@@ -1198,7 +1230,7 @@ class finder:
         RA = astrometry.dec2deg(ra / 15)
         DEC = astrometry.dec2deg(dec)
         print("ra,dec,filename", RA, DEC, self.fitsfile)
-        return  # event.xdata,event.ydata
+        return ximage, yimage
 
     def handle_ellipses(self, event, figure=1):
 
@@ -1493,7 +1525,6 @@ def mi_star(z, cosmo=(0.3, 0.7, 0.7)):
 ####################################################
 # Fake an ellipse using an N-sided polygon
 #####################################################
-
 def PEllipse(xxx_todo_changeme,
              xxx_todo_changeme1,
              resolution=100,
@@ -1660,6 +1691,10 @@ def cmdline():
     parser.add_option("--zuse", dest="zuse", default="ZB", help="use ZB or ML")
     parser.add_option("--dx", dest="dx", default=-1, help="cutout width")
     parser.add_option("--dy", dest="dy", default=-1, help="cutout heigth")
+    parser.add_option("--RA", dest="RA", default=None,
+                      help="Center Right Ascension - x pixel or SEX RA")
+    parser.add_option("--DEC", dest="DEC", default=None,
+                      help="Center Declination - y pixel or SEX DEC")
 
     # add a bit to figure out Mosaic1/mosaic3
     parser.add_option("--pixelscale", dest='pixelscale', default=-1,
@@ -1715,7 +1750,7 @@ def main():
                 p_lim=0.4,
                 verb='yes')
 
-    f.jpg_read(dx=opt.dx, dy=opt.dy)
+    f.jpg_read(dx=opt.dx, dy=opt.dy, RA=opt.RA, DEC=opt.DEC)
     f.jpg_display()
 
     return
