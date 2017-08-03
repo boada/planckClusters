@@ -297,6 +297,35 @@ def deg2dec(deg, sep=":"):
 
     return dd + mm + ss
 
+def hms2dec(RAString, delimiter=':'):
+    """Converts a delimited string of Hours:Minutes:Seconds format into decimal
+    degrees.
+
+    @type RAString: string
+    @param RAString: coordinate string in H:M:S format
+    @type delimiter: string
+    @param delimiter: delimiter character in RAString
+    @rtype: float
+    @return: coordinate in decimal degrees
+
+    """
+    # is it in HH:MM:SS format?
+    if delimiter == "":
+        RABits = str(RAString).split()
+    else:
+        RABits = str(RAString).split(delimiter)
+    if len(RABits) > 1:
+        RAHDecimal = float(RABits[0])
+        if len(RABits) > 1:
+            RAHDecimal = RAHDecimal + (float(RABits[1]) / 60.0)
+        if len(RABits) > 2:
+            RAHDecimal = RAHDecimal + (float(RABits[2]) / 3600.0)
+        RADeg = (RAHDecimal / 24.0) * 360.0
+    else:
+        RADeg = float(RAString)
+
+    return RADeg
+
 
 # From decimal to degress, array or scalar
 def dec2deg(dec, short=None, sep=":"):
