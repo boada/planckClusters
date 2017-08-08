@@ -398,7 +398,12 @@ class combcat:
 
         return
 
-    def swarp_newfirm(self, conf='SWarp-common.conf'):
+    def swarp_newfirm(self,
+                    conf="SWarp-common-newfirm.conf",
+                    dryrun=None,
+                    combtype="MEDIAN",
+                    reSWarp=None,
+                    filters=None):
         ''' This runs swarp on the stacked newfirm images to make sure they are
         in the same projection as the mosaic images. Right now, it needs to
         have the stacked data from the VO. In the future,  I might create my
@@ -418,47 +423,33 @@ class combcat:
 
         # link this file into the newfirm directory and change the name
         # check first
-        newfirm_dir = '../../newfirm/stacked/'
+        #newfirm_dir = '../../newfirm/stacked/'
+        newfirm_dir = '../../newfirm/resampled/'
         if not os.path.isdir(newfirm_dir):
             return
+        else:
+            cwd = os.getcwd()
+            os.chdir(newfirm_dir)
 
-        # make sure the images aren't compressed
-        imgs = glob('{}*.fz'.format(newfirm_dir))
-        inputs = [] # catch the input files if there is more than one
-        print(imgs)
-        if len(imgs) < 1:
-            # check for uncompressed images
-                imgs = glob('{}*.fits'.format(newfirm_dir))
-                if len(imgs) < 1:
-                    print('No NEWFIRM images found!')
-                    return
+        # Read the association file
+        print(os.getcwd)
+        self.noSWarp = False
+        self.read_assoc()
 
-        for img in imgs:
-            with fits.open(img) as kimg:
-                try:
-                    prod_type = kimg[0].header['prodtype']
-                except KeyError:
-                    try:
-                        prod_type = kimg[1].header['prodtype']
-                    except KeyError:
-                        print('Something is wrong with the images!')
-                        return
-            print(prod_type)
-            if 'image' in prod_type:
-                # use funpack to decompress items
-                os.system('funpack -v {}'.format(img))
-                img = img.rstrip('.fz')
-                inputs.append(img)
-            else:
-                continue
+        # try:
+        #     relpath = os.path.relpath('./', newfirm_dir)
+        #     print(relpath)
+        #     os.symlink('{}/{}'.format(relpath, center),
+        #             '{}{}K.head'.format(newfirm_dir, self.tilename))
+        # except FileExistsError:
+        #     pass
 
-        try:
-            relpath = os.path.relpath('./', newfirm_dir)
-            print(relpath)
-            os.symlink('{}/{}'.format(relpath, center),
-                    '{}{}K.head'.format(newfirm_dir, self.tilename))
-        except FileExistsError:
-            pass
+        if not filters:
+            filters = self.filters
+
+        self.make_swarp_input_weights(clobber=False)
+        self.combtype = combtype
+        self.get_FLXSCALE(magbase=26)
 
         # Keys to keep
         keywords = ['OBJECT', 'EXPTIME', 'AIRMASS', 'TIMESYS', 'DATE-OBS',
@@ -466,22 +457,69 @@ class combcat:
                     'DETECTOR', 'DARKTIME', 'RA', 'DEC', 'MJD-OBS', 'INSTRUME',
                     'FILTER', 'MAGZERO', 'MAGZSIG']
 
-        # remember the space behind each addition.
-        cmd = 'swarp {} -c {} '.format(','.join(inputs), _conf)
-        cmd += '-IMAGEOUT_NAME {}{}K.fits '.format(newfirm_dir,
-                                                self.tilename)
-        cmd += '-SUBTRACT_BACK N -WRITE_XML N '
-        cmd += '-COPY_KEYWORDS ' + ','.join(keywords)
+        pars = {}
+        pars["IMAGE_SIZE"] = "%s,%s" % (self.nx, self.ny)
+        pars["CENTER_TYPE"] = "MANUAL"
+        pars["CENTER"] = "%s,%s" % (self.xo, self.yo)
+        pars["PIXEL_SCALE"] = self.pixscale
+        pars["PIXELSCALE_TYPE"] = "MANUAL"
+        #pars["FSCALE_KEYWORD"]  = "FLXSCALE"
+        pars["COPY_KEYWORDS"] = ','.join(keywords)
+        pars["COMBINE_TYPE"] = combtype
+        pars["NTHREADS"] = "0"
+        pars["WEIGHT_TYPE"] = "MAP_WEIGHT"
 
-        print(cmd)
-        os.system(cmd)
+        # The options
+        opts = ""
+        for param, value in list(pars.items()):
+            opts = opts + "-%s %s " % (param, value)
 
-        # clean up decompressed files
-        for i in inputs:
-            os.remove('{}'.format(i))
+        self.combima = {}
+        self.weightima = {}
+        cmd = ""
+        for filter in filters:
 
-        # correct the header information to make sure floats are floats and
-        # not strings
+            pars[""] = "@%s" % (self.flxscale[filter])
+
+            outimage = "%s%s.fits" % (self.tilename, filter)
+            # We only want the i-band weight to save space
+            if filter == 'i':
+                outweight = "%s%s_weight.fits" % (self.tilename, filter)
+            else:
+                outweight = "coadd.weight.fits"
+
+            # Store the names
+            self.combima[filter] = "%s%s" % (self.tilename, filter)
+            self.weightima[filter] = "%s%s_weight.fits" % (self.tilename,
+                                                           filter)
+
+            filelist = ' '.join(self.files[filter])
+
+            cmd = "swarp %s -c %s -IMAGEOUT_NAME %s -WEIGHTOUT_NAME %s " %\
+                (filelist, _conf, outimage, outweight)
+            cmd += " -WEIGHT_IMAGE %s" % (
+                "'[1]',".join(self.files_weight[filter])) + "'[1]' "
+            #cmd += " -WEIGHT_SUFFIX .weight.fits'[0]'"
+            cmd = cmd + " -FSCALE_DEFAULT %s " % (
+                ",".join(map(str, self.flxscale[filter])))
+            cmd = cmd + opts
+
+            if not dryrun:
+                print("# Will run:\n\t%s" % cmd)
+                os.system(cmd)
+                AM = self.calc_airmass(filter)
+                put_airmass(outimage, AM)
+                ET = self.calc_exptime(filter)
+                put_exptime(outimage, ET)
+
+                # make sure the header keywords have been propigated. This is
+                # important for the astro and flux calibration
+                put_headerKeywords(self.files[filter][0], outimage, keywords,
+                                   self.xo, self.yo)
+
+            else:
+                print(cmd)
+
         with fits.open('{}{}K.fits'.format(newfirm_dir, self.tilename),
                     mode='update') as f:
             header = f[0].header
@@ -1314,7 +1352,7 @@ def put_headerKeywords(origFile, newFile, keywords, ra, dec):
             oHDR = oF[0].header # original header
             nHDR = nF[0].header # new header
 
-            print('# Updating %s with new keywords')
+            print('# Updating {} with new keywords'.format(newFile))
             for kw in keywords:
                 try:
                     nHDR[kw]
