@@ -353,6 +353,11 @@ class combcat:
                 ET = self.calc_exptime(filter)
                 put_exptime(outimage, ET)
 
+                # make sure the header keywords have been propigated. This is
+                # important for the astro and flux calibration
+                put_headerKeywords(self.files[filter][0], outimage, keywords,
+                                   self.xo, self.yo)
+
             else:
                 print(cmd)
 
@@ -836,6 +841,8 @@ class combcat:
                         'CRVAL' in key or 'CRPIX' in key or \
                             'EQUINOX' in key:
                         f[0].header[key] = float(val)
+                    if 'PV' in key:
+                        f[0].header[key] = str(val)
 
         return
 
@@ -880,8 +887,8 @@ class combcat:
                         zeropt = self.magbase
                         self.combcat[filter] = self.combima[filter] + ".cat"
                     except AttributeError:
-                        #self.get_FLXSCALE(self, filename=input)
-                        zeropt = 26
+                        self.get_FLXSCALE(self, filename=input)
+                        #zeropt = 26
                         self.combcat[filter] = self.combima[filter] + ".cat"
                 else:
                     self.combcat[filter] = self.combima[filter] + "_cal.cat"

@@ -242,14 +242,16 @@ class combcat:
 
         return
 
-    def get_FLXSCALE(self, magbase=30, filename=None, filter=None):
+    def get_FLXSCALE(self, magbase=30, filename=None):
         ''' I don't really know what this function is supposed to do. '''
 
         print("# Computing FLXSCALE for magbase=%s" % magbase)
         self.magbase = magbase
         self.flxscale = {}
         for filter in self.filters:
+
             self.flxscale[filter] = []
+
             if not filename:
                 for fname in self.files[filter]:
                     header = getheader(fname)
@@ -257,14 +259,13 @@ class combcat:
                     zp = header['MAGZERO']
                     flxscale = 10.0**(0.4 * (magbase - zp))
                     self.flxscale[filter].append(flxscale)
-        if filename:
-            self.flxscale[filter] = []
-            header = getheader(filename)
-            zp = header['MAGZERO']
-            flxscale = 10.0**(0.4 * (magbase - zp))
-            self.flxscale[filter].append(flxscale)
+            if filename:
+                header = getheader(filename)
+                zp = header['MAGZERO']
+                flxscale = 10.0**(0.4 * (magbase - zp))
 
         return
+
 
     def swarp_files(self,
                     conf="SWarp-common.conf",
@@ -720,8 +721,7 @@ class combcat:
             pass
 
         # make the diagnostics file too
-        with open('diagnostics.html', 'a') as f:
-            pass
+        open('diagnostics.html', 'a').close()
 
         try:
             if ':' in self.xo or ':' in self.yo:
@@ -890,6 +890,7 @@ class combcat:
                         self.combcat[filter] = self.combima[filter] + ".cat"
                     except AttributeError:
                         self.get_FLXSCALE(self, filename=input)
+                        #zeropt = 26
                         self.combcat[filter] = self.combima[filter] + ".cat"
                 else:
                     self.combcat[filter] = self.combima[filter] + "_cal.cat"
@@ -1146,6 +1147,28 @@ class combcat:
 
             cfile.write('M_0\t%s\n' % n_mo)
         return
+
+    def cleanCatalogs(self):
+        ''' This function takes all of the sextractor and newly created color
+        catalogs and cleans them to make sure there are no horrible detections.
+        Horrible detections include things where the detection image doesn't
+        overlap with the other image. This causes us to get crazy magnitudes
+        that don't make any sense. So throw those away. I am going to clean
+        both the color catalog, and the Sextractor catalogs. The color catalogs
+        will get -99 (for now), but it might be better to just remove them all
+        together.
+
+        '''
+
+        from astropy.io import ascii
+
+        color = ascii.read('{}.color'.format(self.tilename))
+        for filter in self.filters:
+            sex_cat = ascii.read(self.combcat[filter])
+            # find all the spots where the FWHM == 0.
+            fwhm_idx = np.where(sex_cat['FWHM_IMAGE'] == 0.0)[0]
+            color['{}_MOSAICII_MAG_ISO'.format(filter)][fwhm_idx] = -99.
+            color['{}_MOSAICII_MAGERR_ISO'.format(filter)][fwhm_idx] = 0.
 
     # Run Benitez BPZ
     def runBPZ(self, Specz=True):
