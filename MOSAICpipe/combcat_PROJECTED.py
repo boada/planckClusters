@@ -810,40 +810,11 @@ class combcat:
             if not self.dryrun:
                 os.system(cmd)
 
-        # here we'll do the NEWFIRM sextracting
-        # link this file into the newfirm directory and change the name
-        # check first
-        newfirm_dir = '../../newfirm/stacked/'
-        if not os.path.isdir(newfirm_dir):
-            return
-
-        input = '{}{}K.fits'.format(newfirm_dir, self.tilename)
-        output = '{}K_cal.cat'.format(self.tilename)
-
-        with fits.open(input) as f:
-            header = f[0].header
-            zeropt = header['magzero']
-
-        # Do the SEx
-        cmd = "sex {},{} -CATALOG_NAME {}".format(det_ima, input, output)
-        cmd += " -MAG_ZEROPOINT {} -c {} {}1>&2".format(zeropt,
-                                                        self.SExinpar, opts)
-
-        print(cmd)
-        if not self.dryrun:
-            os.system(cmd)
-
-        # append the K-band filter and catalog information
-        #self.filters.append('K')
-        #self.combcat['K'] = output
-        #self.XCorr['K'] = 0.0
-        #self.XCorrError['K'] = 0.0
-
         return
 
     # Build th color catalog to use when computing the photo-z
     # Adapted from JHU APSIS pipeline
-    def BuildColorCat(self):
+    def BuildColorCat(self, newfirm=True):
 
         # The default output names
         self.colorCat = self.tilename + ".color"
@@ -869,27 +840,15 @@ class combcat:
         detection_variables = tableio.get_data(detCatalog,
                                                detectionColumns)
 
-        # Check to see if there is NEWFIRM imaging, and if so, add it to the
-        # filter list.
-        newfirm_dir = '../../newfirm/stacked/'
-        if not os.path.isdir(newfirm_dir):
-            pass
-        else:
-            kband = '{}{}K.fits'.format(newfirm_dir, self.tilename)
-
         # Read in the MAG_ISO and MAG_ISOERR from each catalog
         for filter in self.filters:
+            if not newfirm and filter == 'K':
+                continue
             # get the zeropoint Info
-            if not filter == 'K':
-                tmp = np.genfromtxt('photometry_control_star_{}.dat'.format(
-                                    filter), names=True, dtype=None)
-                zpoint = tmp['ZP']
-                zp_error = tmp['ZP_sig']
-            else:
-                with fits.open(kband) as f:
-                    header = f[0].header
-                    zpoint = header['magzero']
-                    zp_error = header['magzsig']
+            tmp = np.genfromtxt('photometry_control_star_{}.dat'.format(
+                                filter), names=True, dtype=None)
+            zpoint = tmp['ZP']
+            zp_error = tmp['ZP_sig']
 
             # Get the columns
             sexcols = SEx_head(self.combcat[filter], verb=None)
@@ -981,6 +940,8 @@ class combcat:
             # Prepare the data
         vars = list(detection_variables)
         for filter in self.filters:
+            if not newfirm and filter == 'K':
+                continue
             vars.append(m[filter])
             vars.append(em[filter])
 
@@ -1004,17 +965,13 @@ class combcat:
 
             i = len(detection_variables)
             for filter in self.filters:
+                if not newfirm and filter == 'K':
+                    continue
                 # Get the zeropoint information
-                if not filter == 'K':
-                    tmp = np.genfromtxt('photometry_control_star_{}.dat'.format(
-                                        filter), names=True, dtype=None)
-                    zpoint = tmp['ZP']
-                    zp_error = tmp['ZP_sig']
-                else:
-                    with fits.open(kband) as f:
-                        header = f[0].header
-                        zpoint = header['magzero']
-                        zp_error = header['magzsig']
+                tmp = np.genfromtxt('photometry_control_star_{}.dat'.format(
+                                    filter), names=True, dtype=None)
+                zpoint = tmp['ZP']
+                zp_error = tmp['ZP_sig']
 
                 if filter == 'i':
                     n_mo = str(i + 1)
