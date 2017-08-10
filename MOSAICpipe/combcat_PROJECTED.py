@@ -189,7 +189,7 @@ class combcat:
         # First we need to get the center for all the files, swarp them all
         opts = {}
 
-        opts["PIXEL_SCALE"] = self.pixscale
+        #opts["PIXEL_SCALE"] = self.pixscale
         opts["RESAMPLING_TYPE"] = "LANCZOS3"
         opts["CENTER_TYPE"] = "ALL"
         opts["NTHREADS"] = "0"
@@ -237,13 +237,17 @@ class combcat:
         x_center = dec2sex(x_center / 15)
         y_center = dec2sex(y_center)
 
+        pixscale = header['CD1_1'] * 3600
+
         print("\tImage Size:  %s x %s" % (nx, ny))
         print("\tCentered on: %s   %s" % (x_center, y_center))
+        print("\t Pixelscale: %s" % (pixscale))
 
         self.nx = nx
         self.ny = ny
         self.xo = x_center
         self.yo = y_center
+        self.pixscale = pixscale
 
         # Store wether center was done....
         if not filter:
@@ -677,7 +681,12 @@ class combcat:
                                   0.5]
 
                 for kw, val in zip(keywords, values):
-                    mos[0].header[kw] = val
+                    for kw in keywords:
+                        # only update if they don't exist
+                        try:
+                            mos[0].header[kw]
+                        except KeyError:
+                            mos[0].header[kw] = val
 
                 #####################################################
                 ##### HACK TO MAKE THE ZEROPOINT ERRORS SMALLER #####
@@ -693,7 +702,7 @@ class combcat:
 
         for filter in self.filters:
             mosaic = '{}.fits'.format(self.combima[filter])
-            cmd = 'pp_calibrate -minstars 25 {}'.format(mosaic)
+            cmd = 'pp_calibrate {}'.format(mosaic)
 
             if not self.dryrun:
                 os.system(cmd)
@@ -814,7 +823,7 @@ class combcat:
 
     # Build th color catalog to use when computing the photo-z
     # Adapted from JHU APSIS pipeline
-    def BuildColorCat(self, newfirm=True):
+    def BuildColorCat(self, newfirm=False):
 
         # The default output names
         self.colorCat = self.tilename + ".color"
