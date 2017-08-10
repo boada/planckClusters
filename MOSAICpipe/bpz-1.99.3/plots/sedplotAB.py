@@ -123,7 +123,7 @@ class bpzPlots(object):
             x, y = list(map(float, tuple(split(id_str), ',')))
             x_cat, y_cat = get_data(self.cat, xy_cols)
             self.id = argmin(dist(x_cat, y_cat, x, y)) + 1
-        elif id_str == None:
+        elif id_str.any() == None:
             self.id = None
         else:
             if id_str[-2:] == '.i':
@@ -158,7 +158,7 @@ class bpzPlots(object):
         id = all[:, 0]  #ID column
 
         #Get the row which contains the ID number we are interested in
-        if self.id == None:
+        if self.id.any() == None:
             self.id = id  # DEFAULT: DO 'EM ALL
         if type(self.id) == str:
             i_ids = [str2num(self.id[1:]) - 1]
