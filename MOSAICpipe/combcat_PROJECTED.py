@@ -190,6 +190,7 @@ class combcat:
         opts = {}
 
         #opts["PIXEL_SCALE"] = self.pixscale
+        opts["PIXELSCALE_TYPE"] = "MAX"
         opts["RESAMPLING_TYPE"] = "LANCZOS3"
         opts["CENTER_TYPE"] = "ALL"
         opts["NTHREADS"] = "0"
@@ -237,17 +238,17 @@ class combcat:
         x_center = dec2sex(x_center / 15)
         y_center = dec2sex(y_center)
 
-        pixscale = header['CD1_1'] * 3600
+        pixscale = abs(header['CD1_1'] * 3600)
 
         print("\tImage Size:  %s x %s" % (nx, ny))
         print("\tCentered on: %s   %s" % (x_center, y_center))
-        print("\t Pixelscale: %s" % (pixscale))
+        print("\t Pixelscale: %.4f" % (pixscale))
 
         self.nx = nx
         self.ny = ny
         self.xo = x_center
         self.yo = y_center
-        self.pixscale = pixscale
+        self.pixscale = float('{0:.4f}'.format(pixscale))
 
         # Store wether center was done....
         if not filter:
@@ -615,7 +616,15 @@ class combcat:
         subprocs = []
         for filter in self.filters:
             mosaic = '{}.fits'.format(self.combima[filter])
-            cmd = 'pp_prepare -ra {} -dec {} {}'.format(self.xo, self.yo, mosaic)
+            if self.pixscale == 0.25:
+                cmd = 'pp_prepare -ra {} -dec {} -telescope {} {}'.format(
+                    self.xo, self.yo, 'KPNO4MOS3', mosaic)
+            elif self.pixscale == 0.2666:
+                cmd = 'pp_prepare -ra {} -dec {} -telescope {} {}'.format(
+                    self.xo, self.yo, 'KPNO4MOS1', mosaic)
+            else:
+                cmd = 'pp_prepare -ra {} -dec {} {}'.format(
+                    self.xo, self.yo, mosaic)
 
             if not self.dryrun:
                 print(cmd)
@@ -1716,23 +1725,25 @@ def add_extra_photometry(tilename, filters=['u']):
     # read in the sdss catalog. We are doing this first because we only need to
     # do it once
     try:
-        cat = ascii.read('/home/boada/Projects/planckClusters/scripts/SDSS/'
-                '{}_SDSS_catalog.csv'.format(tilename))
+        cat = ascii.read('/home/boada/Projects/'
+                         'planckClusters/data/extern/SDSS/{}/'
+                         '{}_SDSS_catalog.csv'.format(tilename, tilename))
         sdss = True
         ps1 = False
         if len(cat) < 2:
-            print('# SDSS CATALOG NOT FOUND! -- TRYING PS1')
+            print('# SDSS CATALOG TOO SHORT! -- TRYING PS1')
             sdss = False
     except FileNotFoundError:
         sdss = False
         print('# SDSS CATALOG NOT FOUND! -- TRYING PS1')
     if not sdss:
         try:
-            cat = ascii.read('/home/boada/Projects/planckClusters/scripts/PS1/'
-                    '{}_PS1_catalog.csv'.format(tilename))
+            cat = ascii.read('/home/boada/Projects/'
+                             'planckClusters/data/extern/PS1/{}/'
+                             '{}_PS1_catalog.csv'.format(tilename, tilename))
             ps1 = True
             if len(cat) < 2:
-                print('# PS1 TOO SHORT!')
+                print('# PS1 CATALOG TOO SHORT!')
                 return
         except FileNotFoundError:
             print('# PS1 CATALOG NOT FOUND!')
