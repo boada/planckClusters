@@ -682,11 +682,15 @@ class combcat:
             with fits.open(mosaic, mode='update') as mos:
                 keywords = ['TEL_KEYW', 'TELINSTR', 'MIDTIMJD', 'SECPIXY',
                             'SECPIXX', 'PHOT_K']
-                if filter != 'K':
+
+                if self.pixscale == 0.25:
+                    values = ['KPNO4MOS3', 'KPNO4m/MOSAIC', 0.0, 0.25, 0.25,
+                                  0.5]
+                elif self.pixscale == 0.2666:
                     values = ['KPNO4MOS1', 'KPNO4m/MOSAIC', 0.0, 0.2666, 0.2666,
                                   0.5]
                 else:
-                    values = ['KPNO4NEWF', 'KPNO4m/NEWFIRM', 0.0, 0.2666, 0.2666,
+                    values = ['KPNO4NEWF', 'KPNO4m/NEWFIRM', 0.0, 0.4, 0.4,
                                   0.5]
 
                 for kw, val in zip(keywords, values):
@@ -700,9 +704,17 @@ class combcat:
                 #####################################################
                 ##### HACK TO MAKE THE ZEROPOINT ERRORS SMALLER #####
                 #####################################################
-                mos[0].header['GAIN'] = 1.
+                if filter != 'K':
+                    mos[0].header['GAIN'] = 1.
 
-            cmd = 'pp_photometry -snr 10 -aprad 5.7 {}'.format(mosaic)
+            if filter != 'K':
+                cmd = 'pp_photometry -snr 10 -aprad 5.7 {}'.format(mosaic)
+            elif self.pixscale == 0.25:
+                cmd = 'pp_photometry -snr 10 -aprad 16 {}'.format(mosaic)
+            elif self.pixscale == 0.2666:
+                cmd = 'pp_photometry -snr 10 -aprad 15 {}'.format(mosaic)
+            elif self.pixscale == 0.4:
+                cmd = 'pp_photometry -snr 10 -aprad 10 {}'.format(mosaic)
 
             if not self.dryrun:
                 subprocs.append(subprocess.Popen(shlex.split(cmd)))
@@ -1507,8 +1519,9 @@ def match_SEx(tilename, filters):
     # read in the sdss catalog. We are doing this first because we only need to
     # do it once
     try:
-        sdss_cat = ascii.read('/home/boada/Projects/planckClusters/scripts/SDSS/'
-                '{}_SDSS_catalog.csv'.format(tilename))
+        sdss_cat = ascii.read('/home/boada/Projects/'
+                         'planckClusters/data/extern/SDSS/{}/'
+                         '{}_SDSS_catalog.csv'.format(tilename, tilename))
         if len(sdss_cat) < 2:
             print('# SDSS TOO SHORT!')
             return
@@ -1516,8 +1529,9 @@ def match_SEx(tilename, filters):
         print('# SDSS CATALOG NOT FOUND!')
         return
     try:
-        ps1_cat = ascii.read('/home/boada/Projects/planckClusters/scripts/PS1/'
-                '{}_PS1_catalog.csv'.format(tilename))
+        ps1_cat = ascii.read('/home/boada/Projects/'
+                         'planckClusters/data/extern/PS1/{}/'
+                         '{}_SDSS_catalog.csv'.format(tilename, tilename))
         if len(ps1_cat) < 2:
             print('# PS1 TOO SHORT!')
             return
@@ -1660,8 +1674,9 @@ def add_Speczs(tilename):
 
     # match the catalogs
     try:
-        sdss_cat = ascii.read('/home/boada/Projects/planckClusters/scripts/SDSS/'
-                '{}_SDSS_catalog.csv'.format(tilename))
+        sdss_cat = ascii.read('/home/boada/Projects/'
+                         'planckClusters/data/extern/SDSS/{}/'
+                         '{}_SDSS_catalog.csv'.format(tilename, tilename))
         if len(sdss_cat) < 2:
             return
     except FileNotFoundError:
