@@ -630,7 +630,7 @@ class combcat:
                 print(cmd)
                 subprocs.append(subprocess.Popen(shlex.split(cmd)))
 
-        [p.wait() for p in subprocs]
+        [p.wait(timeout=600) for p in subprocs]
         [i.kill() for i in subprocs]
 
         for filter in self.filters:
@@ -641,8 +641,7 @@ class combcat:
             if not self.dryrun:
                 subprocs.append(subprocess.Popen(shlex.split(cmd)))
 
-        [p.wait() for p in subprocs]
-
+        [p.wait(timeout=600) for p in subprocs]
         [i.kill() for i in subprocs]
 
         return
