@@ -402,10 +402,9 @@ class combcat:
                 (filelist, _conf, outimage, outweight)
             cmd += " -WEIGHT_IMAGE %s " % (
                 ",".join(self.files_weight[filter]))
-            #cmd += " -WEIGHT_SUFFIX .weight.fits'[0]'"
-            cmd = cmd + " -FSCALE_DEFAULT %s " % (
+            cmd += " -FSCALE_DEFAULT %s " % (
                 ",".join(map(str, self.flxscale[filter])))
-            cmd = cmd + opts
+            cmd += opts
 
             if not dryrun:
                 print("# Will run:\n\t%s" % cmd)
