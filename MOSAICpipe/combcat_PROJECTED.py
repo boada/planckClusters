@@ -85,6 +85,7 @@ class combcat:
 
         with open(self.assocfile, 'r') as assocfile:
             lines = assocfile.readlines()
+            subprocs = []
             for line in lines:
                 if line[0] == "#":
                     continue
@@ -96,7 +97,48 @@ class combcat:
                 if '.fz' in fname:
                     fname = fname.rstrip('.fz')
                     if not os.path.isfile(fname) and not self.noSWarp:
-                        os.system('funpack -v {}.fz'.format(fname))
+                        subprocs.append(subprocess.Popen(
+                            shlex.split('funpack -v {}.fz'.format(fname))))
+
+                # Figure out the dqmask
+                if 'tu' in fname:
+                    i = 1
+                    while True:
+                        nid = int(os.path.splitext(fname)[0][2:]) + i
+                        ext = os.path.splitext(fname)[1]
+                        pre = fname[0:2]
+                        dqmask = "%s%s%s" % (pre, nid, ext)
+                        if os.path.isfile('{}.fz'.format(dqmask)):
+                            break
+                        else:
+                            print('Looking...')
+                            i += 1
+                    if not os.path.isfile(dqmask) and not self.noSWarp:
+                        subprocs.append(subprocess.Popen(
+                            shlex.split('funpack -v {}.fz'.format(dqmask))))
+                elif 'k4' in fname:
+                    dqmask = fname.replace('opi', 'opd')
+                    if not os.path.isfile(dqmask) and not self.noSWarp:
+                        subprocs.append(subprocess.Popen(
+                            shlex.split('funpack -v {}.fz'.format(dqmask))))
+
+            [p.wait() for p in subprocs]
+            [i.kill() for i in subprocs]
+
+        with open(self.assocfile, 'r') as assocfile:
+            lines = assocfile.readlines()
+            for line in lines:
+                if line[0] == "#":
+                    continue
+
+                vals = line.split()
+                fname = os.path.basename(vals[0])
+
+                # hack to deal with compressed files in the association
+                if '.fz' in fname:
+                    fname = fname.rstrip('.fz')
+                    #if not os.path.isfile(fname) and not self.noSWarp:
+                    #os.system('funpack -v {}.fz'.format(fname))
 
                 filtername = vals[1]
                 self.exptime[fname] = float(vals[2])
@@ -116,11 +158,15 @@ class combcat:
                             print('Looking...')
                             i += 1
                     if not os.path.isfile(dqmask) and not self.noSWarp:
-                        os.system('funpack -v {}.fz'.format(dqmask))
+                        pass
+                        #os.system('funpack -v {}.fz'.format(dqmask))
+                        #subprocs.append('funpack -v {}.fz'.format(dqmask))
                 elif 'k4' in fname:
                     dqmask = fname.replace('opi', 'opd')
                     if not os.path.isfile(dqmask) and not self.noSWarp:
-                        os.system('funpack -v {}.fz'.format(dqmask))
+                        pass
+                        #os.system('funpack -v {}.fz'.format(dqmask))
+                        #subprocs.append('funpack -v {}.fz'.format(dqmask))
 
                 # make a list of the file names
                 self.filelist.append(fname)
