@@ -845,8 +845,7 @@ class combcat:
                         zeropt = self.magbase
                         self.combcat[filter] = self.combima[filter] + ".cat"
                     except AttributeError:
-                        self.get_FLXSCALE(self, filename=input)
-                        #zeropt = 26
+                        zeropt = 26
                         self.combcat[filter] = self.combima[filter] + ".cat"
                 else:
                     self.combcat[filter] = self.combima[filter] + "_cal.cat"
@@ -856,7 +855,7 @@ class combcat:
                     zeropt = self.magbase
                     self.combcat[filter] = self.combima[filter] + ".cat"
                 except AttributeError:
-                    self.get_FLXSCALE(self, filename=input)
+                    zeropt = 26
                     self.combcat[filter] = self.combima[filter] + ".cat"
 
             output = self.combcat[filter]
