@@ -192,7 +192,7 @@ class combcat:
                         else:
                             self.files_weight[filtername].append(
                                 "%s.weight.fits'[0]'" %
-                                    os.path.splitext(fname)[0])
+                                os.path.splitext(fname)[0])
 
                 self.exptimes[filtername].append(self.exptime[fname])
 
@@ -288,7 +288,7 @@ class combcat:
 
         print("\tImage Size:  %s x %s" % (nx, ny))
         print("\tCentered on: %s   %s" % (x_center, y_center))
-        print("\t Pixelscale: %.4f" % (pixscale))
+        print("\tPixelscale: %.4f" % (pixscale))
 
         self.nx = nx
         self.ny = ny
@@ -417,7 +417,7 @@ class combcat:
                 # make sure the header keywords have been propigated. This is
                 # important for the astro and flux calibration
                 put_headerKeywords(self.files[filter][0], outimage, keywords,
-                                   self.xo, self.yo)
+                                self.xo, self.yo)
 
             else:
                 print(cmd)
@@ -738,12 +738,11 @@ class combcat:
                                   0.5]
 
                 for kw, val in zip(keywords, values):
-                    for kw in keywords:
-                        # only update if they don't exist
-                        try:
-                            mos[0].header[kw]
-                        except KeyError:
-                            mos[0].header[kw] = val
+                    # only update if they don't exist
+                    try:
+                        mos[0].header[kw]
+                    except KeyError:
+                        mos[0].header[kw] = val
 
                 #####################################################
                 ##### HACK TO MAKE THE ZEROPOINT ERRORS SMALLER #####
@@ -2112,8 +2111,8 @@ def main():
     # SWarp
     if not opt.noSWarp:
         c.swarp_files(dryrun=opt.noSWarp,
-                  conf="SWarp-common.conf",
-                  combtype=opt.combtype)
+                      conf="SWarp-common.conf",
+                      combtype=opt.combtype)
 
     if opt.noSWarp:
         c.get_filenames()
