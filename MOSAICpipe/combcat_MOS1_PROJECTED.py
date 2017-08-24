@@ -535,7 +535,7 @@ class combcat:
                     f[0].header[key] = float(val)
 
         return
-        
+
     # Put correction
     def header_FSCALE(self, filters=None, dm=0.05):
 
