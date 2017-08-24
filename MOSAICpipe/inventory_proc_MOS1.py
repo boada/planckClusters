@@ -24,7 +24,7 @@ for d in dirs:
     rawdir = './{}/mosaic/resampled'.format(d)
     outdir = '.'
 
-    pattern = "*.fits"
+    pattern = "*.fits.fz"
 
 # Go to the directory
     try:
