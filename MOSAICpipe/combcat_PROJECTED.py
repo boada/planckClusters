@@ -1632,9 +1632,10 @@ def match_SEx(tilename, filters):
 
         # merge the matches
         cat['sdss_objid'][idxc] = sdss_cat['objid'][idxs]
-        cat['sdss_{}'.format(filter)][idxc] = sdss_cat[filter][idxs]
+        cat['sdss_{}'.format(filter)][idxc] = sdss_cat[
+                                            'fiberMag_{}'.format(filter)][idxs]
         cat['sdss_{}_err'.format(filter)][idxc] = sdss_cat[
-                                                '{}_err'.format(filter)][idxs]
+                                        'fiberMagErr_{}'.format(filter)][idxs]
         cat['sdss_petro_{}'.format(filter)][idxc] = \
                                 sdss_cat['petroRad_{}'.format(filter)][idxs]
         cat['sdss_petro_{}_err'.format(filter)][idxc] = \

@@ -1648,22 +1648,24 @@ def match_SEx(tilename, filters):
     # read in the sdss catalog. We are doing this first because we only need to
     # do it once
     try:
-        sdss_cat = ascii.read('/home/boada/Projects/planckClusters/scripts/SDSS/'
-                '{}_SDSS_catalog.csv'.format(tilename))
+        sdss_cat = ascii.read('/home/boada/Projects/'
+                         'planckClusters/data/extern/SDSS/{}/'
+                         '{}_SDSS_catalog.csv'.format(tilename, tilename))
         if len(sdss_cat) < 2:
             print('# SDSS TOO SHORT!')
             return
     except FileNotFoundError:
-        print('# SDSS CATALOG NOT FOUND! -- match sex')
+        print('# SDSS CATALOG NOT FOUND! -- match cat')
         return
     try:
-        ps1_cat = ascii.read('/home/boada/Projects/planckClusters/scripts/PS1/'
-                '{}_PS1_catalog.csv'.format(tilename))
+        ps1_cat = ascii.read('/home/boada/Projects/'
+                         'planckClusters/data/extern/PS1/{}/'
+                         '{}_SDSS_catalog.csv'.format(tilename, tilename))
         if len(ps1_cat) < 2:
             print('# PS1 TOO SHORT!')
             return
     except FileNotFoundError:
-        print('# PS1 CATALOG NOT FOUND! -- match sex')
+        print('# PS1 CATALOG NOT FOUND! -- match cat')
         return
     # need these coordinates for the matching
     s_coord = SkyCoord(ra=sdss_cat['ra'] * u.degree, dec=sdss_cat['dec'] *
@@ -1802,8 +1804,9 @@ def add_Speczs(tilename):
 
     # match the catalogs
     try:
-        sdss_cat = ascii.read('/home/boada/Projects/planckClusters/scripts/SDSS/'
-                '{}_SDSS_catalog.csv'.format(tilename))
+        sdss_cat = ascii.read('/home/boada/Projects/'
+                         'planckClusters/data/extern/SDSS/{}/'
+                         '{}_SDSS_catalog.csv'.format(tilename, tilename))
         if len(sdss_cat) < 2:
             return
     except FileNotFoundError:
