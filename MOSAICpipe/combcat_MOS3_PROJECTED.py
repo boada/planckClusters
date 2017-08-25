@@ -1654,7 +1654,7 @@ def match_SEx(tilename, filters):
             print('# SDSS TOO SHORT!')
             return
     except FileNotFoundError:
-        print('# SDSS CATALOG NOT FOUND!')
+        print('# SDSS CATALOG NOT FOUND! -- match sex')
         return
     try:
         ps1_cat = ascii.read('/home/boada/Projects/planckClusters/scripts/PS1/'
@@ -1663,7 +1663,7 @@ def match_SEx(tilename, filters):
             print('# PS1 TOO SHORT!')
             return
     except FileNotFoundError:
-        print('# PS1 CATALOG NOT FOUND!')
+        print('# PS1 CATALOG NOT FOUND! -- match sex')
         return
     # need these coordinates for the matching
     s_coord = SkyCoord(ra=sdss_cat['ra'] * u.degree, dec=sdss_cat['dec'] *
@@ -1717,9 +1717,10 @@ def match_SEx(tilename, filters):
 
         # merge the matches
         cat['sdss_objid'][idxc] = sdss_cat['objid'][idxs]
-        cat['sdss_{}'.format(filter)][idxc] = sdss_cat[filter][idxs]
+        cat['sdss_{}'.format(filter)][idxc] = sdss_cat[
+                                            'fiberMag_{}'.format(filter)][idxs]
         cat['sdss_{}_err'.format(filter)][idxc] = sdss_cat[
-                                                '{}_err'.format(filter)][idxs]
+                                        'fiberMagErr_{}'.format(filter)][idxs]
         cat['sdss_petro_{}'.format(filter)][idxc] = \
                                 sdss_cat['petroRad_{}'.format(filter)][idxs]
         cat['sdss_petro_{}_err'.format(filter)][idxc] = \
@@ -1806,7 +1807,7 @@ def add_Speczs(tilename):
         if len(sdss_cat) < 2:
             return
     except FileNotFoundError:
-        print('SDSS CATALOG NOT FOUND!')
+        print('# SDSS CATALOG NOT FOUND! -- add specz')
         return
     c_coord = SkyCoord(ra=cat['RA'] * u.degree, dec=cat['DEC'] * u.degree)
     s_coord = SkyCoord(ra=sdss_cat['ra'] * u.degree, dec=sdss_cat['dec'] *
