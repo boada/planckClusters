@@ -1573,7 +1573,7 @@ def match_SEx(tilename, filters):
     try:
         ps1_cat = ascii.read('/home/boada/Projects/'
                          'planckClusters/data/extern/PS1/{}/'
-                         '{}_SDSS_catalog.csv'.format(tilename, tilename))
+                         '{}_PS1_catalog.csv'.format(tilename, tilename))
         if len(ps1_cat) < 2:
             print('# PS1 TOO SHORT!')
             return
