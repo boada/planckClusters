@@ -1739,7 +1739,7 @@ def match_SEx(tilename, filters):
         # need these coordinates for the matching
         c_coord = SkyCoord(ra=cat['RA'] * u.degree, dec=cat['DEC'] * u.degree)
 
-        if sdss:
+        if sdss and not kband:
             # match the two catalogs -- idxc for cat, idxs for sdss
             idxc, idxs, d2d, d3d = s_coord.search_around_sky(c_coord, 1 * u.arcsec)
 
@@ -1781,7 +1781,7 @@ def match_SEx(tilename, filters):
             cat['sdss_type'][idxc] = sdss_cat['type'][idxs]
 
         #### NOW THE PANSTARRS DATA ####
-        if ps1:
+        if ps1 and not kband:
             idxc, idxp, d2d, d3d = p_coord.search_around_sky(c_coord, 1 * u.arcsec)
             # make some data to catch
             d = np.ones(len(cat)) * 99.0 # 99 is the non-detection value in SEx...
