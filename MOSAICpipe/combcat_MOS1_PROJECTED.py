@@ -1812,7 +1812,7 @@ def match_SEx(tilename, filters):
             cat['2MASS_{}'.format(filter)][idxc] = twoMASS_cat[
                                             '{}mag'.format(filter)][idxp]
             cat['2MASS_{}_err'.format(filter)][idxc] = twoMASS_cat[
-                                            'e_{}Kmag'.format(filter)][idxp]
+                                            'e_{}mag'.format(filter)][idxp]
 
         # write out the results
         cat.write('tmp.color', format='ascii.commented_header', overwrite=True)
