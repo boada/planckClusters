@@ -1651,29 +1651,62 @@ def match_SEx(tilename, filters):
                          '{}_SDSS_catalog.csv'.format(tilename, tilename))
         if len(sdss_cat) < 2:
             print('# SDSS TOO SHORT!')
-            return
+            sdss = False
+        else:
+            sdss = True
     except FileNotFoundError:
-        print('# SDSS CATALOG NOT FOUND! -- match cat')
-        return
+        print('# SDSS CATALOG NOT FOUND!')
+        sdss = False
+
     try:
         ps1_cat = ascii.read('/home/boada/Projects/'
                          'planckClusters/data/extern/PS1/{}/'
                          '{}_PS1_catalog.csv'.format(tilename, tilename))
         if len(ps1_cat) < 2:
             print('# PS1 TOO SHORT!')
-            return
+        else:
+            ps1 = True
     except FileNotFoundError:
-        print('# PS1 CATALOG NOT FOUND! -- match cat')
-        return
+        print('# PS1 CATALOG NOT FOUND!')
+        ps1 = False
+
+    try:
+        twoMASS_cat = ascii.read('/home/boada/Projects/'
+                         'planckClusters/data/extern/2MASS/{}/'
+                         '{}_2MASS_catalog.csv'.format(tilename, tilename))
+        if len(twoMASS_cat) < 2:
+            print('# 2MASS TOO SHORT!')
+            twoMASS = False
+        else:
+            twoMASS = True
+    except FileNotFoundError:
+        print('# 2MASS CATALOG NOT FOUND!')
+        twomass = False
+
     # need these coordinates for the matching
-    s_coord = SkyCoord(ra=sdss_cat['ra'] * u.degree, dec=sdss_cat['dec'] *
+    if sdss:
+        s_coord = SkyCoord(ra=sdss_cat['ra'] * u.degree, dec=sdss_cat['dec'] *
                        u.degree)
-    p_coord = SkyCoord(ra=ps1_cat['ramean'] * u.degree,
+    if ps1:
+        p_coord = SkyCoord(ra=ps1_cat['ramean'] * u.degree,
                         dec=ps1_cat['decmean'] * u.degree)
+    if twoMASS:
+        tm_coord = SkyCoord(ra=twoMASS_cat['ra'] * u.degree,
+                    dec=twoMASS_cat['dec'] * u.degree)
 
     for filter in filters:
+        # only do the Kband when we get there
         if filter == 'K':
-            continue
+            if os.path.isfile('{}{}_cal.cat'.format(tilename, filter)):
+                kband = True
+            elif os.path.isfile('{}{}.cat'.format(tilename, filter)):
+                kband = True
+            else:
+                kband = False
+                continue
+        else:
+            kband = False
+
         try:
             cat = ascii.read('{}{}_cal.cat'.format(tilename, filter))
             cal = True
@@ -1694,56 +1727,73 @@ def match_SEx(tilename, filters):
         # need these coordinates for the matching
         c_coord = SkyCoord(ra=cat['RA'] * u.degree, dec=cat['DEC'] * u.degree)
 
-        # match the two catalogs -- idxc for cat, idxs for sdss
-        idxc, idxs, d2d, d3d = s_coord.search_around_sky(c_coord, 1 * u.arcsec)
+        if sdss:
+            # match the two catalogs -- idxc for cat, idxs for sdss
+            idxc, idxs, d2d, d3d = s_coord.search_around_sky(c_coord, 1 * u.arcsec)
 
-        # make some data to catch
-        d = np.ones(len(cat)) * 99.0 # 99 is the non-detection value in SEx...
+            # make some data to catch
+            d = np.ones(len(cat)) * 99.0 # 99 is the non-detection value in SEx...
 
-        # add some extra info from SDSS -- Specz, Photoz
-        cols = []
-        cols.append(Column(d, name='sdss_{}'.format(filter)))
-        cols.append(Column(d, name='sdss_{}_err'.format(filter)))
-        cols.append(Column(d, name='sdss_petro_{}'.format(filter)))
-        cols.append(Column(d, name='sdss_petro_{}_err'.format(filter)))
-        cols.append(Column(d, name='sdss_objid', dtype=np.long))
-        cols.append(Column(d, name='sdss_specz'))
-        cols.append(Column(d, name='sdss_specz_err'))
-        cols.append(Column(d, name='sdss_photoz'))
-        cols.append(Column(d, name='sdss_photoz_err'))
-        cols.append(Column(d, name='sdss_type'))
-        for col in cols:
-            cat.add_column(col)
+            # add some extra info from SDSS -- Specz, Photoz
+            cols = []
+            cols.append(Column(d, name='sdss_{}'.format(filter)))
+            cols.append(Column(d, name='sdss_{}_err'.format(filter)))
+            cols.append(Column(d, name='sdss_petro_{}'.format(filter)))
+            cols.append(Column(d, name='sdss_petro_{}_err'.format(filter)))
+            cols.append(Column(d, name='sdss_objid', dtype=np.long))
+            cols.append(Column(d, name='sdss_specz'))
+            cols.append(Column(d, name='sdss_specz_err'))
+            cols.append(Column(d, name='sdss_photoz'))
+            cols.append(Column(d, name='sdss_photoz_err'))
+            cols.append(Column(d, name='sdss_type'))
+            for col in cols:
+                cat.add_column(col)
 
-        # merge the matches
-        cat['sdss_objid'][idxc] = sdss_cat['objid'][idxs]
-        cat['sdss_{}'.format(filter)][idxc] = sdss_cat[
-                                            'fiberMag_{}'.format(filter)][idxs]
-        cat['sdss_{}_err'.format(filter)][idxc] = sdss_cat[
-                                        'fiberMagErr_{}'.format(filter)][idxs]
-        cat['sdss_petro_{}'.format(filter)][idxc] = \
-                                sdss_cat['petroRad_{}'.format(filter)][idxs]
-        cat['sdss_petro_{}_err'.format(filter)][idxc] = \
-                                sdss_cat['petroRadErr_{}'.format(filter)][idxs]
-        cat['sdss_specz'][idxc] = sdss_cat['specz'][idxs]
-        cat['sdss_specz_err'][idxc] = sdss_cat['specz_err'][idxs]
-        cat['sdss_photoz'][idxc] = sdss_cat['photoz'][idxs]
-        cat['sdss_photoz_err'][idxc] = sdss_cat['photoz_err'][idxs]
-        cat['sdss_type'][idxc] = sdss_cat['type'][idxs]
+            # merge the matches
+            cat['sdss_objid'][idxc] = sdss_cat['objid'][idxs]
+            cat['sdss_{}'.format(filter)][idxc] = sdss_cat[
+                                                'fiberMag_{}'.format(filter)][idxs]
+            cat['sdss_{}_err'.format(filter)][idxc] = sdss_cat[
+                                            'fiberMagErr_{}'.format(filter)][idxs]
+            cat['sdss_petro_{}'.format(filter)][idxc] = \
+                                    sdss_cat['petroRad_{}'.format(filter)][idxs]
+            cat['sdss_petro_{}_err'.format(filter)][idxc] = \
+                                    sdss_cat['petroRadErr_{}'.format(filter)][idxs]
+            cat['sdss_specz'][idxc] = sdss_cat['specz'][idxs]
+            cat['sdss_specz_err'][idxc] = sdss_cat['specz_err'][idxs]
+            cat['sdss_photoz'][idxc] = sdss_cat['photoz'][idxs]
+            cat['sdss_photoz_err'][idxc] = sdss_cat['photoz_err'][idxs]
+            cat['sdss_type'][idxc] = sdss_cat['type'][idxs]
 
         #### NOW THE PANSTARRS DATA ####
-        idxc, idxp, d2d, d3d = p_coord.search_around_sky(c_coord, 1 * u.arcsec)
-        # make some data to catch
-        d = np.ones(len(cat)) * 99.0 # 99 is the non-detection value in SEx...
-        col = Column(d, name='ps1_{}'.format(filter))
-        col_err = Column(d, name='ps1_{}_err'.format(filter))
-        cat.add_column(col)
-        cat.add_column(col_err)
-        # merge the matches
-        cat['ps1_{}'.format(filter)][idxc] = ps1_cat[
-                                        '{}meanpsfmag'.format(filter)][idxp]
-        cat['ps1_{}_err'.format(filter)][idxc] = ps1_cat[
-                                        '{}meanpsfmagerr'.format(filter)][idxp]
+        if ps1:
+            idxc, idxp, d2d, d3d = p_coord.search_around_sky(c_coord, 1 * u.arcsec)
+            # make some data to catch
+            d = np.ones(len(cat)) * 99.0 # 99 is the non-detection value in SEx...
+            col = Column(d, name='ps1_{}'.format(filter))
+            col_err = Column(d, name='ps1_{}_err'.format(filter))
+            cat.add_column(col)
+            cat.add_column(col_err)
+            # merge the matches
+            cat['ps1_{}'.format(filter)][idxc] = ps1_cat[
+                                            '{}meanpsfmag'.format(filter)][idxp]
+            cat['ps1_{}_err'.format(filter)][idxc] = ps1_cat[
+                                            '{}meanpsfmagerr'.format(filter)][idxp]
+
+        #### NOW THE 2MASS DATA -- IF KBAND ####
+        if kband and twoMASS:
+            idxc, idxp, d2d, d3d = tm_coord.search_around_sky(c_coord, 1 * u.arcsec)
+            # make some data to catch
+            d = np.ones(len(cat)) * 99.0 # 99 is the non-detection value in SEx...
+            col = Column(d, name='2mass_{}'.format(filter))
+            col_err = Column(d, name='2mass_{}_err'.format(filter))
+            cat.add_column(col)
+            cat.add_column(col_err)
+            # merge the matches
+            cat['2MASS_{}'.format(filter)][idxc] = twoMASS_cat[
+                                            '{}mag'.format(filter)][idxp]
+            cat['2MASS_{}_err'.format(filter)][idxc] = twoMASS_cat[
+                                            'e_{}Kmag'.format(filter)][idxp]
 
         # write out the results
         cat.write('tmp.color', format='ascii.commented_header', overwrite=True)
