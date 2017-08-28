@@ -1696,6 +1696,12 @@ def match_SEx(tilename, filters):
         tm_coord = SkyCoord(ra=twoMASS_cat['ra'] * u.degree,
                     dec=twoMASS_cat['dec'] * u.degree)
 
+    # manually add the kband data if it is there
+    if os.path.isfile('{}{}_cal.cat'.format(tilename, 'K')):
+        filters.append('K')
+    elif os.path.isfile('{}{}.cat'.format(tilename, 'K')):
+        filters.append('K')
+
     for filter in filters:
         print(filter)
         # only do the Kband when we get there
