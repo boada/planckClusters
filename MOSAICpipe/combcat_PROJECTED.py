@@ -886,7 +886,7 @@ class combcat:
 
     # Build th color catalog to use when computing the photo-z
     # Adapted from JHU APSIS pipeline
-    def BuildColorCat(self, newfirm=False):
+    def BuildColorCat(self, newfirm=True):
 
         # The default output names
         self.colorCat = self.tilename + ".color"
@@ -947,8 +947,13 @@ class combcat:
             # nondetection with zero flux and 1-sigma error equal to the
             # limiting magnitude
 
-            nondetected = np.less_equal(
-                flux[filter], 0.0) * np.greater(fluxerr[filter], 0.0)
+            #nondetected = np.less_equal(flux[filter], 0.0) * \
+            #              np.greater(fluxerr[filter], 0.0)
+
+            # update: There are a lot of really small positive values. I am
+            # going to modify this to look for values really close to zero.
+
+            nondetected = (flux[filter] < 0.0) | (abs(flux[filter]) < 1E-3)
 
             # Those objects with error flux and flux equal to 0 are assigned a
             # magnitude of -99
@@ -960,11 +965,8 @@ class combcat:
             # When flux error > 100*(flux), mark as nonobserved (Benitez,
             # 24-Oct-03).
 
-            # Fix for fc11 -- y[:] has change meaning
-            #nonobserved = np.where(fluxerr[filter] >
-            #100*(abs(flux[filter])),1.0,nonobserved[:])
             nonobserved = np.where(fluxerr[filter] > 100 *
-                                        (abs(flux[filter])), 1.0,
+                                        (abs(flux[filter])), True,
                                    nonobserved)
 
             detected = np.logical_not(nonobserved + nondetected)
