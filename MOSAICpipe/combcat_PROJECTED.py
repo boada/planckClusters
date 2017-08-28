@@ -1709,8 +1709,8 @@ def match_SEx(tilename, filters):
             idxc, idxp, d2d, d3d = tm_coord.search_around_sky(c_coord, 1 * u.arcsec)
             # make some data to catch
             d = np.ones(len(cat)) * 99.0 # 99 is the non-detection value in SEx...
-            col = Column(d, name='2mass_{}'.format(filter))
-            col_err = Column(d, name='2mass_{}_err'.format(filter))
+            col = Column(d, name='2MASS_{}'.format(filter))
+            col_err = Column(d, name='2MASS_{}_err'.format(filter))
             try:
                 cat.add_column(col)
                 cat.add_column(col_err)
