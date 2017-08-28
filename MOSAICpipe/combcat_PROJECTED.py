@@ -1596,7 +1596,7 @@ def match_SEx(tilename, filters):
             twoMASS = True
     except FileNotFoundError:
         print('# 2MASS CATALOG NOT FOUND!')
-        twomass = False
+        twoMASS = False
 
     # need these coordinates for the matching
     if sdss:
@@ -1636,8 +1636,11 @@ def match_SEx(tilename, filters):
         try:
             cat.add_column(ra)
         except ValueError:
-            return
-        cat.add_column(dec)
+            pass
+        try:
+            cat.add_column(dec)
+        except ValueError:
+            pass
 
         # need these coordinates for the matching
         c_coord = SkyCoord(ra=cat['RA'] * u.degree, dec=cat['DEC'] * u.degree)
@@ -1662,7 +1665,10 @@ def match_SEx(tilename, filters):
             cols.append(Column(d, name='sdss_photoz_err'))
             cols.append(Column(d, name='sdss_type'))
             for col in cols:
-                cat.add_column(col)
+                try:
+                    cat.add_column(col)
+                except ValueError:
+                    pass
 
             # merge the matches
             cat['sdss_objid'][idxc] = sdss_cat['objid'][idxs]
@@ -1687,8 +1693,11 @@ def match_SEx(tilename, filters):
             d = np.ones(len(cat)) * 99.0 # 99 is the non-detection value in SEx...
             col = Column(d, name='ps1_{}'.format(filter))
             col_err = Column(d, name='ps1_{}_err'.format(filter))
-            cat.add_column(col)
-            cat.add_column(col_err)
+            try:
+                cat.add_column(col)
+                cat.add_column(col_err)
+            except ValueError:
+                pass
             # merge the matches
             cat['ps1_{}'.format(filter)][idxc] = ps1_cat[
                                             '{}meanpsfmag'.format(filter)][idxp]
@@ -1702,8 +1711,11 @@ def match_SEx(tilename, filters):
             d = np.ones(len(cat)) * 99.0 # 99 is the non-detection value in SEx...
             col = Column(d, name='2mass_{}'.format(filter))
             col_err = Column(d, name='2mass_{}_err'.format(filter))
-            cat.add_column(col)
-            cat.add_column(col_err)
+            try:
+                cat.add_column(col)
+                cat.add_column(col_err)
+            except ValueError:
+                pass
             # merge the matches
             cat['2MASS_{}'.format(filter)][idxc] = twoMASS_cat[
                                             '{}mag'.format(filter)][idxp]
