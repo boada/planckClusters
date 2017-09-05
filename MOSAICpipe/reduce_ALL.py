@@ -1,6 +1,5 @@
 import os
 from glob import glob
-import sys
 
 ''' This file links the MOSAIC pipeline into each folder and then does the
 complete reduction on things. It still needs to have the individual association
@@ -42,7 +41,7 @@ def main():
         print(os.getcwd())
         # build the command
         cmd = 'python3 combcat_PROJECTED.py {} ./ ./'.format(assocFile)
-        cmd += ' --noPhoto --noAstro --noSEx --noBPZ'
+        cmd += ' --noSWarp --noPhoto --noAstro --noRGB'
 
         print(cmd)
         os.system(cmd)
@@ -59,6 +58,7 @@ def main():
             "find . -type f -name 'best_astrometry.dat' -delete"]
     for cmd in cmds:
         os.system(cmd)
+
 
 if __name__ == "__main__":
     main()
