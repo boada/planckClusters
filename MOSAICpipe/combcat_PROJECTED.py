@@ -886,7 +886,7 @@ class combcat:
 
     # Build th color catalog to use when computing the photo-z
     # Adapted from JHU APSIS pipeline
-    def BuildColorCat(self, newfirm=True):
+    def BuildColorCat(self, newfirm=False):
 
         # The default output names
         self.colorCat = self.tilename + ".color"
