@@ -21,7 +21,7 @@ dirs = [dirs for _, dirs, _ in os.walk('./')][0] # only want top level
 cwd = os.getcwd()
 for d in dirs:
     os.chdir(cwd)
-    rawdir = './{}/mosaic/resampled'.format(d)
+    rawdir = './{}'.format(d)
     outdir = '.'
 
     pattern = "*.fits.fz"
@@ -38,7 +38,7 @@ for d in dirs:
         pattern = '*.fz'
         full_list = glob.glob(pattern)
 
-    filters = ('z', 'i', 'r', 'g', 'I')
+    filters = ('g', 'r', 'i', 'z', 'I', 'K')
     objects = []
     imalist = {}
     FILTER = {}

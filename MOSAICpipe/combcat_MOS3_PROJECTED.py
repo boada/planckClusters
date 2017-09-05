@@ -85,6 +85,7 @@ class combcat:
 
         with open(self.assocfile, 'r') as assocfile:
             lines = assocfile.readlines()
+            subprocs = []
             for line in lines:
                 if line[0] == "#":
                     continue
@@ -96,7 +97,46 @@ class combcat:
                 if '.fz' in fname:
                     fname = fname.rstrip('.fz')
                     if not os.path.isfile(fname) and not self.noSWarp:
-                        os.system('funpack -v {}.fz'.format(fname))
+                        subprocs.append(subprocess.Popen(
+                            shlex.split('funpack -v {}.fz'.format(fname))))
+
+                # Figure out the dqmask
+                if 'tu' in fname:
+                    i = 1
+                    while True:
+                        nid = int(os.path.splitext(fname)[0][2:]) + i
+                        ext = os.path.splitext(fname)[1]
+                        pre = fname[0:2]
+                        dqmask = "%s%s%s" % (pre, nid, ext)
+                        if os.path.isfile('{}.fz'.format(dqmask)):
+                            break
+                        else:
+                            print('Looking...')
+                            i += 1
+                    if not os.path.isfile(dqmask) and not self.noSWarp:
+                        subprocs.append(subprocess.Popen(
+                            shlex.split('funpack -v {}.fz'.format(dqmask))))
+                elif 'k4' in fname:
+                    dqmask = fname.replace('opi', 'opd')
+                    if not os.path.isfile(dqmask) and not self.noSWarp:
+                        subprocs.append(subprocess.Popen(
+                            shlex.split('funpack -v {}.fz'.format(dqmask))))
+
+            [p.wait() for p in subprocs]
+            [i.kill() for i in subprocs]
+
+        with open(self.assocfile, 'r') as assocfile:
+            lines = assocfile.readlines()
+            for line in lines:
+                if line[0] == "#":
+                    continue
+
+                vals = line.split()
+                fname = os.path.basename(vals[0])
+
+                # hack to deal with compressed files in the association
+                if '.fz' in fname:
+                    fname = fname.rstrip('.fz')
 
                 filtername = vals[1]
                 self.exptime[fname] = float(vals[2])
@@ -104,16 +144,19 @@ class combcat:
 
                 # Figure out the dqmask
                 if 'tu' in fname:
-                    nid = int(os.path.splitext(fname)[0][2:]) + 1
-                    ext = os.path.splitext(fname)[1]
-                    pre = fname[0:2]
-                    dqmask = "%s%s%s" % (pre, nid, ext)
-                    if not os.path.isfile(dqmask) and not self.noSWarp:
-                        os.system('funpack -v {}.fz'.format(dqmask))
+                    i = 1
+                    while True:
+                        nid = int(os.path.splitext(fname)[0][2:]) + i
+                        ext = os.path.splitext(fname)[1]
+                        pre = fname[0:2]
+                        dqmask = "%s%s%s" % (pre, nid, ext)
+                        if os.path.isfile('{}.fz'.format(dqmask)):
+                            break
+                        else:
+                            print('Looking...')
+                            i += 1
                 elif 'k4' in fname:
                     dqmask = fname.replace('opi', 'opd')
-                    if not os.path.isfile(dqmask) and not self.noSWarp:
-                        os.system('funpack -v {}.fz'.format(dqmask))
 
                 # make a list of the file names
                 self.filelist.append(fname)
@@ -399,12 +442,7 @@ class combcat:
 
         return
 
-    def swarp_newfirm(self,
-                    conf="SWarp-common-newfirm.conf",
-                    dryrun=None,
-                    combtype="MEDIAN",
-                    reSWarp=None,
-                    filters=None):
+    def swarp_newfirm(self, conf='SWarp-common.conf'):
         ''' This runs swarp on the stacked newfirm images to make sure they are
         in the same projection as the mosaic images. Right now, it needs to
         have the stacked data from the VO. In the future,  I might create my
@@ -424,33 +462,47 @@ class combcat:
 
         # link this file into the newfirm directory and change the name
         # check first
-        #newfirm_dir = '../../newfirm/stacked/'
-        newfirm_dir = '../../newfirm/resampled/'
+        newfirm_dir = '../../newfirm/stacked/'
         if not os.path.isdir(newfirm_dir):
             return
-        else:
-            cwd = os.getcwd()
-            os.chdir(newfirm_dir)
 
-        # Read the association file
-        print(os.getcwd)
-        self.noSWarp = False
-        self.read_assoc()
+        # make sure the images aren't compressed
+        imgs = glob('{}*.fz'.format(newfirm_dir))
+        inputs = [] # catch the input files if there is more than one
+        print(imgs)
+        if len(imgs) < 1:
+            # check for uncompressed images
+                imgs = glob('{}*.fits'.format(newfirm_dir))
+                if len(imgs) < 1:
+                    print('No NEWFIRM images found!')
+                    return
 
-        # try:
-        #     relpath = os.path.relpath('./', newfirm_dir)
-        #     print(relpath)
-        #     os.symlink('{}/{}'.format(relpath, center),
-        #             '{}{}K.head'.format(newfirm_dir, self.tilename))
-        # except FileExistsError:
-        #     pass
+        for img in imgs:
+            with fits.open(img) as kimg:
+                try:
+                    prod_type = kimg[0].header['prodtype']
+                except KeyError:
+                    try:
+                        prod_type = kimg[1].header['prodtype']
+                    except KeyError:
+                        print('Something is wrong with the images!')
+                        return
+            print(prod_type)
+            if 'image' in prod_type:
+                # use funpack to decompress items
+                os.system('funpack -v {}'.format(img))
+                img = img.rstrip('.fz')
+                inputs.append(img)
+            else:
+                continue
 
-        if not filters:
-            filters = self.filters
-
-        self.make_swarp_input_weights(clobber=False)
-        self.combtype = combtype
-        self.get_FLXSCALE(magbase=26)
+        try:
+            relpath = os.path.relpath('./', newfirm_dir)
+            print(relpath)
+            os.symlink('{}/{}'.format(relpath, center),
+                    '{}{}K.head'.format(newfirm_dir, self.tilename))
+        except FileExistsError:
+            pass
 
         # Keys to keep
         keywords = ['OBJECT', 'EXPTIME', 'AIRMASS', 'TIMESYS', 'DATE-OBS',
@@ -458,69 +510,22 @@ class combcat:
                     'DETECTOR', 'DARKTIME', 'RA', 'DEC', 'MJD-OBS', 'INSTRUME',
                     'FILTER', 'MAGZERO', 'MAGZSIG']
 
-        pars = {}
-        pars["IMAGE_SIZE"] = "%s,%s" % (self.nx, self.ny)
-        pars["CENTER_TYPE"] = "MANUAL"
-        pars["CENTER"] = "%s,%s" % (self.xo, self.yo)
-        pars["PIXEL_SCALE"] = self.pixscale
-        pars["PIXELSCALE_TYPE"] = "MANUAL"
-        #pars["FSCALE_KEYWORD"]  = "FLXSCALE"
-        pars["COPY_KEYWORDS"] = ','.join(keywords)
-        pars["COMBINE_TYPE"] = combtype
-        pars["NTHREADS"] = "0"
-        pars["WEIGHT_TYPE"] = "MAP_WEIGHT"
+        # remember the space behind each addition.
+        cmd = 'swarp {} -c {} '.format(','.join(inputs), _conf)
+        cmd += '-IMAGEOUT_NAME {}{}K.fits '.format(newfirm_dir,
+                                                self.tilename)
+        cmd += '-SUBTRACT_BACK N -WRITE_XML N '
+        cmd += '-COPY_KEYWORDS ' + ','.join(keywords)
 
-        # The options
-        opts = ""
-        for param, value in list(pars.items()):
-            opts = opts + "-%s %s " % (param, value)
+        print(cmd)
+        os.system(cmd)
 
-        self.combima = {}
-        self.weightima = {}
-        cmd = ""
-        for filter in filters:
+        # clean up decompressed files
+        for i in inputs:
+            os.remove('{}'.format(i))
 
-            pars[""] = "@%s" % (self.flxscale[filter])
-
-            outimage = "%s%s.fits" % (self.tilename, filter)
-            # We only want the i-band weight to save space
-            if filter == 'i':
-                outweight = "%s%s_weight.fits" % (self.tilename, filter)
-            else:
-                outweight = "coadd.weight.fits"
-
-            # Store the names
-            self.combima[filter] = "%s%s" % (self.tilename, filter)
-            self.weightima[filter] = "%s%s_weight.fits" % (self.tilename,
-                                                           filter)
-
-            filelist = ' '.join(self.files[filter])
-
-            cmd = "swarp %s -c %s -IMAGEOUT_NAME %s -WEIGHTOUT_NAME %s " %\
-                (filelist, _conf, outimage, outweight)
-            cmd += " -WEIGHT_IMAGE %s" % (
-                "'[1]',".join(self.files_weight[filter])) + "'[1]' "
-            #cmd += " -WEIGHT_SUFFIX .weight.fits'[0]'"
-            cmd = cmd + " -FSCALE_DEFAULT %s " % (
-                ",".join(map(str, self.flxscale[filter])))
-            cmd = cmd + opts
-
-            if not dryrun:
-                print("# Will run:\n\t%s" % cmd)
-                os.system(cmd)
-                AM = self.calc_airmass(filter)
-                put_airmass(outimage, AM)
-                ET = self.calc_exptime(filter)
-                put_exptime(outimage, ET)
-
-                # make sure the header keywords have been propigated. This is
-                # important for the astro and flux calibration
-                put_headerKeywords(self.files[filter][0], outimage, keywords,
-                                   self.xo, self.yo)
-
-            else:
-                print(cmd)
-
+        # correct the header information to make sure floats are floats and
+        # not strings
         with fits.open('{}{}K.fits'.format(newfirm_dir, self.tilename),
                     mode='update') as f:
             header = f[0].header
@@ -1643,32 +1648,74 @@ def match_SEx(tilename, filters):
     # read in the sdss catalog. We are doing this first because we only need to
     # do it once
     try:
-        sdss_cat = ascii.read('/home/boada/Projects/planckClusters/scripts/SDSS/'
-                '{}_SDSS_catalog.csv'.format(tilename))
+        sdss_cat = ascii.read('/home/boada/Projects/'
+                         'planckClusters/data/extern/SDSS/{}/'
+                         '{}_SDSS_catalog.csv'.format(tilename, tilename))
         if len(sdss_cat) < 2:
             print('# SDSS TOO SHORT!')
-            return
+            sdss = False
+        else:
+            sdss = True
     except FileNotFoundError:
         print('# SDSS CATALOG NOT FOUND!')
-        return
+        sdss = False
+
     try:
-        ps1_cat = ascii.read('/home/boada/Projects/planckClusters/scripts/PS1/'
-                '{}_PS1_catalog.csv'.format(tilename))
+        ps1_cat = ascii.read('/home/boada/Projects/'
+                         'planckClusters/data/extern/PS1/{}/'
+                         '{}_PS1_catalog.csv'.format(tilename, tilename))
         if len(ps1_cat) < 2:
             print('# PS1 TOO SHORT!')
-            return
+        else:
+            ps1 = True
     except FileNotFoundError:
         print('# PS1 CATALOG NOT FOUND!')
-        return
+        ps1 = False
+
+    try:
+        twoMASS_cat = ascii.read('/home/boada/Projects/'
+                         'planckClusters/data/extern/2MASS/{}/'
+                         '{}_2MASS_catalog.csv'.format(tilename, tilename))
+        if len(twoMASS_cat) < 2:
+            print('# 2MASS TOO SHORT!')
+            twoMASS = False
+        else:
+            twoMASS = True
+    except FileNotFoundError:
+        print('# 2MASS CATALOG NOT FOUND!')
+        twoMASS = False
+
     # need these coordinates for the matching
-    s_coord = SkyCoord(ra=sdss_cat['ra'] * u.degree, dec=sdss_cat['dec'] *
+    if sdss:
+        s_coord = SkyCoord(ra=sdss_cat['ra'] * u.degree, dec=sdss_cat['dec'] *
                        u.degree)
-    p_coord = SkyCoord(ra=ps1_cat['ramean'] * u.degree,
+    if ps1:
+        p_coord = SkyCoord(ra=ps1_cat['ramean'] * u.degree,
                         dec=ps1_cat['decmean'] * u.degree)
+    if twoMASS:
+        tm_coord = SkyCoord(ra=twoMASS_cat['ra'] * u.degree,
+                    dec=twoMASS_cat['dec'] * u.degree)
+
+    # manually add the kband data if it is there
+    if os.path.isfile('{}{}_cal.cat'.format(tilename, 'K')):
+        filters.append('K')
+    elif os.path.isfile('{}{}.cat'.format(tilename, 'K')):
+        filters.append('K')
 
     for filter in filters:
+        print(filter)
+        # only do the Kband when we get there
         if filter == 'K':
-            continue
+            if os.path.isfile('{}{}_cal.cat'.format(tilename, filter)):
+                kband = True
+            elif os.path.isfile('{}{}.cat'.format(tilename, filter)):
+                kband = True
+            else:
+                kband = False
+                continue
+        else:
+            kband = False
+
         try:
             cat = ascii.read('{}{}_cal.cat'.format(tilename, filter))
             cal = True
@@ -1683,61 +1730,91 @@ def match_SEx(tilename, filters):
         try:
             cat.add_column(ra)
         except ValueError:
-            return
-        cat.add_column(dec)
+            pass
+        try:
+            cat.add_column(dec)
+        except ValueError:
+            pass
 
         # need these coordinates for the matching
         c_coord = SkyCoord(ra=cat['RA'] * u.degree, dec=cat['DEC'] * u.degree)
 
-        # match the two catalogs -- idxc for cat, idxs for sdss
-        idxc, idxs, d2d, d3d = s_coord.search_around_sky(c_coord, 1 * u.arcsec)
+        if sdss and not kband:
+            # match the two catalogs -- idxc for cat, idxs for sdss
+            idxc, idxs, d2d, d3d = s_coord.search_around_sky(c_coord, 1 * u.arcsec)
 
-        # make some data to catch
-        d = np.ones(len(cat)) * 99.0 # 99 is the non-detection value in SEx...
+            # make some data to catch
+            d = np.ones(len(cat)) * 99.0 # 99 is the non-detection value in SEx...
 
-        # add some extra info from SDSS -- Specz, Photoz
-        cols = []
-        cols.append(Column(d, name='sdss_{}'.format(filter)))
-        cols.append(Column(d, name='sdss_{}_err'.format(filter)))
-        cols.append(Column(d, name='sdss_petro_{}'.format(filter)))
-        cols.append(Column(d, name='sdss_petro_{}_err'.format(filter)))
-        cols.append(Column(d, name='sdss_objid', dtype=np.long))
-        cols.append(Column(d, name='sdss_specz'))
-        cols.append(Column(d, name='sdss_specz_err'))
-        cols.append(Column(d, name='sdss_photoz'))
-        cols.append(Column(d, name='sdss_photoz_err'))
-        cols.append(Column(d, name='sdss_type'))
-        for col in cols:
-            cat.add_column(col)
+            # add some extra info from SDSS -- Specz, Photoz
+            cols = []
+            cols.append(Column(d, name='sdss_{}'.format(filter)))
+            cols.append(Column(d, name='sdss_{}_err'.format(filter)))
+            cols.append(Column(d, name='sdss_petro_{}'.format(filter)))
+            cols.append(Column(d, name='sdss_petro_{}_err'.format(filter)))
+            cols.append(Column(d, name='sdss_objid', dtype=np.long))
+            cols.append(Column(d, name='sdss_specz'))
+            cols.append(Column(d, name='sdss_specz_err'))
+            cols.append(Column(d, name='sdss_photoz'))
+            cols.append(Column(d, name='sdss_photoz_err'))
+            cols.append(Column(d, name='sdss_type'))
+            for col in cols:
+                try:
+                    cat.add_column(col)
+                except ValueError:
+                    pass
 
-        # merge the matches
-        cat['sdss_objid'][idxc] = sdss_cat['objid'][idxs]
-        cat['sdss_{}'.format(filter)][idxc] = sdss_cat[filter][idxs]
-        cat['sdss_{}_err'.format(filter)][idxc] = sdss_cat[
-                                                '{}_err'.format(filter)][idxs]
-        cat['sdss_petro_{}'.format(filter)][idxc] = \
-                                sdss_cat['petroRad_{}'.format(filter)][idxs]
-        cat['sdss_petro_{}_err'.format(filter)][idxc] = \
-                                sdss_cat['petroRadErr_{}'.format(filter)][idxs]
-        cat['sdss_specz'][idxc] = sdss_cat['specz'][idxs]
-        cat['sdss_specz_err'][idxc] = sdss_cat['specz_err'][idxs]
-        cat['sdss_photoz'][idxc] = sdss_cat['photoz'][idxs]
-        cat['sdss_photoz_err'][idxc] = sdss_cat['photoz_err'][idxs]
-        cat['sdss_type'][idxc] = sdss_cat['type'][idxs]
+            # merge the matches
+            cat['sdss_objid'][idxc] = sdss_cat['objid'][idxs]
+            cat['sdss_{}'.format(filter)][idxc] = sdss_cat[
+                                                'fiberMag_{}'.format(filter)][idxs]
+            cat['sdss_{}_err'.format(filter)][idxc] = sdss_cat[
+                                            'fiberMagErr_{}'.format(filter)][idxs]
+            cat['sdss_petro_{}'.format(filter)][idxc] = \
+                                    sdss_cat['petroRad_{}'.format(filter)][idxs]
+            cat['sdss_petro_{}_err'.format(filter)][idxc] = \
+                                    sdss_cat['petroRadErr_{}'.format(filter)][idxs]
+            cat['sdss_specz'][idxc] = sdss_cat['specz'][idxs]
+            cat['sdss_specz_err'][idxc] = sdss_cat['specz_err'][idxs]
+            cat['sdss_photoz'][idxc] = sdss_cat['photoz'][idxs]
+            cat['sdss_photoz_err'][idxc] = sdss_cat['photoz_err'][idxs]
+            cat['sdss_type'][idxc] = sdss_cat['type'][idxs]
 
         #### NOW THE PANSTARRS DATA ####
-        idxc, idxp, d2d, d3d = p_coord.search_around_sky(c_coord, 1 * u.arcsec)
-        # make some data to catch
-        d = np.ones(len(cat)) * 99.0 # 99 is the non-detection value in SEx...
-        col = Column(d, name='ps1_{}'.format(filter))
-        col_err = Column(d, name='ps1_{}_err'.format(filter))
-        cat.add_column(col)
-        cat.add_column(col_err)
-        # merge the matches
-        cat['ps1_{}'.format(filter)][idxc] = ps1_cat[
-                                        '{}meanpsfmag'.format(filter)][idxp]
-        cat['ps1_{}_err'.format(filter)][idxc] = ps1_cat[
-                                        '{}meanpsfmagerr'.format(filter)][idxp]
+        if ps1 and not kband:
+            idxc, idxp, d2d, d3d = p_coord.search_around_sky(c_coord, 1 * u.arcsec)
+            # make some data to catch
+            d = np.ones(len(cat)) * 99.0 # 99 is the non-detection value in SEx...
+            col = Column(d, name='ps1_{}'.format(filter))
+            col_err = Column(d, name='ps1_{}_err'.format(filter))
+            try:
+                cat.add_column(col)
+                cat.add_column(col_err)
+            except ValueError:
+                pass
+            # merge the matches
+            cat['ps1_{}'.format(filter)][idxc] = ps1_cat[
+                                            '{}meanpsfmag'.format(filter)][idxp]
+            cat['ps1_{}_err'.format(filter)][idxc] = ps1_cat[
+                                            '{}meanpsfmagerr'.format(filter)][idxp]
+
+        #### NOW THE 2MASS DATA -- IF KBAND ####
+        if kband and twoMASS:
+            idxc, idxp, d2d, d3d = tm_coord.search_around_sky(c_coord, 1 * u.arcsec)
+            # make some data to catch
+            d = np.ones(len(cat)) * 99.0 # 99 is the non-detection value in SEx...
+            col = Column(d, name='2MASS_{}'.format(filter))
+            col_err = Column(d, name='2MASS_{}_err'.format(filter))
+            try:
+                cat.add_column(col)
+                cat.add_column(col_err)
+            except ValueError:
+                pass
+            # merge the matches
+            cat['2MASS_{}'.format(filter)][idxc] = twoMASS_cat[
+                                            '{}mag'.format(filter)][idxp]
+            cat['2MASS_{}_err'.format(filter)][idxc] = twoMASS_cat[
+                                            'e_{}mag'.format(filter)][idxp]
 
         # write out the results
         cat.write('tmp.color', format='ascii.commented_header', overwrite=True)
@@ -1796,12 +1873,13 @@ def add_Speczs(tilename):
 
     # match the catalogs
     try:
-        sdss_cat = ascii.read('/home/boada/Projects/planckClusters/scripts/SDSS/'
-                '{}_SDSS_catalog.csv'.format(tilename))
+        sdss_cat = ascii.read('/home/boada/Projects/'
+                         'planckClusters/data/extern/SDSS/{}/'
+                         '{}_SDSS_catalog.csv'.format(tilename, tilename))
         if len(sdss_cat) < 2:
             return
     except FileNotFoundError:
-        print('SDSS CATALOG NOT FOUND!')
+        print('# SDSS CATALOG NOT FOUND! -- add specz')
         return
     c_coord = SkyCoord(ra=cat['RA'] * u.degree, dec=cat['DEC'] * u.degree)
     s_coord = SkyCoord(ra=sdss_cat['ra'] * u.degree, dec=sdss_cat['dec'] *

@@ -137,6 +137,8 @@ class combcat:
                 # hack to deal with compressed files in the association
                 if '.fz' in fname:
                     fname = fname.rstrip('.fz')
+                    #if not os.path.isfile(fname) and not self.noSWarp:
+                    #os.system('funpack -v {}.fz'.format(fname))
 
                 filtername = vals[1]
                 self.exptime[fname] = float(vals[2])
@@ -155,8 +157,16 @@ class combcat:
                         else:
                             print('Looking...')
                             i += 1
+                    if not os.path.isfile(dqmask) and not self.noSWarp:
+                        pass
+                        #os.system('funpack -v {}.fz'.format(dqmask))
+                        #subprocs.append('funpack -v {}.fz'.format(dqmask))
                 elif 'k4' in fname:
                     dqmask = fname.replace('opi', 'opd')
+                    if not os.path.isfile(dqmask) and not self.noSWarp:
+                        pass
+                        #os.system('funpack -v {}.fz'.format(dqmask))
+                        #subprocs.append('funpack -v {}.fz'.format(dqmask))
 
                 # make a list of the file names
                 self.filelist.append(fname)
@@ -174,8 +184,16 @@ class combcat:
 
                 # append the filename to the right filter
                 self.files[filtername].append(fname)
-                self.files_weight[filtername].append("%s.weight.fits" %
-                            os.path.splitext(fname)[0])
+                if not self.noSWarp:
+                    with fits.open(dqmask, mode='readonly') as inHDU:
+                        if len(inHDU) > 2:
+                            self.files_weight[filtername].append(
+                                "%s.weight.fits" % os.path.splitext(fname)[0])
+                        else:
+                            self.files_weight[filtername].append(
+                                "%s.weight.fits'[0]'" %
+                                os.path.splitext(fname)[0])
+
                 self.exptimes[filtername].append(self.exptime[fname])
 
         return
@@ -188,23 +206,6 @@ class combcat:
             if not os.path.exists(self.outdir):
                 os.mkdir(self.outdir)
             return
-
-        # Fits make sure that the output dir exists
-        self.outdir = os.path.join(self.outpath, self.tilename)
-        if not os.path.exists(self.outdir):
-            os.mkdir(self.outdir)
-
-        # Go to the directory
-        os.chdir(self.outdir)
-
-        print("We are in:", self.outdir, file=sys.stderr)
-
-        for file in self.infiles:
-            cmd1 = "rsync -avhP -e ssh %s ." % os.path.join(
-                self.datapath, file)
-            print(cmd1)
-            if copy:
-                os.system(cmd1)
 
         return
 
@@ -223,7 +224,7 @@ class combcat:
             print(' to {}'.format(proj))
         return
 
-    def center_dither(self, conf="SWarp-center.conf", filter=None, dryrun=False):
+    def center_dither(self, conf="SWarp-center.conf", filter='i', dryrun=False):
         ''' Center the dither pattern for SWARP '''
 
         check_exe("swarp")
@@ -233,14 +234,9 @@ class combcat:
 
         # First we need to get the center for all the files, swarp them all
         opts = {}
-        if not filter:
-            opts["IMAGEOUT_NAME"] = os.path.join(
-                self.outdir, "SWarp-%s-center.fits" % (self.tilename))
-        else:
-            opts["IMAGEOUT_NAME"] = os.path.join(
-                self.outdir, "SWarp-%s-center_%s.fits" % (self.tilename, filter))
 
-        opts["PIXEL_SCALE"] = self.pixscale
+        #opts["PIXEL_SCALE"] = self.pixscale
+        opts["PIXELSCALE_TYPE"] = "MAX"
         opts["RESAMPLING_TYPE"] = "LANCZOS3"
         opts["CENTER_TYPE"] = "ALL"
         opts["NTHREADS"] = "0"
@@ -248,7 +244,26 @@ class combcat:
         if not filter:
             cmd = "swarp %s -c %s " % (' '.join(self.filelist), center_conf)
         else:
-            cmd = "swarp %s -c %s " % (' '.join(self.files[filter]), center_conf)
+            try:
+                cmd = "swarp %s -c %s " % (' '.join(self.files[filter]),
+                                            center_conf)
+            except KeyError:
+                filter = 'r'
+                try:
+                    cmd = "swarp %s -c %s " % (' '.join(self.files[filter]),
+                                            center_conf)
+                except KeyError:
+                    filter = 'K'
+                    cmd = "swarp %s -c %s " % (' '.join(self.files[filter]),
+                                            center_conf)
+
+        if not filter:
+            opts["IMAGEOUT_NAME"] = os.path.join(
+                self.outdir, "SWarp-%s-center.fits" % (self.tilename))
+        else:
+            opts["IMAGEOUT_NAME"] = os.path.join(
+                self.outdir, "SWarp-%s-center_%s.fits" % (self.tilename, filter))
+
         for param, value in list(opts.items()):
             cmd += "-%s %s " % (param, value)
 
@@ -269,19 +284,23 @@ class combcat:
         x_center = dec2sex(x_center / 15)
         y_center = dec2sex(y_center)
 
+        pixscale = abs(header['CD1_1'] * 3600)
+
         print("\tImage Size:  %s x %s" % (nx, ny))
         print("\tCentered on: %s   %s" % (x_center, y_center))
+        print("\tPixelscale: %.4f" % (pixscale))
 
         self.nx = nx
         self.ny = ny
         self.xo = x_center
         self.yo = y_center
+        self.pixscale = float('{0:.4f}'.format(pixscale))
 
         # Store wether center was done....
         if not filter:
             self.centered = True
         else:
-            self.centered = False
+            self.centered = True
 
         return
 
@@ -383,10 +402,9 @@ class combcat:
                 (filelist, _conf, outimage, outweight)
             cmd += " -WEIGHT_IMAGE %s " % (
                 ",".join(self.files_weight[filter]))
-            #cmd += " -WEIGHT_SUFFIX .weight.fits'[0]'"
-            cmd = cmd + " -FSCALE_DEFAULT %s " % (
+            cmd += " -FSCALE_DEFAULT %s " % (
                 ",".join(map(str, self.flxscale[filter])))
-            cmd = cmd + opts
+            cmd += opts
 
             if not dryrun:
                 print("# Will run:\n\t%s" % cmd)
@@ -399,7 +417,7 @@ class combcat:
                 # make sure the header keywords have been propigated. This is
                 # important for the astro and flux calibration
                 put_headerKeywords(self.files[filter][0], outimage, keywords,
-                                   self.xo, self.yo)
+                                self.xo, self.yo)
 
             else:
                 print(cmd)
@@ -438,101 +456,6 @@ class combcat:
         # The default output names
         self.colorCat = self.tilename + ".color"
         self.columnsFile = self.tilename + ".columns"
-
-        return
-
-    def swarp_newfirm(self, conf='SWarp-common.conf'):
-        ''' This runs swarp on the stacked newfirm images to make sure they are
-        in the same projection as the mosaic images. Right now, it needs to
-        have the stacked data from the VO. In the future,  I might create my
-        own stacks similar to the method above, but probably not. I think the
-        stacked images from the VO are good enough to do what we want. '''
-
-        from glob import glob
-
-        # build the swarp command
-        check_exe('swarp')
-        check_exe('funpack')
-
-        # get the center file created above
-        center = "{}/SWarp-{}-center.fits".format(self.outdir, self.tilename)
-
-        _conf = os.path.join(self.pipeline, 'confs', conf)
-
-        # link this file into the newfirm directory and change the name
-        # check first
-        newfirm_dir = '../../newfirm/stacked/'
-        if not os.path.isdir(newfirm_dir):
-            return
-
-        # make sure the images aren't compressed
-        imgs = glob('{}*.fz'.format(newfirm_dir))
-        inputs = [] # catch the input files if there is more than one
-        print(imgs)
-        if len(imgs) < 1:
-            # check for uncompressed images
-                imgs = glob('{}*.fits'.format(newfirm_dir))
-                if len(imgs) < 1:
-                    print('No NEWFIRM images found!')
-                    return
-
-        for img in imgs:
-            with fits.open(img) as kimg:
-                try:
-                    prod_type = kimg[0].header['prodtype']
-                except KeyError:
-                    try:
-                        prod_type = kimg[1].header['prodtype']
-                    except KeyError:
-                        print('Something is wrong with the images!')
-                        return
-            print(prod_type)
-            if 'image' in prod_type:
-                # use funpack to decompress items
-                os.system('funpack -v {}'.format(img))
-                img = img.rstrip('.fz')
-                inputs.append(img)
-            else:
-                continue
-
-        try:
-            relpath = os.path.relpath('./', newfirm_dir)
-            print(relpath)
-            os.symlink('{}/{}'.format(relpath, center),
-                    '{}{}K.head'.format(newfirm_dir, self.tilename))
-        except FileExistsError:
-            pass
-
-        # Keys to keep
-        keywords = ['OBJECT', 'EXPTIME', 'AIRMASS', 'TIMESYS', 'DATE-OBS',
-                    'TIME-OBS', 'OBSTYPE', 'OBSERVAT', 'TELESCOP', 'HA', 'ZD',
-                    'DETECTOR', 'DARKTIME', 'RA', 'DEC', 'MJD-OBS', 'INSTRUME',
-                    'FILTER', 'MAGZERO', 'MAGZSIG']
-
-        # remember the space behind each addition.
-        cmd = 'swarp {} -c {} '.format(','.join(inputs), _conf)
-        cmd += '-IMAGEOUT_NAME {}{}K.fits '.format(newfirm_dir,
-                                                self.tilename)
-        cmd += '-SUBTRACT_BACK N -WRITE_XML N '
-        cmd += '-COPY_KEYWORDS ' + ','.join(keywords)
-
-        print(cmd)
-        os.system(cmd)
-
-        # clean up decompressed files
-        for i in inputs:
-            os.remove('{}'.format(i))
-
-        # correct the header information to make sure floats are floats and
-        # not strings
-        with fits.open('{}{}K.fits'.format(newfirm_dir, self.tilename),
-                    mode='update') as f:
-            header = f[0].header
-            for key, val in list(header.items()):
-                if 'CD1_' in key or 'CD2_' in key or \
-                        'CRVAL' in key or 'CRPIX' in key or \
-                        'EQUINOX' in key:
-                    f[0].header[key] = float(val)
 
         return
 
@@ -738,13 +661,21 @@ class combcat:
         subprocs = []
         for filter in self.filters:
             mosaic = '{}.fits'.format(self.combima[filter])
-            cmd = 'pp_prepare -ra {} -dec {} {}'.format(self.xo, self.yo, mosaic)
+            if self.pixscale == 0.25:
+                cmd = 'pp_prepare -ra {} -dec {} -telescope {} {}'.format(
+                    self.xo, self.yo, 'KPNO4MOS3', mosaic)
+            elif self.pixscale == 0.2666:
+                cmd = 'pp_prepare -ra {} -dec {} -telescope {} {}'.format(
+                    self.xo, self.yo, 'KPNO4MOS1', mosaic)
+            else:
+                cmd = 'pp_prepare -ra {} -dec {} {}'.format(
+                    self.xo, self.yo, mosaic)
 
             if not self.dryrun:
                 print(cmd)
                 subprocs.append(subprocess.Popen(shlex.split(cmd)))
 
-        [p.wait() for p in subprocs]
+        [p.wait(timeout=600) for p in subprocs]
         [i.kill() for i in subprocs]
 
         for filter in self.filters:
@@ -755,8 +686,7 @@ class combcat:
             if not self.dryrun:
                 subprocs.append(subprocess.Popen(shlex.split(cmd)))
 
-        [p.wait() for p in subprocs]
-
+        [p.wait(timeout=600) for p in subprocs]
         [i.kill() for i in subprocs]
 
         return
@@ -796,17 +726,38 @@ class combcat:
             with fits.open(mosaic, mode='update') as mos:
                 keywords = ['TEL_KEYW', 'TELINSTR', 'MIDTIMJD', 'SECPIXY',
                             'SECPIXX', 'PHOT_K']
-                values = ['KPNO4MOS1', 'KPNO4m/MOSAIC', 0.0, 0.2666, 0.2666,
-                          0.5]
+
+                if self.pixscale == 0.25:
+                    values = ['KPNO4MOS3', 'KPNO4m/MOSAIC', 0.0, 0.25, 0.25,
+                                  0.5]
+                elif self.pixscale == 0.2666:
+                    values = ['KPNO4MOS1', 'KPNO4m/MOSAIC', 0.0, 0.2666, 0.2666,
+                                  0.5]
+                else:
+                    values = ['KPNO4NEWF', 'KPNO4m/NEWFIRM', 0.0, 0.4, 0.4,
+                                  0.5]
+
                 for kw, val in zip(keywords, values):
-                    mos[0].header[kw] = val
+                    # only update if they don't exist
+                    try:
+                        mos[0].header[kw]
+                    except KeyError:
+                        mos[0].header[kw] = val
 
                 #####################################################
                 ##### HACK TO MAKE THE ZEROPOINT ERRORS SMALLER #####
                 #####################################################
-                mos[0].header['GAIN'] = 1.
+                if filter != 'K':
+                    mos[0].header['GAIN'] = 1.
 
-            cmd = 'pp_photometry -snr 10 -aprad 5.7 {}'.format(mosaic)
+            if filter != 'K':
+                cmd = 'pp_photometry -snr 10 -aprad 5.7 {}'.format(mosaic)
+            elif self.pixscale == 0.25:
+                cmd = 'pp_photometry -snr 10 -aprad 16 {}'.format(mosaic)
+            elif self.pixscale == 0.2666:
+                cmd = 'pp_photometry -snr 10 -aprad 15 {}'.format(mosaic)
+            elif self.pixscale == 0.4:
+                cmd = 'pp_photometry -snr 10 -aprad 10 {}'.format(mosaic)
 
             if not self.dryrun:
                 subprocs.append(subprocess.Popen(shlex.split(cmd)))
@@ -893,8 +844,7 @@ class combcat:
                         zeropt = self.magbase
                         self.combcat[filter] = self.combima[filter] + ".cat"
                     except AttributeError:
-                        self.get_FLXSCALE(self, filename=input)
-                        #zeropt = 26
+                        zeropt = 26
                         self.combcat[filter] = self.combima[filter] + ".cat"
                 else:
                     self.combcat[filter] = self.combima[filter] + "_cal.cat"
@@ -904,7 +854,7 @@ class combcat:
                     zeropt = self.magbase
                     self.combcat[filter] = self.combima[filter] + ".cat"
                 except AttributeError:
-                    self.get_FLXSCALE(self, filename=input)
+                    zeropt = 26
                     self.combcat[filter] = self.combima[filter] + ".cat"
 
             output = self.combcat[filter]
@@ -932,40 +882,11 @@ class combcat:
             if not self.dryrun:
                 os.system(cmd)
 
-        # here we'll do the NEWFIRM sextracting
-        # link this file into the newfirm directory and change the name
-        # check first
-        newfirm_dir = '../../newfirm/stacked/'
-        if not os.path.isdir(newfirm_dir):
-            return
-
-        input = '{}{}K.fits'.format(newfirm_dir, self.tilename)
-        output = '{}K_cal.cat'.format(self.tilename)
-
-        with fits.open(input) as f:
-            header = f[0].header
-            zeropt = header['magzero']
-
-        # Do the SEx
-        cmd = "sex {},{} -CATALOG_NAME {}".format(det_ima, input, output)
-        cmd += " -MAG_ZEROPOINT {} -c {} {}1>&2".format(zeropt,
-                                                        self.SExinpar, opts)
-
-        print(cmd)
-        if not self.dryrun:
-            os.system(cmd)
-
-        # append the K-band filter and catalog information
-        #self.filters.append('K')
-        #self.combcat['K'] = output
-        #self.XCorr['K'] = 0.0
-        #self.XCorrError['K'] = 0.0
-
         return
 
     # Build th color catalog to use when computing the photo-z
     # Adapted from JHU APSIS pipeline
-    def BuildColorCat(self):
+    def BuildColorCat(self, newfirm=False):
 
         # The default output names
         self.colorCat = self.tilename + ".color"
@@ -991,27 +912,15 @@ class combcat:
         detection_variables = tableio.get_data(detCatalog,
                                                detectionColumns)
 
-        # Check to see if there is NEWFIRM imaging, and if so, add it to the
-        # filter list.
-        newfirm_dir = '../../newfirm/stacked/'
-        if not os.path.isdir(newfirm_dir):
-            pass
-        else:
-            kband = '{}{}K.fits'.format(newfirm_dir, self.tilename)
-
         # Read in the MAG_ISO and MAG_ISOERR from each catalog
         for filter in self.filters:
+            if not newfirm and filter == 'K':
+                continue
             # get the zeropoint Info
-            if not filter == 'K':
-                tmp = np.genfromtxt('photometry_control_star_{}.dat'.format(
-                                    filter), names=True, dtype=None)
-                zpoint = tmp['ZP']
-                zp_error = tmp['ZP_sig']
-            else:
-                with fits.open(kband) as f:
-                    header = f[0].header
-                    zpoint = header['magzero']
-                    zp_error = header['magzsig']
+            tmp = np.genfromtxt('photometry_control_star_{}.dat'.format(
+                                filter), names=True, dtype=None)
+            zpoint = tmp['ZP']
+            zp_error = tmp['ZP_sig']
 
             # Get the columns
             sexcols = SEx_head(self.combcat[filter], verb=None)
@@ -1038,8 +947,13 @@ class combcat:
             # nondetection with zero flux and 1-sigma error equal to the
             # limiting magnitude
 
-            nondetected = np.less_equal(
-                flux[filter], 0.0) * np.greater(fluxerr[filter], 0.0)
+            #nondetected = np.less_equal(flux[filter], 0.0) * \
+            #              np.greater(fluxerr[filter], 0.0)
+
+            # update: There are a lot of really small positive values. I am
+            # going to modify this to look for values really close to zero.
+
+            nondetected = (flux[filter] < 0.0) | (abs(flux[filter]) < 1E-3)
 
             # Those objects with error flux and flux equal to 0 are assigned a
             # magnitude of -99
@@ -1051,11 +965,8 @@ class combcat:
             # When flux error > 100*(flux), mark as nonobserved (Benitez,
             # 24-Oct-03).
 
-            # Fix for fc11 -- y[:] has change meaning
-            #nonobserved = np.where(fluxerr[filter] >
-            #100*(abs(flux[filter])),1.0,nonobserved[:])
             nonobserved = np.where(fluxerr[filter] > 100 *
-                                        (abs(flux[filter])), 1.0,
+                                        (abs(flux[filter])), True,
                                    nonobserved)
 
             detected = np.logical_not(nonobserved + nondetected)
@@ -1103,6 +1014,8 @@ class combcat:
             # Prepare the data
         vars = list(detection_variables)
         for filter in self.filters:
+            if not newfirm and filter == 'K':
+                continue
             vars.append(m[filter])
             vars.append(em[filter])
 
@@ -1126,17 +1039,13 @@ class combcat:
 
             i = len(detection_variables)
             for filter in self.filters:
+                if not newfirm and filter == 'K':
+                    continue
                 # Get the zeropoint information
-                if not filter == 'K':
-                    tmp = np.genfromtxt('photometry_control_star_{}.dat'.format(
-                                        filter), names=True, dtype=None)
-                    zpoint = tmp['ZP']
-                    zp_error = tmp['ZP_sig']
-                else:
-                    with fits.open(kband) as f:
-                        header = f[0].header
-                        zpoint = header['magzero']
-                        zp_error = header['magzsig']
+                tmp = np.genfromtxt('photometry_control_star_{}.dat'.format(
+                                    filter), names=True, dtype=None)
+                zpoint = tmp['ZP']
+                zp_error = tmp['ZP_sig']
 
                 if filter == 'i':
                     n_mo = str(i + 1)
@@ -1327,7 +1236,6 @@ def mask_from_weight(infile, outfile, value=0):
     newfits.close
     return
 
-
 # Create a mask file from the weights
 def weight_from_dqfile(infile, outfile, clobber=False):
     # Remove old version of file before
@@ -1338,15 +1246,24 @@ def weight_from_dqfile(infile, outfile, clobber=False):
             print("# Skipping creation, %s image exists" % outfile)
             return
 
-    inHDU = fits.open(infile, "readonly")
-    data = inHDU[-1].data
-    newdata = np.where(data > 0, 0, 1)
-    inHDU[-1].data = newdata.astype("UInt8")  # Just as ushort integer
-    newhdu = fits.HDUList()
-    newhdu.append(inHDU[-1])
-    newhdu.writeto(outfile, clobber=clobber)
-    newhdu.close()
-    inHDU.close()
+    with fits.open(infile, mode='readonly') as inHDU:
+        if len(inHDU) > 2:
+            newhdu = fits.HDUList()
+            newhdu.append(inHDU[0])
+            for hdu in inHDU[1:]:
+                data = hdu.data
+                newdata = np.where(data > 0, 0, 1)
+                hdu.data = newdata.astype("UInt8")  # Just as ushort integer
+                newhdu.append(hdu)
+        else:
+            data = inHDU[-1].data
+            newdata = np.where(data > 0, 0, 1)
+            inHDU[-1].data = newdata.astype("UInt8")  # Just as ushort integer
+            newhdu = fits.HDUList()
+            newhdu.append(inHDU[-1])
+
+        newhdu.writeto(outfile, clobber=clobber)
+        newhdu.close()
     return
 
 def replace_vals_image(infits, outfits, repval=1):
@@ -1694,14 +1611,7 @@ def match_SEx(tilename, filters):
         tm_coord = SkyCoord(ra=twoMASS_cat['ra'] * u.degree,
                     dec=twoMASS_cat['dec'] * u.degree)
 
-    # manually add the kband data if it is there
-    if os.path.isfile('{}{}_cal.cat'.format(tilename, 'K')):
-        filters.append('K')
-    elif os.path.isfile('{}{}.cat'.format(tilename, 'K')):
-        filters.append('K')
-
     for filter in filters:
-        print(filter)
         # only do the Kband when we get there
         if filter == 'K':
             if os.path.isfile('{}{}_cal.cat'.format(tilename, filter)):
@@ -1877,7 +1787,7 @@ def add_Speczs(tilename):
         if len(sdss_cat) < 2:
             return
     except FileNotFoundError:
-        print('# SDSS CATALOG NOT FOUND! -- add specz')
+        print('SDSS CATALOG NOT FOUND!')
         return
     c_coord = SkyCoord(ra=cat['RA'] * u.degree, dec=cat['DEC'] * u.degree)
     s_coord = SkyCoord(ra=sdss_cat['ra'] * u.degree, dec=sdss_cat['dec'] *
@@ -1937,23 +1847,25 @@ def add_extra_photometry(tilename, filters=['u']):
     # read in the sdss catalog. We are doing this first because we only need to
     # do it once
     try:
-        cat = ascii.read('/home/boada/Projects/planckClusters/scripts/SDSS/'
-                '{}_SDSS_catalog.csv'.format(tilename))
+        cat = ascii.read('/home/boada/Projects/'
+                         'planckClusters/data/extern/SDSS/{}/'
+                         '{}_SDSS_catalog.csv'.format(tilename, tilename))
         sdss = True
         ps1 = False
         if len(cat) < 2:
-            print('# SDSS CATALOG NOT FOUND! -- TRYING PS1')
+            print('# SDSS CATALOG TOO SHORT! -- TRYING PS1')
             sdss = False
     except FileNotFoundError:
         sdss = False
         print('# SDSS CATALOG NOT FOUND! -- TRYING PS1')
     if not sdss:
         try:
-            cat = ascii.read('/home/boada/Projects/planckClusters/scripts/PS1/'
-                    '{}_PS1_catalog.csv'.format(tilename))
+            cat = ascii.read('/home/boada/Projects/'
+                             'planckClusters/data/extern/PS1/{}/'
+                             '{}_PS1_catalog.csv'.format(tilename, tilename))
             ps1 = True
             if len(cat) < 2:
-                print('# PS1 TOO SHORT!')
+                print('# PS1 CATALOG TOO SHORT!')
                 return
         except FileNotFoundError:
             print('# PS1 CATALOG NOT FOUND!')
@@ -2199,12 +2111,6 @@ def cmdline():
                       default=0,
                       help='Whether or not to create RGB images from mosaics')
 
-    parser.add_option("--noNEWFIRM",
-                      action='store_true',
-                      dest='noNEWFIRM',
-                      default=0,
-                      help='Whether or not to swarp the newfirm mosaic data.')
-
     parser.add_option("--noAstro",
                       action='store_true',
                       dest='noAstro',
@@ -2270,15 +2176,11 @@ def main():
     # SWarp
     if not opt.noSWarp:
         c.swarp_files(dryrun=opt.noSWarp,
-                  conf="SWarp-common.conf",
-                  combtype=opt.combtype)
+                      conf="SWarp-common.conf",
+                      combtype=opt.combtype)
 
     if opt.noSWarp:
         c.get_filenames()
-
-    # swarp NEWFIRM images (if they are there)
-    if not opt.noNEWFIRM:
-        c.swarp_newfirm()
 
     if not opt.noAstro:
         c.get_astrometry()
