@@ -953,7 +953,7 @@ class combcat:
             # update: There are a lot of really small positive values. I am
             # going to modify this to look for values really close to zero.
 
-            nondetected = (flux[filter] < 0.0) | (abs(flux[filter]) < 1E-3)
+            nondetected = (flux[filter] < 1E-3) & (fluxerr[filter] > 0.0)
 
             # Those objects with error flux and flux equal to 0 are assigned a
             # magnitude of -99
