@@ -101,7 +101,7 @@ def put_str(file, tupla):
         cosas = []
         for j in range(len(tupla)):
             cosas.append(str(tupla[j][i]))
-        f.write(join(cosas) + '\n')
+        f.write('\n'.join(cosas))
     f.close()
 
 #Files containing data
