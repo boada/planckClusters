@@ -3,7 +3,6 @@
 from bcs_catalogs import *
 import os
 import sys
-import tableio
 
 
 def main(tile, path):
@@ -34,7 +33,6 @@ def read_cats(tilename, path, det_filter='i', header=None):
         #prob_flat.write("%s  \n" % c.probs_header)
 
     IDsel = []
-    zp = []
     for ID in list(c.cat['i']['SHAPE'].keys()):
 
         IDname = "%s_%s" % (tilename, ID)
@@ -90,7 +88,7 @@ def read_cats(tilename, path, det_filter='i', header=None):
                 if (c.cat[filter]['MAGERR_AUTO'][ID] > 100):
                     SN = 0.0
                 else:
-                    SN = 1. / (10**
+                    SN = 1. / (10 **
                                (0.4 * c.cat[filter]['MAGERR_AUTO'][ID]) - 1)
                 mcat.write("%8.3f " % SN)
 
