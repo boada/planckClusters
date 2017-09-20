@@ -386,10 +386,10 @@ class combcat:
 
             outimage = "%s%s.fits" % (self.tilename, filter)
             # We only want the i-band weight to save space
-            if filter == 'i':
-                outweight = "%s%s_weight.fits" % (self.tilename, filter)
-            else:
-                outweight = "coadd.weight.fits"
+            #if filter == 'i':
+            outweight = "%s%s_weight.fits" % (self.tilename, filter)
+            #else:
+            #    outweight = "coadd.weight.fits"
 
             # Store the names
             self.combima[filter] = "%s%s" % (self.tilename, filter)
@@ -869,13 +869,14 @@ class combcat:
                 opts += " -CHECKIMAGE_NAME {} ".format(backima)
 
             # weight map for detection, and BACKGROUND for meassurement
-            opts += ' -WEIGHT_TYPE MAP_WEIGHT,BACKGROUND '
-            opts += ' -WEIGHT_IMAGE %s%s_weight.fits ' % (self.tilename,
+            opts += ' -WEIGHT_TYPE MAP_WEIGHT,MAP_WEIGHT '
+            opts += ' -WEIGHT_IMAGE %s%s_weight.fits,' % (self.tilename,
                                                           det_filter)
+            opts += '%s%s_weight.fits ' % (self.tilename, filter)
 
             # Do the SEx
             cmd = "sex {},{} -CATALOG_NAME {}".format(det_ima, input, output)
-            cmd += " -MAG_ZEROPOINT {} -c {} {}1>&2".format(zeropt,
+            cmd += " -MAG_ZEROPOINT {} -c {} {} 1>&2".format(zeropt,
                                                     self.SExinpar, opts)
 
             print(cmd)
