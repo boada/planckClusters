@@ -1,7 +1,8 @@
 import tableio
 from glob import glob
 import os
-
+import sys
+import numpy as np
 
 def SEx_head(catalog, verb='yes'):
 
@@ -46,7 +47,6 @@ def BuildColorCat(tilename, combcat, filters=['g', 'r', 'i', 'z', 'K'],
 
     # The default output names
     colorCat = tilename + "_complete.catalog"
-    columnsFile = tilename + ".columns"
 
     print('Processing catalogs... for: ', tilename, file=sys.stderr)
 
@@ -76,7 +76,6 @@ def BuildColorCat(tilename, combcat, filters=['g', 'r', 'i', 'z', 'K'],
         tmp = np.genfromtxt('photometry_control_star_{}.dat'.format(
                             filter), names=True, dtype=None)
         zpoint = tmp['ZP']
-        zp_error = tmp['ZP_sig']
 
         # Get the columns
         sexcols = SEx_head(combcat[filter], verb=None)
@@ -182,6 +181,7 @@ def BuildColorCat(tilename, combcat, filters=['g', 'r', 'i', 'z', 'K'],
     print('Multicolor catalog complete.', file=sys.stderr)
 
     return
+
 
 if __name__ == '__main__':
     dirs = [dirs for _, dirs, _ in os.walk('./')][0] # only want top level
