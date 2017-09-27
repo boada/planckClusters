@@ -268,11 +268,13 @@ class combcat:
         for param, value in list(opts.items()):
             cmd += "-%s %s " % (param, value)
 
-        print(cmd)
-        if not self.dryrun or dryrun:
-            print(os.getcwd())
-            print("Centering mosaic", file=sys.stderr)
+
+        if self.dryrun or not dryrun:
+            print("# Centering mosaic", file=sys.stderr)
+            print(cmd)
             os.system(cmd)
+        else:
+            print('# Mosaic already centered', file=sys.stderr)
 
         # Read in the header
         print(opts['IMAGEOUT_NAME'])
@@ -437,6 +439,7 @@ class combcat:
         self.combima = {}
         self.combcat = {}
         self.weightima = {}
+        self.outdir = os.path.join(self.outpath, self.tilename)
 
         self.center_dither(dryrun=True)
         self.xo = astCoords.hms2decimal(self.xo, ':')
@@ -457,7 +460,6 @@ class combcat:
         # The default output names
         self.colorCat = self.tilename + ".color"
         self.columnsFile = self.tilename + ".columns"
-
         return
 
     # Put correction
@@ -2101,64 +2103,58 @@ def cmdline():
 
     parser = OptionParser(usage=USAGE)
 
-    parser.add_option("--Copy",
+    parser.add_option("--swarp",
                       action="store_true",
-                      dest="Copy",
-                      default=0,
-                      help="Copy files")
+                      dest="SWarp",
+                      default=False,
+                      help="SWARP the mosaics")
 
-    parser.add_option("--noSWarp",
+    parser.add_option("--bpz",
                       action="store_true",
-                      dest="noSWarp",
-                      default=0,
-                      help="No SWarp")
+                      dest="BPZ",
+                      default=False,
+                      help="Calculate photometric redshifts")
 
-    parser.add_option("--noBPZ",
+    parser.add_option("--sex",
                       action="store_true",
-                      dest="noBPZ",
-                      default=0,
-                      help="No BPZ")
-
-    parser.add_option("--noSEx",
-                      action="store_true",
-                      dest="noSEx",
-                      default=0,
+                      dest="SEx",
+                      default=False,
                       help="No SEx")
 
-    parser.add_option("--Dust",
+    parser.add_option("--dust",
                       action="store_true",
                       dest="Dust",
-                      default=0,
+                      default=False,
                       help="Dust Extinction Correction")
 
     parser.add_option("--WeightOnly",
                       action="store_true",
                       dest="WeightOnly",
-                      default=0,
+                      default=False,
                       help="Create custom weights from images and exits")
 
     parser.add_option("--Weight",
                       action="store_true",
                       dest="Weight",
-                      default=0,
+                      default=False,
                       help="Create custom weights from images")
 
-    parser.add_option("--noMask",
+    parser.add_option("--mask",
                       action="store_true",
                       dest="noMask",
-                      default=0,
+                      default=False,
                       help="Do not generate the mask from weight")
 
     parser.add_option("--useMask",
                       action="store_true",
                       dest="useMask",
-                      default=0,
+                      default=False,
                       help="Use Trimming mask")
 
     parser.add_option("--dryrun",
                       action="store_true",
                       dest="dryrun",
-                      default=0,
+                      default=False,
                       help="Dry Run (only SExtractor remains)")
 
     parser.add_option("--combtype",
@@ -2172,22 +2168,22 @@ def cmdline():
                       default=0,
                       help='Whether or not to remove uncompressed files')
 
-    parser.add_option("--noRGB",
+    parser.add_option("--RGB",
                       action='store_true',
-                      dest='noRGB',
-                      default=0,
+                      dest='RGB',
+                      default=False,
                       help='Whether or not to create RGB images from mosaics')
 
-    parser.add_option("--noAstro",
+    parser.add_option("--astro",
                       action='store_true',
-                      dest='noAstro',
-                      default=0,
+                      dest='Astro',
+                      default=False,
                       help='Whether or not to astro calibrate the mosiacs.')
 
-    parser.add_option("--noPhoto",
+    parser.add_option("--photo",
                       action='store_true',
-                      dest='noPhoto',
-                      default=0,
+                      dest='Photo',
+                      default=False,
                       help='Whether or not to photo calibrate the mosaics.')
 
     (options, args) = parser.parse_args()
@@ -2197,19 +2193,23 @@ def cmdline():
 
     # Dry run turns off everything... almost
     if options.dryrun:
-        options.Copy = 0
-        options.noSWarp = 1
-        options.noBPZ = 1
-        options.noMask = 1
-        options.Dust = 0
+        options.SWarp = False
+        options.Astro = False
+        options.Photo = False
+        options.SEx = False
+        options.BPZ = False
+        options.Mask = False
+        options.Dust = True
 
     # Same for WeightOnly
     if options.WeightOnly:
-        options.Copy = 0
-        options.noSWarp = 1
-        options.noBPZ = 1
-        options.noMask = 1
-        options.Dust = 0
+        options.SWarp = False
+        options.Astro = False
+        options.Photo = False
+        options.SEx = False
+        options.BPZ = False
+        options.Mask = False
+        options.Dust = True
 
     return options, args
 
@@ -2232,27 +2232,20 @@ def main():
                 outpath=outpath,
                 verb='yes',
                 dryrun=opt.dryrun,
-                noSWarp=opt.noSWarp)
-
-    # Copy the files into dir
-    if opt.Copy:
-        c.copyfiles(copy=True)
-    else:
-        c.copyfiles(copy=False)
+                noSWarp=~opt.SWarp)
 
     # SWarp
-    if not opt.noSWarp:
+    if not opt.SWarp:
+        c.get_filenames()
+    else:
         c.swarp_files(dryrun=opt.noSWarp,
                       conf="SWarp-common.conf",
                       combtype=opt.combtype)
 
-    if opt.noSWarp:
-        c.get_filenames()
-
-    if not opt.noAstro:
+    if opt.Astro:
         c.get_astrometry()
 
-    if not opt.noPhoto:
+    if opt.Photo:
         c.get_zeropt()
 
     # Make the detection image
@@ -2262,7 +2255,7 @@ def main():
         c.makeDetectionIma(filter='i')
 
     # SExtractor
-    if not opt.noSEx:
+    if opt.SEx:
         c.SEx()
 
     # Dust Extinction Correction
@@ -2270,17 +2263,17 @@ def main():
         c.DustCorrection()
 
     # photometric redshifts
-    if not opt.noBPZ:
+    if opt.BPZ:
         c.BuildColorCat()
         c.runBPZ()
 
     # make RGB images (pngs)
-    if not opt.noRGB:
+    if opt.RGB:
         print('make rgb')
         c.make_RGB(kband=False)
 
     # cleanup
-    if opt.noCleanUP or opt.noSWarp:
+    if opt.noCleanUP or not opt.SWarp:
         pass
     else:
         print("CLEANUP!")
@@ -2288,6 +2281,5 @@ def main():
 
     elapsed_time(tstart, c.tilename)
     return
-
 
 main()
