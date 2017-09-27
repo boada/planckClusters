@@ -199,17 +199,6 @@ class combcat:
 
         return
 
-    def copyfiles(self, copy=False):
-        ''' Copy files from the remote location to the current dir'''
-
-        if not copy:
-            self.outdir = os.path.join(self.outpath, self.tilename)
-            if not os.path.exists(self.outdir):
-                os.mkdir(self.outdir)
-            return
-
-        return
-
     def update_header_projection(self, proj='TAN'):
         for fname in self.infiles:
             print('# Updating {} '.format(fname), end='...')
