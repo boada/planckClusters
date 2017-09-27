@@ -1217,7 +1217,7 @@ class combcat:
         print('')
         return
 
-    def make_RGB(self, kband=False, conf='stiff-common.conf'):
+    def make_RGB(self, newfirm=False, conf='stiff-common.conf'):
 
         try:
             print()
@@ -1228,7 +1228,7 @@ class combcat:
         _conf = os.path.join(self.pipeline, 'confs', conf)
 
         # input files
-        if kband:
+        if newfirm:
             red = '../../newfirm/stacked/{}{}.fits'.format(self.tilename, 'K')
             if os.path.isfile(red):
                 green = './{}{}.fits'.format(self.tilename, 'i')
@@ -2175,6 +2175,12 @@ def cmdline():
                       default=False,
                       help='Whether or not to photo calibrate the mosaics.')
 
+    parser.add_option("--newfirm",
+                      action='store_true',
+                      dest='newfirm',
+                      default=False,
+                      help='Use the NEWFIRM imaging for BPZ and RGB.')
+
     (options, args) = parser.parse_args()
 
     if len(args) < 3:
@@ -2253,13 +2259,13 @@ def main():
 
     # photometric redshifts
     if opt.BPZ:
-        c.BuildColorCat()
+        c.BuildColorCat(newfirm=opt.newfirm)
         c.runBPZ()
 
     # make RGB images (pngs)
     if opt.RGB:
         print('make rgb')
-        c.make_RGB(kband=False)
+        c.make_RGB(newfirm=opt.newfirm)
 
     # cleanup
     if opt.noCleanUP or not opt.SWarp:
