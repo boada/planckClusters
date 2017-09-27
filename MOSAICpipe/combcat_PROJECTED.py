@@ -217,6 +217,7 @@ class combcat:
     def center_dither(self, conf="SWarp-center.conf", filter='i', dryrun=False):
         ''' Center the dither pattern for SWARP '''
 
+        print()
         check_exe("swarp")
 
         # The configuration file
@@ -630,6 +631,7 @@ class combcat:
         '''
 
         # we have to prepare the images first.
+        print()
         check_exe('pp_prepare')
         check_exe('pp_register')
 
@@ -693,6 +695,7 @@ class combcat:
 
         '''
 
+        print()
         check_exe('pp_photometry')
         check_exe('pp_calibrate')
         check_exe('pp_distill')
@@ -802,6 +805,7 @@ class combcat:
 
         '''
 
+        print()
         check_exe("sex")
 
         # list of output catalog names
@@ -879,7 +883,16 @@ class combcat:
 
     # Find the eBV dust correction for each source in the catalogs
     def DustCorrection(self):
+        ''' This figures out the dust extinction and corrects the sextractor
+        photometry that has been cleaned by the BuildColorCat function. It also
+        puts the dust corrections into a series of dictions that are used by
+        BuildColorCat. So if we don't run this function it doesn't include the
+        dust correction. This is even true after it writes a dust file. I think
+        the dust file is really just there for us to inspect for funny stuff.
 
+        '''
+
+        print()
         self.DustCat = self.tilename + ".dust"
 
         # Get RA,DEC from the detection catalog
@@ -889,12 +902,10 @@ class combcat:
         (id, ra, dec) = tableio.get_data(detCatalog, cols)
         outColumns = ['ID', ]
 
-        print(max(ra), max(dec))
-
         # Get e(B-V) for every source in the detection catalog
-        print("Computing e(B-V) for all %s ra,dec" % len(ra), file=sys.stderr)
+        print("# Computing e(B-V) for all %s ra,dec" % len(ra), file=sys.stderr)
         self.eBV = deredden.get_EBV(ra, dec)
-        print("Done...", file=sys.stderr)
+        print("# Done...", file=sys.stderr)
 
         # Prepare the header for the output file
         header = '## {}\n'.format(time.ctime()) + \
@@ -932,25 +943,33 @@ class combcat:
 
         vars = tuple(VarsOut)
         format = '%8i' + '%10.5f  ' * (len(vars) - 1)
-        print('Writing Dust Extinction Catalog...', file=sys.stderr)
+        print('# Writing Dust Extinction Catalog...', file=sys.stderr)
         tableio.put_data(self.DustCat,
                          vars,
                          header=header,
                          format=format,
                          append='no')
-        print('Dust file complete.', file=sys.stderr)
+        print('# Dust file complete.', file=sys.stderr)
 
         return
 
     # Build th color catalog to use when computing the photo-z
     # Adapted from JHU APSIS pipeline
     def BuildColorCat(self, newfirm=False):
+        ''' Builds a photometry catalog that is going to be given to BPZ for the
+        photometric redshift calculation. This function also cleans the original
+        sextractor catalogs of the objects that have really low detections or
+        are otherwise questionable detections. I don't think the cleaning is
+        perfect, but is a lot better than it was before.
 
+        '''
+
+        print()
         # The default output names
         self.colorCat = self.tilename + ".color"
         self.columnsFile = self.tilename + ".columns"
 
-        print('Processing catalogs... for: ', self.tilename, file=sys.stderr)
+        print('# Processing catalogs... for: ', self.tilename, file=sys.stderr)
 
         flux = {}
         fluxerr = {}
@@ -1079,13 +1098,13 @@ class combcat:
 
         variables = tuple(vars)
         format = '%i\t %10.2f %10.2f' + '%10.4f  ' * (len(variables) - 3)
-        print('Writing data to multicolor catalog...', file=sys.stderr)
+        print('# Writing data to multicolor catalog...', file=sys.stderr)
         tableio.put_data(self.colorCat,
                          variables,
                          header=header,
                          format=format,
                          append='no')
-        print('Multicolor catalog complete.', file=sys.stderr)
+        print('# Multicolor catalog complete.', file=sys.stderr)
 
         # And now write .columns file
         with open(self.columnsFile, 'w') as cfile:
@@ -1119,38 +1138,18 @@ class combcat:
             cfile.write('M_0\t%s\n' % n_mo)
         return
 
-    def cleanCatalogs(self):
-        ''' This function takes all of the sextractor and newly created color
-        catalogs and cleans them to make sure there are no horrible detections.
-        Horrible detections include things where the detection image doesn't
-        overlap with the other image. This causes us to get crazy magnitudes
-        that don't make any sense. So throw those away. I am going to clean
-        both the color catalog, and the Sextractor catalogs. The color catalogs
-        will get -99 (for now), but it might be better to just remove them all
-        together.
-
-        '''
-
-        from astropy.io import ascii
-
-        color = ascii.read('{}.color'.format(self.tilename))
-        for filter in self.filters:
-            sex_cat = ascii.read(self.combcat[filter])
-            # find all the spots where the FWHM == 0.
-            fwhm_idx = np.where(sex_cat['FWHM_IMAGE'] == 0.0)[0]
-            color['{}_MOSAICII_MAG_ISO'.format(filter)][fwhm_idx] = -99.
-            color['{}_MOSAICII_MAGERR_ISO'.format(filter)][fwhm_idx] = 0.
-
     # Run Benitez BPZ
     def runBPZ(self, Specz=True):
         """Runs BPZ on the multicolor catalog file using the .columns """
 
+        print()
         # first we update with Specz's if we want to
+        print('# Match Catalogs -- Add spec-zs')
         match_SEx(self.tilename, self.filters)
         add_Speczs(self.tilename)
         #add_extra_photometry(self.tilename)
 
-        print('Starting photometric redshift determination...',
+        print('# Starting photometric redshift determination...',
               file=sys.stderr)
         bpz = os.path.join(os.environ['BPZPATH'], 'bpz.py ')
         #bpzcat = self.tilename + ".bpz"
@@ -1221,6 +1220,7 @@ class combcat:
     def make_RGB(self, kband=False, conf='stiff-common.conf'):
 
         try:
+            print()
             check_exe('stiff')
         except FileNotFoundError:
             return
