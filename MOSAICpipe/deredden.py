@@ -147,9 +147,10 @@ def get_EBV(ra, dec):
         possible reported problems with the region of the sky.
     """
 
-    coords_eq = "/tmp/coords_radec.dat"
-    coords_lb = "/tmp/coords_galac.dat"
-    eBVdata = "/tmp/eBV.dat"
+    rand_ID = np.random.randint(1e5)
+    coords_eq = "/tmp/coords_radec_{}.dat".format(rand_ID)
+    coords_lb = "/tmp/coords_galac_{}.dat".format(rand_ID)
+    eBVdata = "/tmp/eBV_{}.dat".format(rand_ID)
 
     # Check that they are arrays
     if isinstance(ra, float) or isinstance(dec, float):
