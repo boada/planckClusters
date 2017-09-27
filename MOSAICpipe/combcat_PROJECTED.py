@@ -436,7 +436,6 @@ class combcat:
         self.yo = astCoords.dms2decimal(self.yo, ':')
 
         for filter in self.filters:
-
             # Store the names
             self.combima[filter] = "%s%s" % (self.tilename, filter)
             self.weightima[filter] = "%s%s_weight.fits" % (self.tilename,
