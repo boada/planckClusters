@@ -28,6 +28,11 @@ import shelve
 
 from coetools import pause, params_cl
 
+class Printer():
+    """Print things to stdout on one line dynamically"""
+    def __init__(self, data):
+        sys.stdout.write("\r\x1b[K" + data.__str__())
+        sys.stdout.flush()
 
 def seglist(vals, mask=None):
     """Split vals into lists based on mask > 0"""
@@ -856,6 +861,10 @@ if pars.d['CONVOLVE_P'] == 'yes':
 
 if pars.d["NMAX"] != None: ng = int(pars.d["NMAX"])
 for ig in range(ng):
+    currentPercent = ig / ng * 100
+    status = "{0:.3f}% of {} completed.".format(currentPercent, ng)
+    Printer(status)
+
     #Don't run BPZ on galaxies with have z_s > z_max
     #if col_pars.d.has_key('Z_S'):
     #    if z_s[ig]<9.9 and z_s[ig]>zmax : continue
@@ -880,14 +889,6 @@ for ig in range(ng):
     p = likelihood.likelihood
     if not ig:
         print('ML * prior -- NOT QUITE BAYESIAN')
-
-    #plo=FramedPlot()
-    #for i in range(p.shape[1]):
-    #    plo.add(Curve(z,likelihood.likelihood[:nz,i]/sum(sum(likelihood.likelihood[:nz,:]))))
-    #    plo.add(Curve(z,likelihood.bayes_likelihood[:nz,i]/sum(sum(likelihood.bayes_likelihood[:nz,:])),color='red'))
-    #    #plo.add(Curve(z,p[:nz,i]/sum(sum(p[:nz,:])),color='red'))
-    #plo.show()
-    #ask('More?')
 
     if pars.d[
             'ONLY_TYPE'] == 'yes':  #Use only the redshift information, no priors
