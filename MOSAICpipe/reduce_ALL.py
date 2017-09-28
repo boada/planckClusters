@@ -41,7 +41,7 @@ def main():
         print(os.getcwd())
         # build the command
         cmd = 'python3 combcat_PROJECTED.py {} ./ ./'.format(assocFile)
-        cmd += ' --noSWarp --noPhoto --noAstro --noRGB'
+        cmd += ' --bpz --dust --newfirm'
 
         print(cmd)
         os.system(cmd)

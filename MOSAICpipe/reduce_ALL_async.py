@@ -47,7 +47,7 @@ def worker(pos, d):
     print(os.getcwd())
     # build the command
     cmd = 'python3 combcat_PROJECTED.py {} ./ ./'.format(assocFile)
-    cmd += ' --dust'
+    cmd += ' --dust --bpz --newfirm'
 
     print(cmd)
     os.system(cmd)
@@ -62,12 +62,12 @@ def main():
     dirs = [dirs for _, dirs, _ in os.walk('./')][0] # only want top level
 
     async_worker = AsyncFactory(worker, cb_func)
-    for i, d in enumerate(dirs[:10]):
+    for i, d in enumerate(dirs):
         if 'PSZ' not in d:
             continue
 
         async_worker.call(i, d)
-    
+
     async_worker.wait()
     # clean up all of the intermediate data products
     cmds = ["find . -path '*/.diagnostics/*' -delete",
