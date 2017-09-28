@@ -222,7 +222,7 @@ class combcat:
 
         # The configuration file
         center_conf = os.path.join(self.pipeline, 'confs', conf)
-
+        self.outdir = os.path.join(self.outpath, self.tilename)
         # First we need to get the center for all the files, swarp them all
         opts = {}
 
@@ -2226,13 +2226,13 @@ def main():
                 outpath=outpath,
                 verb='yes',
                 dryrun=opt.dryrun,
-                noSWarp=~opt.SWarp)
+                noSWarp= not opt.SWarp)
 
     # SWarp
     if not opt.SWarp:
         c.get_filenames()
     else:
-        c.swarp_files(dryrun=opt.noSWarp,
+        c.swarp_files(dryrun= not opt.SWarp,
                       conf="SWarp-common.conf",
                       combtype=opt.combtype)
 
