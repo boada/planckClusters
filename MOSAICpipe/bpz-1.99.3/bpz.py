@@ -862,7 +862,7 @@ if pars.d['CONVOLVE_P'] == 'yes':
 if pars.d["NMAX"] != None: ng = int(pars.d["NMAX"])
 for ig in range(ng):
     currentPercent = ig / ng * 100
-    status = "{0:.3f}% of {} completed.".format(currentPercent, ng)
+    status = "{:.3f}% of {} completed.".format(currentPercent, ng)
     Printer(status)
 
     #Don't run BPZ on galaxies with have z_s > z_max
