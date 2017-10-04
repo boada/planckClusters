@@ -3,7 +3,6 @@
 from __future__ import division
 from past.utils import old_div
 import os, sys
-import numpy
 import tableio
 import pylab
 
@@ -17,8 +16,9 @@ for sed in seds:
     #fmax = max(f.max(),fmax)
     f = old_div(f, f.max())
     #print fmax
-    pylab.semilogx(w, f)
+    pylab.semilogx(w, f, label=sed)
 
 pylab.xlim(1000, 5e4)
+pylab.legend()
 pylab.show()
 pylab.close()
