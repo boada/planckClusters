@@ -12,6 +12,7 @@ import subprocess
 import shlex
 from astropy.io import fits
 from astropy.io.fits import getheader
+from astropy.io import ascii
 
 class combcat:
     ''' Combine, swarp and get catalogs '''
@@ -258,7 +259,6 @@ class combcat:
         for param, value in list(opts.items()):
             cmd += "-%s %s " % (param, value)
 
-
         if self.dryrun or not dryrun:
             print("# Centering mosaic", file=sys.stderr)
             print(cmd)
@@ -417,72 +417,113 @@ class combcat:
 
         return
 
-    def get_filenames(self):
-        ''' This script will get called if we choose not to swarp the images.
-        This makes sure that all of the variables are defined.
+    def swarp_extras(self,
+                    conf="SWarp-common.conf",
+                    dryrun=None,
+                    combtype="MEDIAN",
+                    reSWarp=None,
+                    filters=None):
+        # Make the detection image an colors
 
-        '''
-        # this is to convert the hms/dms coordinates back into decimal degrees.
-        # I don't really want to use this, but I am not rewriting things.
-        from astLib import astCoords
-
-        self.combima = {}
-        self.combcat = {}
-        self.weightima = {}
-        self.outdir = os.path.join(self.outpath, self.tilename)
-
-        self.center_dither(dryrun=True)
-        self.xo = astCoords.hms2decimal(self.xo, ':')
-        self.yo = astCoords.dms2decimal(self.yo, ':')
-
-        for filter in self.filters:
-            # Store the names
-            self.combima[filter] = "%s%s" % (self.tilename, filter)
-            self.weightima[filter] = "%s%s_weight.fits" % (self.tilename,
-                                                           filter)
-            # make the combined catalog filenames
-            if os.path.isfile('{}{}.cat'.format(self.tilename, filter)):
-                self.combcat[filter] = '{}{}.cat'.format(self.tilename, filter)
-            elif os.path.isfile('{}{}_cal.cat'.format(self.tilename, filter)):
-                self.combcat[filter] = '{}{}_cal.cat'.format(self.tilename,
-                                                             filter)
-        # The default output names
-        self.colorCat = self.tilename + ".color"
-        self.columnsFile = self.tilename + ".columns"
-        return
-
-    # Put correction
-    def header_FSCALE(self, filters=None, dm=0.05):
-
-        self.do_level = {}
-        self.filters_level = []
+        # Keys to keep
+        keywords = ['OBJECT', 'EXPTIME', 'AIRMASS', 'TIMESYS', 'DATE-OBS',
+                    'TIME-OBS', 'OBSTYPE', 'OBSERVAT', 'TELESCOP', 'HA', 'ZD',
+                    'DETECTOR', 'DARKTIME', 'RA', 'DEC', 'MJD-OBS', 'INSTRUME',
+                    'FILTER', 'MAGZERO', 'MAGZSIG']
 
         if not filters:
             filters = self.filters
 
-        for filter in filters:
-            if len(self.files[filter]) < 2:
-                print("Only one frame, no FLUX SCALE for %s %s filter" % (
-                    self.tilename, filter))
-                continue
+        _conf = os.path.join(self.pipeline, 'confs', conf)
 
-            # First Check if we should correct
-            self.do_level[filter] = False
-            for file in self.files[filter]:
-                if abs(2.5 * log10(self.FS_MAG[file])) >= 0.05:
-                    #if self.MCorr[file] > dm:
-                    self.do_level[filter] = True
-                    self.filters_level.append(filter)
+        if not self.centered:
+            self.center_dither()
 
-                    # Skip when values are < dm
-            if not self.do_level[filter]:
-                print("# No need to correct frames %s for %s" % (
-                    self.tilename, filter), file=sys.stderr)
-                continue
+        self.make_swarp_input_weights(clobber=False)
+        self.combtype = combtype
+        self.get_FLXSCALE(magbase=26)
 
-            # Other wise call put_FSCALE
-            for file in self.files[filter]:
-                self.put_FSCALE(file)
+        pars = {}
+        pars["IMAGE_SIZE"] = "%s,%s" % (self.nx, self.ny)
+        pars["CENTER_TYPE"] = "MANUAL"
+        pars["CENTER"] = "%s,%s" % (self.xo, self.yo)
+        pars["PIXEL_SCALE"] = self.pixscale
+        pars["PIXELSCALE_TYPE"] = "MANUAL"
+        pars["COPY_KEYWORDS"] = ','.join(keywords)
+        pars["NTHREADS"] = "0"
+        pars["WEIGHT_TYPE"] = "MAP_WEIGHT"
+        #pars["COMBINE_TYPE"]    = combtype
+
+        # Color Channels
+        filters = {}
+        filters["Red"] = ['K']
+        filters["Green"] = ['z', 'i']
+        filters["Blue"] = ['g', 'r']
+        filters["Detec"] = ['i', 'K']
+
+        self.combima = {}
+        self.weightima = {}
+
+        for color in list(filters.keys()):
+
+            outimage = "%s%s.fits" % (self.tilename, color)
+            outweight = "%s%s_weight.fits" % (self.tilename, color)
+            # Store the names
+            self.combima[color] = "%s%s" % (self.tilename, color)
+            # Different combination for detection image"
+            if color == "Detec":
+                pars["COMBINE_TYPE"] = "CHI_OLD"
+                self.DetImage = outimage
+            else:
+                pars["COMBINE_TYPE"] = combtype
+
+            # The options
+            opts = ""
+            for param, value in list(pars.items()):
+                opts = opts + "-%s %s " % (param, value)
+
+            print(color, pars["COMBINE_TYPE"])
+
+            # Make the list of images to combine
+            try:
+                del filelist, weightlist, fscalelist
+            except UnboundLocalError:
+                pass
+            for filter in filters[color]:
+                try:
+                    filelist += ' ' + ' '.join(self.files[filter])
+                    weightlist += ',' + ','.join(self.files_weight[filter])
+                    fscalelist += ',' + ','.join(map(str, self.flxscale[filter]))
+                except UnboundLocalError:
+                    filelist = ' '.join(self.files[filter])
+                    weightlist = ','.join(self.files_weight[filter])
+                    fscalelist = ','.join(map(str, self.flxscale[filter]))
+
+            cmd = "swarp %s -c %s -IMAGEOUT_NAME %s -WEIGHTOUT_NAME %s " %\
+                            (filelist, _conf, outimage, outweight)
+
+            #print(color, filelist)
+            cmd = "swarp %s -c %s -IMAGEOUT_NAME %s -WEIGHTOUT_NAME %s " %\
+                (filelist, _conf, outimage, outweight)
+            cmd += " -WEIGHT_IMAGE %s " % (weightlist)
+            cmd += " -FSCALE_DEFAULT %s " % (fscalelist)
+            cmd += opts
+
+            if not dryrun:
+                print("# Will run:\n\t%s" % cmd)
+                os.system(cmd)
+                AM = self.calc_airmass(filter)
+                put_airmass(outimage, AM)
+                ET = self.calc_exptime(filter)
+                put_exptime(outimage, ET)
+
+                # make sure the header keywords have been propigated. This is
+                # important for the astro and flux calibration
+                put_headerKeywords(self.files[filter][0], outimage, keywords,
+                                self.xo, self.yo)
+
+            else:
+                print(cmd)
 
         return
 
@@ -550,6 +591,75 @@ class combcat:
             for file in outfiles:
                 print("Removing %s" % file)
                 os.system("rm %s" % file)
+
+        return
+
+    def get_filenames(self):
+        ''' This script will get called if we choose not to swarp the images.
+        This makes sure that all of the variables are defined.
+
+        '''
+        # this is to convert the hms/dms coordinates back into decimal degrees.
+        # I don't really want to use this, but I am not rewriting things.
+        from astLib import astCoords
+
+        self.combima = {}
+        self.combcat = {}
+        self.weightima = {}
+        self.outdir = os.path.join(self.outpath, self.tilename)
+
+        self.center_dither(dryrun=True)
+        self.xo = astCoords.hms2decimal(self.xo, ':')
+        self.yo = astCoords.dms2decimal(self.yo, ':')
+
+        for filter in self.filters:
+            # Store the names
+            self.combima[filter] = "%s%s" % (self.tilename, filter)
+            self.weightima[filter] = "%s%s_weight.fits" % (self.tilename,
+                                                           filter)
+            # make the combined catalog filenames
+            if os.path.isfile('{}{}.cat'.format(self.tilename, filter)):
+                self.combcat[filter] = '{}{}.cat'.format(self.tilename, filter)
+            elif os.path.isfile('{}{}_cal.cat'.format(self.tilename, filter)):
+                self.combcat[filter] = '{}{}_cal.cat'.format(self.tilename,
+                                                             filter)
+        # The default output names
+        self.colorCat = self.tilename + ".color"
+        self.columnsFile = self.tilename + ".columns"
+        return
+
+    # Put correction
+    def header_FSCALE(self, filters=None, dm=0.05):
+
+        self.do_level = {}
+        self.filters_level = []
+
+        if not filters:
+            filters = self.filters
+
+        for filter in filters:
+            if len(self.files[filter]) < 2:
+                print("Only one frame, no FLUX SCALE for %s %s filter" % (
+                    self.tilename, filter))
+                continue
+
+            # First Check if we should correct
+            self.do_level[filter] = False
+            for file in self.files[filter]:
+                if abs(2.5 * log10(self.FS_MAG[file])) >= 0.05:
+                    #if self.MCorr[file] > dm:
+                    self.do_level[filter] = True
+                    self.filters_level.append(filter)
+
+                    # Skip when values are < dm
+            if not self.do_level[filter]:
+                print("# No need to correct frames %s for %s" % (
+                    self.tilename, filter), file=sys.stderr)
+                continue
+
+            # Other wise call put_FSCALE
+            for file in self.files[filter]:
+                self.put_FSCALE(file)
 
         return
 
@@ -1118,20 +1228,46 @@ class combcat:
                 if not newfirm and filter == 'K':
                     continue
                 # Get the zeropoint information
-                tmp = np.genfromtxt('photometry_control_star_{}.dat'.format(
-                                    filter), names=True, dtype=None)
-                zpoint = tmp['ZP']
-                zp_error = tmp['ZP_sig']
+                tmp = ascii.read('photometry_control_star_{}.dat'.format(
+                                    filter))
+                zpoint = tmp['ZP'].data[0]
+                zp_error = tmp['ZP_sig'].data[0]
+                cal_catalog = tmp['[6]'].data[0]
 
-                if filter == 'i':
-                    n_mo = str(i + 1)
+                kpno = False
+                photocat = True
 
-                if filter == 'K':
-                    cfile.write('%s_KittPeak\t %s,%s\t AB\t %.2f\t 0.0\n' %
-                            (filter, i + 1, i + 2, zp_error))
-                else:
-                    cfile.write('%s_MOSAICII\t %s,%s\t AB\t %.2f\t 0.0\n' %
-                            (filter, i + 1, i + 2, zp_error))
+                if kpno:
+                    if filter == 'i':
+                        n_mo = str(i + 1)
+
+                    if filter == 'K':
+                        cfile.write('%s_KittPeak\t %s,%s\t AB\t %.2f\t 0.0\n' %
+                                (filter, i + 1, i + 2, zp_error))
+                    else:
+                        cfile.write('%s_MOSAICII\t %s,%s\t AB\t %.2f\t 0.0\n' %
+                                (filter, i + 1, i + 2, zp_error))
+
+                if photocat:
+                    if 'sdss' in cal_catalog.lower():
+                        cal_system = 'SLOAN-SDSS'
+                    elif 'panstarrs' in cal_catalog.lower():
+                        cal_system = 'PAN-STARRS-PS1'
+                    elif '2mass' in cal_catalog.lower():
+                        cal_system = '2MASS-2MASS'
+                    else:
+                        print('Catalog system not understood!')
+
+                    if filter == 'i':
+                        n_mo = str(i + 1)
+
+                    if filter == 'K':
+                        cfile.write('%s.%ss\t %s,%s\t AB\t %.2f\t 0.0\n' %
+                            (cal_system, filter, i + 1, i + 2, zp_error))
+                    else:
+                        cfile.write('%s.%s\t %s,%s\t AB\t %.2f\t 0.0\n' %
+                            (cal_system, filter, i + 1, i + 2, zp_error))
+
                 i += 2
 
             cfile.write('M_0\t%s\n' % n_mo)
@@ -1226,24 +1362,29 @@ class combcat:
 
         _conf = os.path.join(self.pipeline, 'confs', conf)
 
-        # input files
-        if newfirm:
-            red = '../../newfirm/stacked/{}{}.fits'.format(self.tilename, 'K')
-            if os.path.isfile(red):
-                green = './{}{}.fits'.format(self.tilename, 'i')
-                blue = './{}{}.fits'.format(self.tilename, 'r')
-                bands = 'Kir'
-            else:
-                print('k-band file not found, restoring defaults')
-                red = './{}{}.fits'.format(self.tilename, 'i')
-                green = './{}{}.fits'.format(self.tilename, 'r')
-                blue = './{}{}.fits'.format(self.tilename, 'g')
-                bands = 'irg'
-        else:
-            red = './{}{}.fits'.format(self.tilename, 'i')
-            green = './{}{}.fits'.format(self.tilename, 'r')
-            blue = './{}{}.fits'.format(self.tilename, 'g')
-            bands = 'irg'
+        # # input files
+        # if newfirm:
+        #     red = '../../newfirm/stacked/{}{}.fits'.format(self.tilename, 'K')
+        #     if os.path.isfile(red):
+        #         green = './{}{}.fits'.format(self.tilename, 'i')
+        #         blue = './{}{}.fits'.format(self.tilename, 'r')
+        #         bands = 'Kir'
+        #     else:
+        #         print('k-band file not found, restoring defaults')
+        #         red = './{}{}.fits'.format(self.tilename, 'i')
+        #         green = './{}{}.fits'.format(self.tilename, 'r')
+        #         blue = './{}{}.fits'.format(self.tilename, 'g')
+        #         bands = 'irg'
+        # else:
+        #     red = './{}{}.fits'.format(self.tilename, 'i')
+        #     green = './{}{}.fits'.format(self.tilename, 'r')
+        #     blue = './{}{}.fits'.format(self.tilename, 'g')
+        #     bands = 'irg'
+
+        red = './{}{}.fits'.format(self.tilename, 'Red')
+        green = './{}{}.fits'.format(self.tilename, 'Green')
+        blue = './{}{}.fits'.format(self.tilename, 'Blue')
+        bands = 'rgb'
 
         # output file
         output = '{}{}.tiff'.format(self.tilename, bands)
@@ -1765,7 +1906,8 @@ def match_SEx(tilename, filters):
 
         #### NOW THE 2MASS DATA -- IF KBAND ####
         if kband and twoMASS:
-            idxc, idxp, d2d, d3d = tm_coord.search_around_sky(c_coord, 1 * u.arcsec)
+            idxc, idxp, d2d, d3d = tm_coord.search_around_sky(c_coord,
+                                                              1 * u.arcsec)
             # make some data to catch
             d = np.ones(len(cat)) * 99.0 # 99 is the non-detection value in SEx...
             col = Column(d, name='2MASS_{}'.format(filter))
@@ -2097,6 +2239,12 @@ def cmdline():
                       default=False,
                       help="SWARP the mosaics")
 
+    parser.add_option("--swarpextras",
+                      action="store_true",
+                      dest="SWarpExtras",
+                      default=False,
+                      help="SWARP the mosaics to make multicolor images")
+
     parser.add_option("--bpz",
                       action="store_true",
                       dest="BPZ",
@@ -2153,7 +2301,7 @@ def cmdline():
     parser.add_option("--noCleanUP",
                       action='store_true',
                       dest='noCleanUP',
-                      default=0,
+                      default=False,
                       help='Whether or not to remove uncompressed files')
 
     parser.add_option("--RGB",
@@ -2220,19 +2368,41 @@ def main():
     inpath = arg[1]
     outpath = arg[2]
 
-    # Init the class
-    c = combcat(assocfile,
-                datapath=inpath,
-                outpath=outpath,
-                verb='yes',
-                dryrun=opt.dryrun,
-                noSWarp= not opt.SWarp)
+
 
     # SWarp
     if not opt.SWarp:
+        # Init the class
+        c = combcat(assocfile,
+                    datapath=inpath,
+                    outpath=outpath,
+                    verb='yes',
+                    dryrun=opt.dryrun,
+                    noSWarp=not opt.SWarp)
         c.get_filenames()
     else:
-        c.swarp_files(dryrun= not opt.SWarp,
+        # Init the class
+        c = combcat(assocfile,
+                    datapath=inpath,
+                    outpath=outpath,
+                    verb='yes',
+                    dryrun=opt.dryrun,
+                    noSWarp=not opt.SWarp)
+        c.swarp_files(dryrun=not opt.SWarp,
+                      conf="SWarp-common.conf",
+                      combtype=opt.combtype)
+
+    if opt.SWarpExtras:
+        # Init the class
+        c = combcat(assocfile,
+                    datapath=inpath,
+                    outpath=outpath,
+                    verb='yes',
+                    dryrun=False,
+                    noSWarp=False)
+
+
+        c.swarp_extras(dryrun=not opt.SWarpExtras,
                       conf="SWarp-common.conf",
                       combtype=opt.combtype)
 
@@ -2268,12 +2438,17 @@ def main():
 
     # cleanup
     if opt.noCleanUP or not opt.SWarp:
-        pass
+        if opt.noCleanUP or not opt.SWarpExtras:
+            pass
+        else:
+            print("CLEANUP!")
+            c.cleanup_files()
     else:
         print("CLEANUP!")
         c.cleanup_files()
 
     elapsed_time(tstart, c.tilename)
     return
+
 
 main()
