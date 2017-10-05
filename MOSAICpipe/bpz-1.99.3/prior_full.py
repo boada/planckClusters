@@ -1,9 +1,9 @@
 from __future__ import print_function
 from __future__ import division
 from past.utils import old_div
-import bpz_tools
 from useful import match_resol
 import numpy
+import sys
 
 # Hacked to use numpy and avoid import * commands
 # FM
@@ -16,7 +16,6 @@ def function(z, m, nt):
     Returns an array pi[z[:],:6]
     The input magnitude is F814W AB
     """
-    mmax = 28.
 
     if nt != 6:
         print("Wrong number of template spectra!")
@@ -40,7 +39,7 @@ def function(z, m, nt):
             sys.exit()
 
         nz = len(z)
-        m = numpy.array([m])  #match_resol works with arrays
+        m = numpy.array([m])  # match_resol works with arrays
         m = numpy.clip(m, xm[0], xm[-1])
         zm = match_resol(xm, zm0, m)
         try:
