@@ -875,7 +875,11 @@ class combcat:
             cmd = 'pp_calibrate {}'.format(mosaic)
 
             if not self.dryrun:
-                os.system(cmd)
+                if filter != 'K':
+                    os.system(cmd)
+                else:
+                    cmd = 'pp_calibrate -cat 2MASS {}'.format(mosaic)
+                    os.system(cmd)
                 #subprocs.append(subprocess.Popen(shlex.split(cmd)))
 
         #[p.wait() for p in subprocs]
