@@ -436,13 +436,6 @@ class combcat:
 
         _conf = os.path.join(self.pipeline, 'confs', conf)
 
-        if not self.centered:
-            self.center_dither()
-
-        self.make_swarp_input_weights(clobber=False)
-        self.combtype = combtype
-        self.get_FLXSCALE(magbase=26)
-
         pars = {}
         pars["IMAGE_SIZE"] = "%s,%s" % (self.nx, self.ny)
         pars["CENTER_TYPE"] = "MANUAL"
@@ -456,13 +449,19 @@ class combcat:
 
         # Color Channels
         filters = {}
-        filters["Red"] = ['K']
-        filters["Green"] = ['z', 'i']
-        filters["Blue"] = ['g', 'r']
-        filters["Detec"] = ['i', 'K']
 
-        self.combima = {}
-        self.weightima = {}
+        try:
+            _ = self.filters.index('K')
+
+            filters["Red"] = ['K']
+            filters["Green"] = ['z', 'i']
+            filters["Blue"] = ['g', 'r']
+            filters["Detec"] = ['i', 'K']
+        except ValueError:
+            filters["Red"] = ['i']
+            filters["Green"] = ['r']
+            filters["Blue"] = ['g']
+            filters["Detec"] = ['i', 'z']
 
         for color in list(filters.keys()):
 
@@ -477,53 +476,39 @@ class combcat:
             else:
                 pars["COMBINE_TYPE"] = combtype
 
-            # The options
+            # The options for SWarp
             opts = ""
             for param, value in list(pars.items()):
-                opts = opts + "-%s %s " % (param, value)
+                opts += "-%s %s " % (param, value)
 
             print(color, pars["COMBINE_TYPE"])
 
             # Make the list of images to combine
             try:
-                del filelist, weightlist, fscalelist
+                del filelist, weightlist
             except UnboundLocalError:
                 pass
             for filter in filters[color]:
                 try:
-                    filelist += ' ' + ' '.join(self.files[filter])
-                    weightlist += ',' + ','.join(self.files_weight[filter])
-                    fscalelist += ',' + ','.join(map(str, self.flxscale[filter]))
+                    filelist += ' ' + ' '.join(["%s%s.fits" % (
+                                                        self.tilename, filter)])
+                    weightlist += ',' + ','.join(["%s%s_weight.fits" % (
+                                                        self.tilename, filter)])
                 except UnboundLocalError:
-                    filelist = ' '.join(self.files[filter])
-                    weightlist = ','.join(self.files_weight[filter])
-                    fscalelist = ','.join(map(str, self.flxscale[filter]))
-                except KeyError:
-                    continue
+                    filelist = ' '.join(["%s%s.fits" % (
+                                                        self.tilename, filter)])
+                    weightlist = ','.join(["%s%s_weight.fits" % (
+                                                        self.tilename, filter)])
 
+            print(color, filelist)
             cmd = "swarp %s -c %s -IMAGEOUT_NAME %s -WEIGHTOUT_NAME %s " %\
                             (filelist, _conf, outimage, outweight)
-
-            #print(color, filelist)
-            cmd = "swarp %s -c %s -IMAGEOUT_NAME %s -WEIGHTOUT_NAME %s " %\
-                (filelist, _conf, outimage, outweight)
             cmd += " -WEIGHT_IMAGE %s " % (weightlist)
-            cmd += " -FSCALE_DEFAULT %s " % (fscalelist)
             cmd += opts
 
             if not dryrun:
-                print("# Will run:\n\t%s" % cmd)
+                print(cmd)
                 os.system(cmd)
-                AM = self.calc_airmass(filter)
-                put_airmass(outimage, AM)
-                ET = self.calc_exptime(filter)
-                put_exptime(outimage, ET)
-
-                # make sure the header keywords have been propigated. This is
-                # important for the astro and flux calibration
-                put_headerKeywords(self.files[filter][0], outimage, keywords,
-                                self.xo, self.yo)
-
             else:
                 print(cmd)
 
@@ -914,7 +899,7 @@ class combcat:
         return
 
     # run sextractor
-    def SEx(self, det_filter='i'):
+    def SEx(self, det_filter='Detec'):
         ''' Runs SEXTRACTOR on the mosaicked images created by swarp. It should
         use the zero point created by the photometrypipline.
 
@@ -936,7 +921,8 @@ class combcat:
             print("# Will use default Detection Image:%s " % self.DetImage,
                   file=sys.stderr)
         else:
-            det_ima = self.combima[det_filter] + ".fits"
+            det_ima = '{}{}.fits'.format(self.tilename, det_filter)
+            #det_ima = self.combima[det_filter] + ".fits"
             print("# Will use %s band Detection Image:%s " % (
                 det_filter, det_ima), file=sys.stderr)
 
@@ -1319,7 +1305,8 @@ class combcat:
         if not self.dryrun:
             print(cmd)
             print("Running full prior", file=sys.stderr)
-            os.system(cmd)
+            p = subprocess.Popen(shlex.split(cmd))
+            p.wait(timeout=600) # this prevents really long running. for testing
             print("Photo-z ready", file=sys.stderr)
         else:
             print(cmd)
@@ -2416,6 +2403,7 @@ def main():
                     verb='yes',
                     dryrun=opt.dryrun,
                     noSWarp=not opt.SWarp)
+
         c.swarp_files(dryrun=not opt.SWarp,
                       conf="SWarp-common.conf",
                       combtype=opt.combtype)
@@ -2426,9 +2414,10 @@ def main():
                     datapath=inpath,
                     outpath=outpath,
                     verb='yes',
-                    dryrun=False,
-                    noSWarp=False)
+                    dryrun=opt.dryrun,
+                    noSWarp=not opt.SWarp)
 
+        c.get_filenames()
 
         c.swarp_extras(dryrun=not opt.SWarpExtras,
                       conf="SWarp-common.conf",
@@ -2466,7 +2455,7 @@ def main():
 
     # cleanup
     if opt.noCleanUP or not opt.SWarp:
-        if opt.noCleanUP or not opt.SWarpExtras:
+        if opt.noCleanUP or opt.SWarpExtras:
             pass
         else:
             print("CLEANUP!")
