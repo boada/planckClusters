@@ -457,11 +457,13 @@ class combcat:
             filters["Green"] = ['z', 'i']
             filters["Blue"] = ['g', 'r']
             filters["Detec"] = ['i', 'K']
+            ir = True
         except ValueError:
             filters["Red"] = ['i']
             filters["Green"] = ['r']
             filters["Blue"] = ['g']
             filters["Detec"] = ['i', 'z']
+            ir = False
 
         for color in list(filters.keys()):
 
@@ -507,6 +509,10 @@ class combcat:
             cmd += opts
 
             if not dryrun:
+                if color == 'Red':
+                    cmd = 'cp {} {}'.format(filelist, outimage)
+                elif not ir and color != 'Detec':
+                    cmd = 'cp {} {}'.format(filelist, outimage)
                 print(cmd)
                 os.system(cmd)
             else:
