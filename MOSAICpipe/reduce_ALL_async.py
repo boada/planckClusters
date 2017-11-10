@@ -17,7 +17,7 @@ class AsyncFactory:
     def __init__(self, func, cb_func):
         self.func = func
         self.cb_func = cb_func
-        self.pool = Pool(maxtasksperchild=2)
+        self.pool = Pool(6, maxtasksperchild=1)
 
     def call(self, *args, **kwargs):
         return self.pool.apply_async(self.func, args, kwargs, self.cb_func)
@@ -47,7 +47,7 @@ def worker(pos, d):
     print(os.getcwd())
     # build the command
     cmd = 'python3 combcat_PROJECTED.py {} ./ ./'.format(assocFile)
-    cmd += ' --dust --bpz --newfirm'
+    cmd += ' --swarpextras --RGB --combtype SUM'
 
     print(cmd)
     os.system(cmd)
