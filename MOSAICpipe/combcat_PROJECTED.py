@@ -451,7 +451,7 @@ class combcat:
         filters = {}
 
         try:
-            _ = self.filters.index('K')
+            self.filters.index('K')
 
             filters["Red"] = ['K']
             filters["Green"] = ['z', 'i']
@@ -685,6 +685,26 @@ class combcat:
             print("# Generating weight image from %s --> %s" % (
                 dqmask, outname), file=sys.stderr)
             weight_from_dqfile(dqmask, outname, clobber=clobber)
+
+            # Here we are going to make a fix for the bad k-band data
+            # until the VO can actually provide a usuable fix for things.
+            # THis should be commented out when not working specifically with
+            # the bad k-band data. I'll make that easy with a if True: statement
+
+            if True:
+                with fits.open(fname) as orig:
+                    if orig[0].header['instrume'] == 'newfirm':
+                        print('Updating the weight map.. {}'.format(outname))
+                        with fits.open(outname) as hdu:
+                            hdu = fits.open(outname)
+                            data = hdu[0].data
+                            newdata = data
+                            newdata[:, 2020:2120] = 0 # the vertical chip gap
+                            newdata[2029:2118, :] = 0 # the horizontal chip gap
+
+                            nhdu = fits.PrimaryHDU(newdata, header=hdu[0].header)
+                        nhdu.writeto(outname, clobber=True)
+
         return
 
     # Make the detection Image using the mask
@@ -740,7 +760,7 @@ class combcat:
         # little patch to keep it from crashing
         try:
             os.mkdir('.diagnostics')
-        except:
+        except FileExistsError:
             pass
 
         # make the diagnostics file too
@@ -804,7 +824,7 @@ class combcat:
 
         try:
             os.mkdir('.diagnostics')
-        except:
+        except FileExistsError:
             pass
 
         # make the diagnostics file too
@@ -1200,7 +1220,6 @@ class combcat:
                 header += '## This file HAS NOT been dust corrected.\n##\n'
         except AttributeError:
             header += '## This file HAS NOT been dust corrected.\n##\n'
-
 
         for i in range(len(outColumns)):
             header += '# ' + str(i + 1) + '\t' + outColumns[i] + '\n'
@@ -1680,7 +1699,7 @@ def clean_FLXCORR(file, N=16):
                        show='yes')
             # Remove key from [0] extension
             #print image
-    except:
+    except KeyError:
         print("NO FLXCORR key found")
 
     return
