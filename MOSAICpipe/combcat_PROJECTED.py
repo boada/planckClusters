@@ -692,17 +692,25 @@ class combcat:
             # the bad k-band data. I'll make that easy with a if True: statement
 
             if True:
-                with fits.open(fname) as orig:
+                with fits.open(fname, mode='readonly') as orig:
                     if orig[0].header['instrume'] == 'newfirm':
-                        print('Updating the weight map.. {}'.format(outname))
-                        with fits.open(outname) as hdu:
-                            hdu = fits.open(outname)
-                            data = hdu[0].data
-                            newdata = data
-                            newdata[:, 2020:2120] = 0 # the vertical chip gap
-                            newdata[2029:2118, :] = 0 # the horizontal chip gap
 
-                            nhdu = fits.PrimaryHDU(newdata, header=hdu[0].header)
+                        # make a science image mask
+                        sci_data = orig[0].data
+                        vgap = sci_data[:, 2000:2250]
+                        mask = (-0.12 < vgap) & (vgap < 0.12)
+                        vgap[mask] = 0 # the vertical chip gap
+                        hgap = sci_data[2000:2250, :]
+                        mask = (-0.12 < hgap) & (hgap < 0.12)
+                        hgap[mask] = 0 # the horizontal chip gap
+                        sci_data[2000:2250, :] = hgap
+                        sci_data[: ,2000:2250] = vgap
+
+                        print('Updating the weight map.. {}'.format(outname))
+                        with fits.open(outname, mode='readonly') as hdu:
+                            data = hdu[0].data
+                            data = np.where(sci_data == 0, 0, data)
+                            nhdu = fits.PrimaryHDU(data, header=hdu[0].header)
                         nhdu.writeto(outname, clobber=True)
 
         return
