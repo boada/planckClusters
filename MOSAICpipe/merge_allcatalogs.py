@@ -1,6 +1,4 @@
 import os
-from glob import glob
-import sys
 
 ''' This file links the MOSAIC pipeline into each folder and then does the
 complete reduction on things. It still needs to have the individual association
@@ -16,7 +14,7 @@ need to do both mosaic and mosaic3 but it doesn't matter which you do first.
 
 script_dir = '/home/boada/Projects/planckClusters/MOSAICpipe'
 
-def main(inst='mosaic'):
+def main():
     dirs = [dirs for _, dirs, _ in os.walk('./')][0] # only want top level
     cwd = os.getcwd()
     for d in dirs:
@@ -24,7 +22,7 @@ def main(inst='mosaic'):
         os.chdir(cwd)
         if 'PSZ' not in d:
             continue
-        target_dir = './{}/{}/resampled'.format(d, inst)
+        target_dir = './{}'.format(d)
 
         if not os.path.isdir(target_dir):
             continue
@@ -33,32 +31,17 @@ def main(inst='mosaic'):
         print(relpath)
         print(target_dir)
         try:
-            if inst == 'mosaic':
-                os.symlink('{}/merge_catalogs_MOS1.py'.format(script_dir),
-                        '{}/merge_catalogs_MOS1.py'.format(target_dir))
-            elif inst == 'mosaic3':
-                os.symlink('{}/merge_catalogs_MOS1.py'.format(script_dir),
-                        '{}/merge_catalogs_MOS1.py'.format(target_dir))
-            else:
-                print('instrument not understood')
-                return
+            os.symlink('{}/merge_catalogs_MOS1.py'.format(script_dir),
+                       '{}/merge_catalogs_MOS1.py'.format(target_dir))
         except FileExistsError:
             pass
 
         # now do the pipeline
         os.chdir(target_dir)
 
-        assocFile = glob('*.assoc')[0]
         print(os.getcwd())
         # build the command
-        if inst == 'mosaic':
-            cmd = 'python3 merge_catalogs_MOS1.py {} ./'.format(
-                assocFile.rstrip('.assoc'))
-        elif inst == 'mosaic3':
-            cmd = 'python3 merge_catalogs_MOS1.py {} ./'.format(
-                assocFile.rstrip('.assoc'))
-        else:
-            return
+        cmd = 'python3 merge_catalogs_MOS1.py {} ./'.format(d)
 
         print(cmd)
         os.system(cmd)
@@ -78,4 +61,4 @@ def main(inst='mosaic'):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    main()
