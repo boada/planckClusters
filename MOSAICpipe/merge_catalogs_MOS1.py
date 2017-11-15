@@ -5,7 +5,14 @@ import os
 import sys
 
 
-def main(tile, path):
+def main(tile, path, filters):
+    # check that the data for the filters is really there
+    filters_real = []
+    for f in filters:
+        if os.path.isfile('{}{}_cal.cat'.format(tile, f)):
+            filters_real.append(f)
+
+    filters = filters_real
 
     # Make the header
     make_header(tile, path)
@@ -13,11 +20,11 @@ def main(tile, path):
     # Go for each tile, read and print
     header = 1
     print("Doing tile: %s" % tile, file=sys.stderr)
-    read_cats(tile, path, det_filter='i', header=header)
+    read_cats(tile, path, filters, det_filter='i', header=header)
     return
 
 
-def read_cats(tilename, path, det_filter='i', header=None):
+def read_cats(tilename, path, filters, det_filter='i', header=None):
 
     mcatfile = os.path.join(path, tilename, "%s_merged.cat" % tilename)
     probfile = os.path.join(path, tilename, "%s_probs.dat" % tilename)
@@ -169,8 +176,9 @@ def make_header(tilename, path):
     return
 
 
-tile = sys.argv[1]
-path = sys.argv[2]
+if __name__ == "__main__":
+    tile = sys.argv[1]
+    path = sys.argv[2]
 
-filters = ('g', 'r', 'i', 'z')
-main(tile, path)
+    filters = ('g', 'r', 'i', 'z', 'K')
+    main(tile, path, filters)
