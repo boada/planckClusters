@@ -63,7 +63,8 @@ class bcs_catalogs(object):
                 print("No BPZ flat probs to read")
 
         if os.path.exists(self.dustcat):
-            self.read_dust()
+            print('Dust Already Applied')
+            #self.read_dust()
         else:
             print("No DUST file to read")
 
