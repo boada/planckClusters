@@ -53,13 +53,13 @@ class bcs_catalogs(object):
             try:
                 self.read_probs()
                 print("\tReading ", self.bpzprobs, file=sys.stderr)
-            except:
+            except FileNotFoundError:
                 print("No BPZ probs to read")
 
             try:
                 self.read_probs_flat()
                 print("\tReading ", self.bpzprobs_flat, file=sys.stderr)
-            except:
+            except FileNotFoundError:
                 print("No BPZ flat probs to read")
 
         if os.path.exists(self.dustcat):
@@ -132,9 +132,12 @@ class bcs_catalogs(object):
             if self.verb:
                 print("\r Reading:", self.catname[filter], file=sys.stderr)
             c = None
-            c = SEx_reader(self.catname[filter], verb=self.verb)
-            self.cat[filter] = c.cat
-            self.SExcols[filter] = c.SExcols
+            try:
+                c = SEx_reader(self.catname[filter], verb=self.verb)
+                self.cat[filter] = c.cat
+                self.SExcols[filter] = c.SExcols
+            except FileNotFoundError:
+                continue
 
         return
 
@@ -199,7 +202,7 @@ class bcs_catalogs(object):
             try:
                 self.Xcorr['z'][ID] = float(vals[7])
                 self.XcorrErr['z'][ID] = float(vals[8])
-            except:
+            except KeyError:
                 pass
 
         return
@@ -292,15 +295,26 @@ class bcs_catalogs(object):
             for filter in self.filters:
 
                 try:
-                    key1 = filter + "_SDSS_MAG_ISO"
-                    key2 = filter + "_SDSS_MAGERR_ISO"
-                    self.MAG_BPZ[filter][ID] = float(vals[self.Ccols[key1]])
-                    self.MAG_BPZERR[filter][ID] = float(vals[self.Ccols[key2]])
-                except:
                     key1 = filter + "_MOSAICII_MAG_ISO"
                     key2 = filter + "_MOSAICII_MAGERR_ISO"
                     self.MAG_BPZ[filter][ID] = float(vals[self.Ccols[key1]])
                     self.MAG_BPZERR[filter][ID] = float(vals[self.Ccols[key2]])
+                except KeyError:
+                    key1 = filter + "_KittPeak_MAG_ISO"
+                    key2 = filter + "_KittPeak_MAGERR_ISO"
+                    self.MAG_BPZ[filter][ID] = float(vals[self.Ccols[key1]])
+                    self.MAG_BPZERR[filter][ID] = float(vals[self.Ccols[key2]])
+
+#                try:
+#                    key1 = filter + "_SDSS_MAG_ISO"
+#                    key2 = filter + "_SDSS_MAGERR_ISO"
+#                    self.MAG_BPZ[filter][ID] = float(vals[self.Ccols[key1]])
+#                    self.MAG_BPZERR[filter][ID] = float(vals[self.Ccols[key2]])
+#                except KeyError:
+#                    key1 = filter + "_MOSAICII_MAG_ISO"
+#                    key2 = filter + "_MOSAICII_MAGERR_ISO"
+#                    self.MAG_BPZ[filter][ID] = float(vals[self.Ccols[key1]])
+#                    self.MAG_BPZERR[filter][ID] = float(vals[self.Ccols[key2]])
 
                 #print filter,float(vals[self.Ccols[key1]]),float(vals[self.Ccols[key2]])
 
@@ -474,7 +488,7 @@ class bcs_catalogs_tiles(object):
                 try:
                     print("Reading ", self.bpzprobs)
                     self.read_probs()
-                except:
+                except FileNotFoundError:
                     print("No BPZ probs to read")
 
             self.read_multicolor()
@@ -628,17 +642,27 @@ class bcs_catalogs_tiles(object):
             ID = self.tile + "_" + str(vals[0])
 
             for filter in self.filters:
-
                 try:
-                    key1 = filter + "_SDSS_MAG_ISO"
-                    key2 = filter + "_SDSS_MAGERR_ISO"
-                    self.MAG_BPZ[filter][ID] = float(vals[self.Ccols[key1]])
-                    self.MAG_BPZERR[filter][ID] = float(vals[self.Ccols[key2]])
-                except:
                     key1 = filter + "_MOSAICII_MAG_ISO"
                     key2 = filter + "_MOSAICII_MAGERR_ISO"
                     self.MAG_BPZ[filter][ID] = float(vals[self.Ccols[key1]])
                     self.MAG_BPZERR[filter][ID] = float(vals[self.Ccols[key2]])
+                except KeyError:
+                    key1 = filter + "_KittPeak_MAG_ISO"
+                    key2 = filter + "_KittPeak_MAGERR_ISO"
+                    self.MAG_BPZ[filter][ID] = float(vals[self.Ccols[key1]])
+                    self.MAG_BPZERR[filter][ID] = float(vals[self.Ccols[key2]])
+
+#                try:
+#                    key1 = filter + "_SDSS_MAG_ISO"
+#                    key2 = filter + "_SDSS_MAGERR_ISO"
+#                    self.MAG_BPZ[filter][ID] = float(vals[self.Ccols[key1]])
+#                    self.MAG_BPZERR[filter][ID] = float(vals[self.Ccols[key2]])
+#                except KeyError:
+#                    key1 = filter + "_MOSAICII_MAG_ISO"
+#                    key2 = filter + "_MOSAICII_MAGERR_ISO"
+#                    self.MAG_BPZ[filter][ID] = float(vals[self.Ccols[key1]])
+#                    self.MAG_BPZERR[filter][ID] = float(vals[self.Ccols[key2]])
 
                 #print filter,float(vals[self.Ccols[key1]]),float(vals[self.Ccols[key2]])
 
