@@ -1721,16 +1721,8 @@ def main():
         zo = None
 
     if float(opt.pixelscale) < 0:
-        print('--pixelscale not defined.... trying to figure out')
-        if 'mosaic3' in opt.path:
-            print('assuming MOSAIC3')
-            pixelscale = 0.25
-        elif 'mosaic' in opt.path:
-            print('assuming MOSAIC3')
-            pixelscale = 0.2666
-        else:
-            print("pixelscale can't be determined exiting")
-            return
+        print('--pixelscale not defined.... assuming 0.25')
+        pixelscale = 0.25
     else:
         pixelscale = float(opt.pixelscale)
 
