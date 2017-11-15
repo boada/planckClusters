@@ -180,5 +180,5 @@ if __name__ == "__main__":
     tile = sys.argv[1]
     path = sys.argv[2]
 
-    filters = ('g', 'r', 'i', 'z', 'K')
+    filters = ('g', 'r', 'i', 'z')
     main(tile, path, filters)
