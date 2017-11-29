@@ -9,24 +9,14 @@ def mkCommands(dirs):
         parts = d.split('/') # get the path parts
 
         cluster = parts[1]
-        mosaic = parts[2]
 
         # start building the command
-        cmd = 'python3 '
-
-        if mosaic == 'mosaic3':
-            cmd += 'find_position_MOS3.py '
-        else:
-            cmd += 'find_position_MOS1.py '
+        cmd = 'python3 find_position.py'
 
         # build the rest
-        cmd += '{} --path {} --dx 1000 --dy 1000'.format(cluster, d)
+        cmd += ' {} --path {} --dx 1000 --dy 1000'.format(cluster, d)
 
-        # work add the pixelscale
-        if mosaic == 'mosaic3':
-            cmd += '--pixelscale 0.25 '
-        else:
-            cmd += '--pixelscale 0.2666 '
+        cmd += ' --pixelscale 0.25'
 
         cmds.append(cmd)
 
@@ -77,7 +67,7 @@ def doWork():
                 return
 
 
-dirs = glob('./PS*/mosaic*/resampled', recursive=True)
+dirs = glob('./PS*', recursive=True)
 cmds = mkCommands(dirs)
 mkTracker(cmds)
 doWork()
