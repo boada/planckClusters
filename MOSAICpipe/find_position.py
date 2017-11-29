@@ -48,7 +48,7 @@ class finder:
                  zuse="ZB", # Use ZB (Bayesian) or ML (Max Like)
                  outpath='plots',
                  path='./',
-                 evolfile="0_1gyr_hr_m62_salp.color",
+                 evolfile="0_1gyr_hr_m62_salp_Ks.color",
                  p_lim=0.4,
                  verb='yes'):
 
@@ -397,6 +397,9 @@ class finder:
         self.Msun['r'] = 4.65
         self.Msun['i'] = 4.54
         self.Msun['z'] = 4.52
+        self.Msun['Ks'] = 5.14
+        # ^^ http://www.astronomy.ohio-state.edu/~martini/usefuldata.html
+
 
         # Mags k-corrected to z=0.25 as done in Reyes el al 2009
         # Mg = self.g - self.DM - k['g'](self.z_ph) + k['g'](0.25)
@@ -1133,13 +1136,13 @@ class finder:
             # origin is at (0,ny), is the upper left corner
             ygal = self.ny - ygal
 
-            ec = 'red'
+            ec = 'cyan'
             E = PEllipse((xgal, ygal), (a, b),
                          resolution=80,
                          angle=theta,
                          fill=0,
                          edgecolor=ec,
-                         linewidth=0.5)
+                         linewidth=1)
             self.ellipse[i] = E
             ax.add_patch(E)
 
@@ -1538,8 +1541,8 @@ def PEllipse(xxx_todo_changeme,
     angle = -angle * pi / 180.  # hack to make it work, angle=-angle
 
     t = 2 * pi / resolution * numpy.arange(resolution)
-    xtmp = A * numpy.cos(t)
-    ytmp = B * numpy.sin(t)
+    xtmp = (A + 5) * numpy.cos(t)
+    ytmp = (B + 5) * numpy.sin(t)
 
     x = xtmp * cos(angle) - ytmp * sin(angle) + xo
     y = xtmp * sin(angle) + ytmp * cos(angle) + yo
