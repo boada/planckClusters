@@ -39,7 +39,7 @@ sout = sys.stderr
 class finder:
 
     def __init__(self, ctile, maglim=25.0,
-                 pixscale=0.2666,
+                 pixscale=0.25,
                  zlim=1.8,
                  zo=None,
                  dz=0.05,
@@ -114,72 +114,92 @@ class finder:
     # Read in the big catalog of photometry
     #########################################
     def read_cat(self):
-
-        cols = (1,
-                2,
-                23,
-                27,
-                26,
-                28,
-                29,
-                30,
-                3,
-                4,
-                6,
-                7,
-                9,
-                10,
-                12,
-                13,
-                15,
-                16,
-                17,
-                18,
-                19,
-                20,
-                21,
-                22,
-                31,
-                32,
-                33,
-                34,
-                35,
-                36)
-
         t1 = time.time()
-        sout.write("# Reading cols:%s\n# Reading cats from: %s... \n" %
-                   (cols, self.catsfile))
 
-        (ra,
-         dec,
-         z_b,
-         odds,
-         t_b,
-         z_ml,
-         t_ml,
-         chi,
-         g,
-         g_err,  # g_sn,
-         r,
-         r_err,  # r_sn,
-         i,
-         i_err,  # i_sn,
-         z,
-         z_err,  # z_sn,
-         g_bpz,
-         g_berr,
-         r_bpz,
-         r_berr,
-         i_bpz,
-         i_berr,
-         z_bpz,
-         z_berr,
-         class_star,
-         a_image,
-         b_image,
-         theta,
-         x_image,
-         y_image) = tableio.get_data(self.catsfile, cols=cols)
+        # try to read the K-band data first
+        try:
+            cols = (1, 2, 28, 32, 31, 33, 34, 35, 3, 4, 6, 7, 9, 10, 12, 13, 15,
+                    16, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 36, 37, 38, 39,
+                    40, 41)
+
+            sout.write("# Reading cols:%s\n# Reading cats from: %s... \n" %
+                   (cols, self.catsfile))
+            (ra,
+            dec,
+            z_b,
+            odds,
+            t_b,
+            z_ml,
+            t_ml,
+            chi,
+            g,
+            g_err,
+            r,
+            r_err,
+            i,
+            i_err,
+            z,
+            z_err,
+            K,
+            K_err,
+            g_bpz,
+            g_berr,
+            r_bpz,
+            r_berr,
+            i_bpz,
+            i_berr,
+            z_bpz,
+            z_berr,
+            K_bpz,
+            K_berr,
+            class_star,
+            a_image,
+            b_image,
+            theta,
+            x_image,
+            y_image) = tableio.get_data(self.catsfile, cols=cols)
+
+            self.kband = True
+
+        except IndexError:
+
+            cols = (1, 2, 23, 27, 26, 28, 29, 30, 3, 4, 6, 7, 9, 10, 12, 13, 15,
+                    16, 17, 18, 19, 20, 21, 22, 31, 32, 33, 34, 35, 36)
+
+            sout.write("# Reading cols:%s\n# Reading cats from: %s... \n" %
+               (cols, self.catsfile))
+            (ra,
+            dec,
+            z_b,
+            odds,
+            t_b,
+            z_ml,
+            t_ml,
+            chi,
+            g,
+            g_err,
+            r,
+            r_err,
+            i,
+            i_err,
+            z,
+            z_err,
+            g_bpz,
+            g_berr,
+            r_bpz,
+            r_berr,
+            i_bpz,
+            i_berr,
+            z_bpz,
+            z_berr,
+            class_star,
+            a_image,
+            b_image,
+            theta,
+            x_image,
+            y_image) = tableio.get_data(self.catsfile, cols=cols)
+
+            self.kband = False
 
         (id) = tableio.get_str(self.catsfile, cols=(0, ))
 
@@ -204,7 +224,11 @@ class finder:
         r_mask = numpy.where(lor(r_bpz == 99, r_bpz == -99), 0, 1)
         i_mask = numpy.where(lor(i_bpz == 99, i_bpz == -99), 0, 1)
         z_mask = numpy.where(lor(z_bpz == 99, z_bpz == -99), 0, 1)
-        bpz_mask = g_mask * r_mask * i_mask * z_mask
+        if self.kband:
+            K_mask = numpy.where(lor(K_bpz == 99, K_bpz == -99), 0, 1)
+        else:
+            K_mask = 1
+        bpz_mask = g_mask * r_mask * i_mask * z_mask * K_mask
 
         # Clean up to avoid 99 values and very faint i_mag values
         sout.write("# Avoiding magnitudes 99 in MAG_AUTO \n")
@@ -279,6 +303,15 @@ class finder:
         self.i_berr = i_berr[idx]
         self.z_berr = z_berr[idx]
 
+        if self.kband:
+            self.Ks = K[idx]
+            self.Ks_err = K_err[idx]
+            self.Ks_bpz = K_bpz[idx]
+            self.Ks_berr = K_berr[idx]
+        else:
+            # no k-band data
+            pass
+
         self.class_star = class_star[idx]
         self.a_image = a_image[idx]
         self.b_image = b_image[idx]
@@ -290,6 +323,11 @@ class finder:
         self.gr = self.g_bpz - self.r_bpz
         self.ri = self.r_bpz - self.i_bpz
         self.iz = self.i_bpz - self.z_bpz
+        if self.kband:
+            self.iK = self.i_bpz - self.Ks_bpz
+        else:
+            # no k-band data
+            pass
 
         # Min and and max values in RA/DEC
         self.ramin = self.ra.min()
@@ -313,7 +351,7 @@ class finder:
                                   r"(?P<z2>[0-9]+.[0-9]+),"
                                   r"(?P<dz>[0-9]+.[0-9]+)\)")
         t0 = time.time()
-        sout.write("# Reading probs from :%s... " % self.probsfile)
+        sout.write("# Reading probs from :%s... \n" % self.probsfile)
 
         # probability arrays
         probs = []
@@ -377,18 +415,22 @@ class finder:
         # the *.color file from BC03 *.ised file
         sout.write("# Computing absolute magnitudes interpolating "
                    "konly from BC03 model \n")
-        k, ev = KEfit(self.evolfile)
+        k, ev = KEfit(self.evolfile, self.kband)
 
         self.Mg = self.g - self.DM - k['g'](self.z_ph)
         self.Mr = self.r - self.DM - k['r'](self.z_ph)
         self.Mi = self.i - self.DM - k['i'](self.z_ph)
         self.Mz = self.z - self.DM - k['z'](self.z_ph)
+        if self.kband:
+            self.MKs = self.Ks - self.DM - k['Ks'](self.z_ph)
 
         sout.write("# Computing evolution ev(z) for each galaxy ")
         self.ev_g = ev['g'](self.z_ph)
         self.ev_r = ev['r'](self.z_ph)
         self.ev_i = ev['i'](self.z_ph)
         self.ev_z = ev['z'](self.z_ph)
+        if self.kband:
+            self.ev_Ks = ev['Ks'](self.z_ph)
 
         # Also get the luminosities in Msun
         # taken from http://www.ucolick.org/~cnaw/sun.html
@@ -412,6 +454,8 @@ class finder:
         Mr = self.r - self.DM - k['r'](self.z_ph)
         Mi = self.i - self.DM - k['i'](self.z_ph)
         Mz = self.z - self.DM - k['z'](self.z_ph)
+        if self.kband:
+            MKs = self.Ks - self.DM - k['Ks'](self.z_ph)
 
         self.Lg = 10.0**(-0.4 * (Mg - self.Msun['g']))
         self.Lr = 10.0**(-0.4 * (Mr - self.Msun['r']))
@@ -421,6 +465,9 @@ class finder:
         self.Lr_err = self.Lr * self.r_err / 1.0857
         self.Li_err = self.Li * self.i_err / 1.0857
         self.Lz_err = self.Lz * self.z_err / 1.0857
+        if self.kband:
+            self.LKs = 10.0**(-0.4 * (MKs - self.Msun['z']))
+            self.LKs_err = self.LKs * self.Ks_err / 1.0857
 
         # Pass it up to the class
         self.kcorr = k
@@ -1418,7 +1465,7 @@ class finder:
 ##################################################################
 # Read both kcorrection k(z) and evolution ev(z) from BC03 model
 ##################################################################
-def KEfit(modelfile):
+def KEfit(modelfile, kband=False):
 
     import scipy
     import scipy.interpolate
@@ -1430,9 +1477,30 @@ def KEfit(modelfile):
     e = {}
     k = {}
 
-    (z, k_g, k_r, k_i, k_z, e_g, e_r, e_i,
-     e_z) = tableio.get_data(modelfile,
-                             cols=(0, 10, 11, 12, 13, 14, 15, 16, 17))
+    if kband:
+        (z,
+        k_g,
+        k_r,
+        k_i,
+        k_z,
+        k_Ks,
+        e_g,
+        e_r,
+        e_i,
+        e_z,
+        e_Ks) = tableio.get_data(modelfile,
+                                cols=(0, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17))
+    else:
+        (z,
+        k_g,
+        k_r,
+        k_i,
+        k_z,
+        e_g,
+        e_r,
+        e_i,
+        e_z) = tableio.get_data(modelfile,
+                                cols=(0, 10, 11, 12, 13, 14, 15, 16, 17))
 
     # K-only correction at each age SED,
     k['g'] = scipy.interpolate.interp1d(z, k_g)
@@ -1445,6 +1513,13 @@ def KEfit(modelfile):
     e['r'] = scipy.interpolate.interp1d(z, e_r)
     e['i'] = scipy.interpolate.interp1d(z, e_i)
     e['z'] = scipy.interpolate.interp1d(z, e_z)
+
+    if kband:
+        k['Ks'] = scipy.interpolate.interp1d(z, k_Ks)
+        e['Ks'] = scipy.interpolate.interp1d(z, e_Ks)
+    else:
+        # no k-band data
+        pass
 
     return k, e
 
