@@ -37,7 +37,6 @@ def read_cats(tilename, path, filters, det_filter='i', header=None):
     # The header for the prob file
     if header:
         prob.write("%s  \n" % c.probs_header)
-        #prob_flat.write("%s  \n" % c.probs_header)
 
     IDsel = []
     for ID in list(c.cat['i']['SHAPE'].keys()):
@@ -49,24 +48,6 @@ def read_cats(tilename, path, filters, det_filter='i', header=None):
 
         if cat['CLASS_STAR'][ID] > 0.8:
             goodID = 0
-
-            #if cat['ELLIPTICITY'][ID] > 0.80:
-            #    goodID = 0
-
-            #if cat['ISOAREA_IMAGE'][ID] < 10:
-            #    goodID = 0
-
-            # Now only select galaxies with TB<2.0 by excluding TB >=2.0
-            #if c.T_B[ID] >= 2.0:
-            #    goodID = 0
-
-            #for filter in c.filters:
-            #    #if c.MAG_BPZ[filter][ID] < 0 or c.MAG_BPZ[filter][ID] > 30:
-            #    #    goodID = 1
-            #    #    #break
-            #    if c.MAG_BPZ[filter][ID] <= -99 or c.MAG_BPZ[filter][ID] >= 99:
-            #       goodID = 0
-            #        #break
 
             # If OK add them to the list
         if goodID:
@@ -127,12 +108,6 @@ def read_cats(tilename, path, filters, det_filter='i', header=None):
             prob.write(format % tuple(c.PROBS[ID]))
             prob.write("\n")
 
-            # and the probs flat file
-            #format = len(c.PROBS_FLAT[ID])*'%.3e '
-            #prob_flat.write("%-20s " % IDname)
-            #prob_flat.write(format % tuple(c.PROBS_FLAT[ID]))
-            #prob_flat.write("\n")
-
     return
 
 
@@ -153,12 +128,12 @@ def make_header(tilename, path):
         mcat.write("# %3d  %s MAG_AUTO     \n" % (i, filter))
         mcat.write("# %3d  %s MAGERR_AUTO  \n" % (i + 1, filter))
         mcat.write("# %3d  %s S/N  \n" % (i + 2, filter))
-        i = i + 3
+        i += 3
 
     for filter in filters:
         mcat.write("# %3d  %s MAG_BPZ       \n" % (i, filter))
         mcat.write("# %3d  %s MAG_BPZERR    \n" % (i + 1, filter))
-        i = i + 2
+        i += 2
 
     extra_keys = ['Z_B      Bayesian photo-z', 'Z_B_MIN  Min photo-z',
                   'Z_B_MAX  Max photo-z', 'T_B      Bayesian Spectral Type',
@@ -171,7 +146,7 @@ def make_header(tilename, path):
 
     for key in extra_keys:
         mcat.write("# %3d  %s   \n" % (i, key))
-        i = i + 1
+        i += 1
 
     return
 
@@ -180,5 +155,5 @@ if __name__ == "__main__":
     tile = sys.argv[1]
     path = sys.argv[2]
 
-    filters = ('g', 'r', 'i', 'z')
+    filters = ('g', 'r', 'i', 'z', 'K')
     main(tile, path, filters)
