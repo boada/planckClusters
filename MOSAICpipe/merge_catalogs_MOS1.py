@@ -23,7 +23,6 @@ def main(tile, path, filters):
     read_cats(tile, path, filters, det_filter='i', header=header)
     return
 
-
 def read_cats(tilename, path, filters, det_filter='i', header=None):
 
     mcatfile = os.path.join(path, tilename, "%s_merged.cat" % tilename)
@@ -46,6 +45,7 @@ def read_cats(tilename, path, filters, det_filter='i', header=None):
         goodID = 1
         cat = c.cat[det_filter]
 
+        # mask out the stars
         if cat['CLASS_STAR'][ID] > 0.8:
             goodID = 0
 
@@ -61,12 +61,13 @@ def read_cats(tilename, path, filters, det_filter='i', header=None):
             for filter in filters:
 
                 # If dust, use corrected values
+                # There isn't actually an Xcorr -- so this is going to fail
                 try:
                     mcat.write("%8.3f " % (
                         c.cat[filter]['MAG_AUTO'][ID] - c.Xcorr[filter][ID]))
                     mcat.write("%8.3f " % (c.cat[filter]['MAGERR_AUTO'][ID] +
                                            c.XcorrErr[filter][ID]))
-                except:
+                except AttributeError:
                     mcat.write("%8.3f " % c.cat[filter]['MAG_AUTO'][ID])
                     mcat.write("%8.3f " % c.cat[filter]['MAGERR_AUTO'][ID])
                 #mcat.write("%8.3f " % c.cat[filter]['MAG_AUTO'][ID])
@@ -110,7 +111,6 @@ def read_cats(tilename, path, filters, det_filter='i', header=None):
 
     return
 
-
 def make_header(tilename, path):
 
     s = sys.stdout
@@ -119,11 +119,11 @@ def make_header(tilename, path):
     mcat = open(mcatfile, "w")  # create a new one
     prob = open(probfile, "w")  # create a new one
 
-    mcat.write("#   1  IDNAME           \n")
-    mcat.write("#   2  RA (degrees)     \n")
-    mcat.write("#   3  DEC(degress)     \n")
+    mcat.write("#   0  IDNAME           \n")
+    mcat.write("#   1  RA (degrees)     \n")
+    mcat.write("#   2  DEC(degress)     \n")
 
-    i = 4
+    i = 3
     for filter in filters:
         mcat.write("# %3d  %s MAG_AUTO     \n" % (i, filter))
         mcat.write("# %3d  %s MAGERR_AUTO  \n" % (i + 1, filter))
