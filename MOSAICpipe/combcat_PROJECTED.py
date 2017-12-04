@@ -704,7 +704,7 @@ class combcat:
                         mask = (-0.12 < hgap) & (hgap < 0.12)
                         hgap[mask] = 0 # the horizontal chip gap
                         sci_data[2000:2250, :] = hgap
-                        sci_data[: ,2000:2250] = vgap
+                        sci_data[:, 2000:2250] = vgap
 
                         print('Updating the weight map.. {}'.format(outname))
                         with fits.open(outname, mode='readonly') as hdu:
@@ -1339,7 +1339,8 @@ class combcat:
             print(cmd)
             print("Running full prior", file=sys.stderr)
             p = subprocess.Popen(shlex.split(cmd))
-            p.wait(timeout=600) # this prevents really long running. for testing
+            #p.wait(timeout=600) # this prevents really long running. for testing
+            p.wait() # this prevents really long running. for testing
             print("Photo-z ready", file=sys.stderr)
         else:
             print(cmd)
