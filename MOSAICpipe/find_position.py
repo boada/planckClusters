@@ -324,7 +324,7 @@ class finder:
         self.ri = self.r_bpz - self.i_bpz
         self.iz = self.i_bpz - self.z_bpz
         if self.kband:
-            self.iK = self.i_bpz - self.Ks_bpz
+            self.iKs = self.i_bpz - self.Ks_bpz
         else:
             # no k-band data
             pass
@@ -381,7 +381,7 @@ class finder:
         # Get the 1-sigma z1, z2 limits for each galaxy
         # Cumulatibe P(<z) function for each selected galaxy
         self.Psum = numpy.cumsum(self.p_z, axis=1)
-        sout.write("# Getting +/- 1sigma (z1,z2) limits for each galaxy ")
+        sout.write("# Getting +/- 1sigma (z1,z2) limits for each galaxy \n")
         self.z1 = self.ra * 0.0
         self.z2 = self.ra * 0.0
 
@@ -417,14 +417,7 @@ class finder:
                    "konly from BC03 model \n")
         k, ev = KEfit(self.evolfile, self.kband)
 
-        self.Mg = self.g - self.DM - k['g'](self.z_ph)
-        self.Mr = self.r - self.DM - k['r'](self.z_ph)
-        self.Mi = self.i - self.DM - k['i'](self.z_ph)
-        self.Mz = self.z - self.DM - k['z'](self.z_ph)
-        if self.kband:
-            self.MKs = self.Ks - self.DM - k['Ks'](self.z_ph)
-
-        sout.write("# Computing evolution ev(z) for each galaxy ")
+        sout.write("# Computing evolution ev(z) for each galaxy \n")
         self.ev_g = ev['g'](self.z_ph)
         self.ev_r = ev['r'](self.z_ph)
         self.ev_i = ev['i'](self.z_ph)
@@ -442,7 +435,6 @@ class finder:
         self.Msun['Ks'] = 5.14
         # ^^ http://www.astronomy.ohio-state.edu/~martini/usefuldata.html
 
-
         # Mags k-corrected to z=0.25 as done in Reyes el al 2009
         # Mg = self.g - self.DM - k['g'](self.z_ph) + k['g'](0.25)
         # Mr = self.r - self.DM - k['r'](self.z_ph) + k['r'](0.25)
@@ -450,23 +442,23 @@ class finder:
         # Mz = self.z - self.DM - k['z'](self.z_ph) + k['z'](0.25)
 
         # Mags k-corrected
-        Mg = self.g - self.DM - k['g'](self.z_ph)
-        Mr = self.r - self.DM - k['r'](self.z_ph)
-        Mi = self.i - self.DM - k['i'](self.z_ph)
-        Mz = self.z - self.DM - k['z'](self.z_ph)
+        self.Mg = self.g - self.DM - k['g'](self.z_ph)
+        self.Mr = self.r - self.DM - k['r'](self.z_ph)
+        self.Mi = self.i - self.DM - k['i'](self.z_ph)
+        self.Mz = self.z - self.DM - k['z'](self.z_ph)
         if self.kband:
-            MKs = self.Ks - self.DM - k['Ks'](self.z_ph)
+            self.MKs = self.Ks - self.DM - k['Ks'](self.z_ph)
 
-        self.Lg = 10.0**(-0.4 * (Mg - self.Msun['g']))
-        self.Lr = 10.0**(-0.4 * (Mr - self.Msun['r']))
-        self.Li = 10.0**(-0.4 * (Mi - self.Msun['i']))
-        self.Lz = 10.0**(-0.4 * (Mz - self.Msun['z']))
+        self.Lg = 10.0**(-0.4 * (self.Mg - self.Msun['g']))
+        self.Lr = 10.0**(-0.4 * (self.Mr - self.Msun['r']))
+        self.Li = 10.0**(-0.4 * (self.Mi - self.Msun['i']))
+        self.Lz = 10.0**(-0.4 * (self.Mz - self.Msun['z']))
         self.Lg_err = self.Lg * self.g_err / 1.0857
         self.Lr_err = self.Lr * self.r_err / 1.0857
         self.Li_err = self.Li * self.i_err / 1.0857
         self.Lz_err = self.Lz * self.z_err / 1.0857
         if self.kband:
-            self.LKs = 10.0**(-0.4 * (MKs - self.Msun['z']))
+            self.LKs = 10.0**(-0.4 * (self.MKs - self.Msun['z']))
             self.LKs_err = self.LKs * self.Ks_err / 1.0857
 
         # Pass it up to the class
@@ -488,6 +480,10 @@ class finder:
                                    m=Mr_limit,
                                    oldfilter="r_MOSAICII",
                                    newfilter="i_MOSAICII")
+        MKs_limit = cosmology.reobs('El_Benitez2003',
+                                   m=Mr_limit,
+                                   oldfilter="r_MOSAICII",
+                                   newfilter="K_KittPeak")
 
         # Evaluate the genertic mask for BCG only onece
         if not self.BCG_probs:
@@ -497,6 +493,10 @@ class finder:
                 0.1)  # + self.DM_factor
             Mi_BCG_limit = Mi_limit + self.ev_i - self.evf['i'](
                 0.1)  # + self.DM_factor
+            if self.kband:
+                MKs_BCG_limit = MKs_limit + self.ev_Ks - self.evf['Ks'](
+                    0.1)  # + self.DM_factor
+
             # Evaluate the BCG Probability function, we
             # get the limit for each object
             self.p = p_BCG(self.Mr, Mr_BCG_limit)
@@ -515,6 +515,8 @@ class finder:
             # M_BCG_limit
             mask_br = numpy.where(self.Mr > Mr_BCG_limit - 2.5, 1, 0)
             mask_bi = numpy.where(self.Mi > Mi_BCG_limit - 2.5, 1, 0)
+            if self.kband:
+                mask_bi = numpy.where(self.Mi > MKs_BCG_limit - 2.5, 1, 0)
 
             # Put a more strict cut in class_star for bcg candidates
             sout.write("# Avoiding CLASS_STAR > %s in BGCs\n" % star_lim)
@@ -523,6 +525,7 @@ class finder:
             # Construct the final mask now
             self.mask_BCG = (mask_t * mask_g * mask_r * mask_i * mask_z *
                                 mask_br * mask_bi * mask_p * mask_star)
+
             self.BCG_masked = True
 
             # Model color only once
@@ -540,6 +543,11 @@ class finder:
             self.iz_model = cosmology.color_z(sed='El_Benitez2003',
                                               filter_new='i_MOSAICII',
                                               filter_old='z_MOSAICII',
+                                              z=self.zx,
+                                              calibration='AB')
+            self.iKs_model = cosmology.color_z(sed='El_Benitez2003',
+                                              filter_new='i_MOSAICII',
+                                              filter_old='K_KittPeak',
                                               z=self.zx,
                                               calibration='AB')
 
@@ -581,6 +589,11 @@ class finder:
 
         # The r-band Luminosity of the BCGs
         self.LBCG = self.Lr[idx]
+
+        # the k-band stuff
+        if self.kband:
+            self.MKs_BCG = self.MKs[idx]
+            self.Ks_BCG = self.Ks[idx]
 
         # The distance to the candidate's position for each BCG, in arcmin
         sout.write("# Found %s BCG candidates\n" % self.N_BCG)
@@ -1219,6 +1232,11 @@ class finder:
         gr = self.g_bpz[i] - self.r_bpz[i]
         ri = self.r_bpz[i] - self.i_bpz[i]
 
+        if self.kband:
+            iKs = self.i_bpz[i] - self.Ks_bpz[i]
+        else:
+            iKs = 0
+
         ra = astrometry.dec2deg(self.ra[i] / 15.)
         dec = astrometry.dec2deg(self.dec[i])
         print("-------------------------------")
@@ -1236,6 +1254,7 @@ class finder:
         print(" g :\t%6.2f (%.3f) " % (self.g[i], self.g_err[i]))
         print(" g-r:\t%6.2f " % gr)
         print(" r-i:\t%6.2f " % ri)
+        print(" i-Ks:\t%6.2f " % iKs)
         print(" Stellarity:\t%.2f " % self.class_star[i])
         print("--------------------------------")
         return
@@ -1317,7 +1336,7 @@ class finder:
         if event.key == 'd' or event.key == 'D':
             try:
                 del self.ellipse[i]
-            except:
+            except FileNotFoundError:
                 print('PROBLEM! Line 1173')
                 #print("Ellipse for ID:%s is not defined" % ID)
             current_ell = None
@@ -1489,7 +1508,7 @@ def KEfit(modelfile, kband=False):
         e_i,
         e_z,
         e_Ks) = tableio.get_data(modelfile,
-                                cols=(0, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17))
+                                cols=(0, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21))
     else:
         (z,
         k_g,
@@ -1500,7 +1519,7 @@ def KEfit(modelfile, kband=False):
         e_r,
         e_i,
         e_z) = tableio.get_data(modelfile,
-                                cols=(0, 10, 11, 12, 13, 14, 15, 16, 17))
+                                cols=(0, 12, 13, 14, 15, 17, 18, 19, 20))
 
     # K-only correction at each age SED,
     k['g'] = scipy.interpolate.interp1d(z, k_g)
@@ -1816,7 +1835,7 @@ def main():
                 zuse=opt.zuse, # Use ZB (Bayesian) or ML (Max Like)
                 outpath='plots',
                 path=opt.path,
-                evolfile="0_1gyr_hr_m62_salp.color",
+                evolfile="0_1gyr_hr_m62_salp_Ks.color",
                 p_lim=0.4,
                 verb='yes')
 
