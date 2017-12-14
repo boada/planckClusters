@@ -22,7 +22,6 @@ import aux
 import tableio
 import extras
 import astrometry
-
 Polygon = matplotlib.patches.Polygon
 
 float32 = numpy.float32
@@ -435,12 +434,6 @@ class finder:
         self.Msun['Ks'] = 5.14
         # ^^ http://www.astronomy.ohio-state.edu/~martini/usefuldata.html
 
-        # Mags k-corrected to z=0.25 as done in Reyes el al 2009
-        # Mg = self.g - self.DM - k['g'](self.z_ph) + k['g'](0.25)
-        # Mr = self.r - self.DM - k['r'](self.z_ph) + k['r'](0.25)
-        # Mi = self.i - self.DM - k['i'](self.z_ph) + k['i'](0.25)
-        # Mz = self.z - self.DM - k['z'](self.z_ph) + k['z'](0.25)
-
         # Mags k-corrected
         self.Mg = self.g - self.DM - k['g'](self.z_ph)
         self.Mr = self.r - self.DM - k['r'](self.z_ph)
@@ -499,31 +492,44 @@ class finder:
 
             # Evaluate the BCG Probability function, we
             # get the limit for each object
-            self.p = p_BCG(self.Mr, Mr_BCG_limit)
+            if self.kband:
+                self.p = p_BCG(self.MKs, MKs_BCG_limit)
+            else:
+                self.p = p_BCG(self.Mr, Mr_BCG_limit)
+
             self.BCG_probs = True
 
             i_lim = 25.0
             star_lim = 0.8
+            p_lim = max(self.p) * 0.8
+            sout.write("# Avoiding BCG_prob < %.3f in BGCs\n" % p_lim)
             mask_p = numpy.where(self.p >= p_lim, 1, 0)
             mask_g = numpy.where(self.g < i_lim + 5, 1, 0)
             mask_r = numpy.where(self.r < i_lim + 2, 1, 0)
             mask_i = numpy.where(self.i < i_lim, 1, 0)
             mask_z = numpy.where(self.z < i_lim + 1, 1, 0)
-            mask_t = numpy.where(self.type < 2.0, 1, 0)
+            mask_t = numpy.where(self.type <= 2.0, 1, 0)
+            if self.kband:
+                Ks_lim = 20.0
+                mask_Ks = numpy.where(self.Ks < Ks_lim, 1, 0)
 
             # Avoid freakishly bright objects, 2.5 mags brighter than the
             # M_BCG_limit
             mask_br = numpy.where(self.Mr > Mr_BCG_limit - 2.5, 1, 0)
             mask_bi = numpy.where(self.Mi > Mi_BCG_limit - 2.5, 1, 0)
-            if self.kband:
-                mask_bi = numpy.where(self.Mi > MKs_BCG_limit - 2.5, 1, 0)
+            #if self.kband:
+            #    mask_bKs = numpy.where(self.MKs > MKs_BCG_limit - 2.5, 1, 0)
 
             # Put a more strict cut in class_star for bcg candidates
             sout.write("# Avoiding CLASS_STAR > %s in BGCs\n" % star_lim)
             mask_star = numpy.where(self.class_star <= star_lim, 1, 0)
 
             # Construct the final mask now
-            self.mask_BCG = (mask_t * mask_g * mask_r * mask_i * mask_z *
+            if self.kband:
+                self.mask_BCG = (mask_t * mask_p * mask_star * mask_Ks *
+                                 mask_i * mask_z)
+            else:
+                self.mask_BCG = (mask_t * mask_g * mask_r * mask_i * mask_z *
                                 mask_br * mask_bi * mask_p * mask_star)
 
             self.BCG_masked = True
@@ -720,7 +726,7 @@ class finder:
     def jpg_display(self):
 
         # Measure time
-        pylab.close(1)
+        pylab.close('all')
         t0 = time.time()
         print("Displaying... be patient", file=sys.stderr)
         # Display
@@ -775,7 +781,8 @@ class finder:
               'c:\t plot potential cluster members\n'
               'j:\t plot the probabilities\n'
               'v:\t write info onto the figure\n'
-              'w:\t write out the result')
+              'w:\t write out the result\n'
+              'h:\t recenter the figure onto the clicked location')
         print('You used:\t %s' % event.key)
 
         if event.key == 'q' or event.key == 'Q':
@@ -840,10 +847,10 @@ class finder:
                 pass
 
             iclose = self.iclose
-            text = "z$_{cl}$ = %.3f\n" \
+            text = "z$_{cl}$ = %.3f +/- %.3f\n" \
                     "z$_{BCG}$ = %.3f\n" \
                     "N$_{galc}$ = %d (%d)\n" \
-                    "R = %d[kpc]" % (self.z_cl, self.z_ph[iclose],
+                    "R = %d[kpc]" % (self.z_cl, self.z_clerr, self.z_ph[iclose],
                                                            self.Ngal_c,
                                                            self.Ngal,
                                                            self.radius)
@@ -868,6 +875,7 @@ class finder:
                           transparent=False,
                           dpi=100,
                           bbox_inches='tight')
+            pylab.close('all')
             sys.exit()
             return
 
@@ -1248,13 +1256,19 @@ class finder:
         print(" Z_ML:\t%6.3f (%.3f)" % (self.z_ml[i], self.chi[i]))
         print(" Mi:\t%6.2f " % self.Mi[i])
         print(" Mr:\t%6.2f " % self.Mr[i])
+        if self.kband:
+            print(" MKs:\t%6.2f " % self.MKs[i])
         print(" p_BCG:\t%6.3f " % self.p[i])
-        print(" i :\t%6.2f (%.3f) " % (self.i[i], self.i_err[i]))
-        print(" r :\t%6.2f (%.3f) " % (self.r[i], self.r_err[i]))
         print(" g :\t%6.2f (%.3f) " % (self.g[i], self.g_err[i]))
+        print(" r :\t%6.2f (%.3f) " % (self.r[i], self.r_err[i]))
+        print(" i :\t%6.2f (%.3f) " % (self.i[i], self.i_err[i]))
+        print(" z :\t%6.2f (%.3f) " % (self.z[i], self.z_err[i]))
+        if self.kband:
+            print(" Ks :\t%6.2f (%.3f) " % (self.Ks[i], self.Ks_err[i]))
         print(" g-r:\t%6.2f " % gr)
         print(" r-i:\t%6.2f " % ri)
-        print(" i-Ks:\t%6.2f " % iKs)
+        if self.kband:
+            print(" i-Ks:\t%6.2f " % iKs)
         print(" Stellarity:\t%.2f " % self.class_star[i])
         print("--------------------------------")
         return
@@ -1271,8 +1285,11 @@ class finder:
         DEC = astrometry.dec2deg(self.dec[i])
 
         s = open(filename, "w")
-        head = "# %-18s %12s %12s %7s %7s %5s %10s %10s %8s %8s %8s %8s %8s %8s %8s\n" % ('ID_BCG', 'RA', 'DEC', 'zBCG', 'z_cl', 'Ngal', 'L_i', 'L_iBCG',
-            'Mr', 'Mi', 'r', 'i', 'p_BCG', 'R[kpc]', 'area[%]')
+        head = ("# %-18s %12s %12s %7s %7s %5s %10s %10s %8s %8s "
+                "%8s %8s %8s %8s %8s\n" % ('ID_BCG', 'RA', 'DEC', 'zBCG',
+                                           'z_cl', 'Ngal', 'L_i', 'L_iBCG',
+                                           'Mr', 'Mi', 'r', 'i', 'p_BCG',
+                                           'R[kpc]', 'area[%]'))
         format = "%20s %12s %12s %7.3f %7.3f %5d %10.3e %10.3e %8.2f %8.2f %8.2f %8.2f %8.3f %8.1f %8.2f\n"
         vars = (self.ID_BCG, RA, DEC, self.z_ph[i], self.z_cl, self.Ngal,
                 self.Lsum, self.Lr[i], self.Mr[i], self.Mi[i], self.r[i],
@@ -1466,8 +1483,10 @@ class finder:
         m = open(filename, "w")
         print("Will write members to %s" % filename)
 
-        head = "# %-23s %15s %15s  %6s %6s %6s %6s %6s  %6s  %6s  %6s  %6s  %6s \n" % ("ID", "RA", "DEC", "ZB", "TB", "ZML", "TML", "g_mag", "g_err",
-            "r_mag", "r_err", "i_mag", "i_err")
+        head = ("# %-23s %15s %15s  %6s %6s %6s %6s %6s  %6s  %6s  "
+               "%6s  %6s  %6s \n" % ("ID", "RA", "DEC", "ZB", "TB", "ZML",
+                                     "TML", "g_mag", "g_err", "r_mag", "r_err",
+                                     "i_mag", "i_err"))
         m.write(head)
         for i in self.iRadius[0]:
             format = "%-25s %15f %15f  %6.3f %6.3f %6.3f %6.2f  %6.3f  %6.3f  %6.3f  %6.3f  %6.3f  %6.3f\n"
@@ -1822,6 +1841,10 @@ def main():
         pixelscale = 0.25
     else:
         pixelscale = float(opt.pixelscale)
+
+    if not os.path.isfile('{}/{}.tiff'.format(opt.path, ctile)):
+        print('RGB image does not exist -- probably only kband data')
+        sys.exit()
 
     f = finder(ctile,
                 maglim=26.0,
