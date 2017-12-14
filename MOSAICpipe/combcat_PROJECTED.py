@@ -422,7 +422,8 @@ class combcat:
                     dryrun=None,
                     combtype="MEDIAN",
                     reSWarp=None,
-                    filters=None):
+                    filters=None,
+                    newfirm=False):
         # Make the detection image an colors
 
         # Keys to keep
@@ -452,6 +453,9 @@ class combcat:
 
         try:
             self.filters.index('K')
+
+            if not newfirm:
+                raise(ValueError)
 
             filters["Red"] = ['K']
             filters["Green"] = ['z', 'i']
@@ -491,6 +495,8 @@ class combcat:
             except UnboundLocalError:
                 pass
             for filter in filters[color]:
+                if not os.path.isfile("%s%s.fits" % (self.tilename, filter)):
+                    continue
                 try:
                     filelist += ' ' + ' '.join(["%s%s.fits" % (
                                                         self.tilename, filter)])
@@ -2455,7 +2461,7 @@ def main():
 
         c.swarp_extras(dryrun=not opt.SWarpExtras,
                       conf="SWarp-common.conf",
-                      combtype=opt.combtype)
+                      combtype=opt.combtype, newfirm=opt.newfirm)
 
     if opt.Astro:
         c.get_astrometry()
