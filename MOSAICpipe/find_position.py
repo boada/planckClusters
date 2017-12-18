@@ -748,7 +748,8 @@ class finder:
         print("Done in %s sec." % (time.time() - t0), file=sys.stderr)
         print("Wrote Fig A, %s " % (self.figAname), file=sys.stderr)
         # Draw the search zone
-        self.draw_zone(n=8)
+        #self.draw_zone(n=8)
+        self.draw_zone2()
         # register this function with the event handler
         pylab.connect('button_press_event', self.get_object)
         pylab.show()
@@ -757,6 +758,27 @@ class finder:
     #####################################
     # Draw the zone where to select
     ######################################
+
+    def draw_zone2(self):
+        ''' This draws a 2' circle where we think the clusters will be. This
+        should be the region we select clusters from.
+
+        '''
+
+        (nx, ny, nz) = self.jpg_region.shape
+        center = nx / 2, ny / 2
+        r_pixels = 2 * 60.0 / self.pixscale
+        ax = pylab.gca()
+        Cc = PCircle(center,
+                    r_pixels,
+                    resolution=80,
+                    fill=0,
+                    edgecolor="white",
+                    linestyle='dashed',
+                    linewidth=0.5)
+        ax.add_patch(Cc)
+        return
+
     def draw_zone(self, n=8):
         # Draw the region to select from
         n = float(n)
@@ -781,6 +803,7 @@ class finder:
               'c:\t plot potential cluster members\n'
               'j:\t plot the probabilities\n'
               'v:\t write info onto the figure\n'
+              '1-3:\t write confidence info onto the figure. 1: High 3: Low\n'
               'w:\t write out the result\n'
               'h:\t recenter the figure onto the clicked location')
         print('You used:\t %s' % event.key)
@@ -834,6 +857,40 @@ class finder:
         # Plot probs
         if event.key == 'j':
             self.plot_probs()
+            return
+        if event.key == '1' or event.key == '2' or event.key == '3':
+            try:
+                self.conf_back.remove()
+            except AttributeError:
+                pass
+            try:
+                self.conf_front.remove()
+            except AttributeError:
+                pass
+
+            if event.key == '1':
+                conf = 'High'
+            elif event.key == '2':
+                conf = 'Medium'
+            elif event.key == '3':
+                conf = 'Low'
+            else:
+                # this should never happen
+                return
+            text = '{} Confidence'.format(conf)
+            self.confidence = int(event.key)
+
+            xo = 2 * self.dx - 80
+            yo = 80
+            self.conf_back = pylab.text(xo + 2,
+                       self.ny - yo + 2,
+                       text,
+                       color='black',
+                       fontsize=18, ha='right')
+            self.conf_front = pylab.text(xo, self.ny - yo, text, color='white',
+                                    fontsize=18, ha='right')
+            pylab.draw()
+            #pylab.show()
             return
 
         if event.key == 'v':
@@ -1112,7 +1169,7 @@ class finder:
 
         ax = pylab.gca()
         # Delete all patches, reset ellipses before redraw
-        del ax.patches[:]
+        del ax.patches[1:]
         self.ellipses = {}
         #zo = self.z_ph[iclose]
         pylab.title("%s" % (self.ctile))
@@ -1158,7 +1215,7 @@ class finder:
                     resolution=80,
                     fill=0,
                     edgecolor="white",
-                    linestyle='dashed',
+                    linestyle='solid',
                     linewidth=0.5)
         ax.add_patch(C)
 
@@ -1187,7 +1244,7 @@ class finder:
 
         ax = pylab.gca()
         # Delete all patches, reset ellipses before redraw
-        del ax.patches[:]
+        del ax.patches[1:]
         self.ellipses = {}
         # construct the ellipses for each members
         for i in self.idx_BCG[0]:
@@ -1286,14 +1343,16 @@ class finder:
 
         s = open(filename, "w")
         head = ("# %-18s %12s %12s %7s %7s %5s %10s %10s %8s %8s "
-                "%8s %8s %8s %8s %8s\n" % ('ID_BCG', 'RA', 'DEC', 'zBCG',
+                "%8s %8s %8s %8s %8s %11s\n" % ('ID_BCG', 'RA', 'DEC', 'zBCG',
                                            'z_cl', 'Ngal', 'L_i', 'L_iBCG',
                                            'Mr', 'Mi', 'r', 'i', 'p_BCG',
-                                           'R[kpc]', 'area[%]'))
-        format = "%20s %12s %12s %7.3f %7.3f %5d %10.3e %10.3e %8.2f %8.2f %8.2f %8.2f %8.3f %8.1f %8.2f\n"
+                                           'R[kpc]', 'area[%]', 'Confidence'))
+        format = ("%20s %12s %12s %7.3f %7.3f %5d %10.3e %10.3e %8.2f %8.2f "
+                  "%8.2f %8.2f %8.3f %8.1f %8.2f %2d\n")
         vars = (self.ID_BCG, RA, DEC, self.z_ph[i], self.z_cl, self.Ngal,
                 self.Lsum, self.Lr[i], self.Mr[i], self.Mi[i], self.r[i],
-                self.i[i], self.p[i], self.radius, self.area_fraction)
+                self.i[i], self.p[i], self.radius, self.area_fraction,
+                self.confidence)
         s.write(head)
         s.write(format % vars)
         s.close()
@@ -1326,7 +1385,7 @@ class finder:
         ax = pylab.gca()
 
         # Delete all patches, before redraw
-        del ax.patches[:]
+        del ax.patches[1:]
 
         # construct the ellipse for the current display
         a = self.a_image[i]
