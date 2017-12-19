@@ -49,6 +49,7 @@ def doWork():
             status.append(done)
             cmds.append(cmd)
 
+    fields = len(cmds)
     with open('tracker', 'w') as tracker:
         for i, (done, cmd) in enumerate(zip(status, cmds)):
             if done == 'True':
@@ -57,7 +58,10 @@ def doWork():
                 print(cmd)
                 os.system(cmd)
                 status[i] = 'True'
-            print('sleeping for 5 seconds. Press ctrl-c to exit')
+            print()
+            print()
+            print('{}/{} Fields completed.'.format(i, fields))
+            print('Sleeping for 5 seconds. Press ctrl-c to exit')
             try:
                 time.sleep(5)
             except KeyboardInterrupt:
