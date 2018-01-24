@@ -37,7 +37,7 @@ def compute_AEBV(filter='r_SDSS', sed='flat'):
     ysed = np.array(ysed)
 
     Ax = AAV_ccm(xl)
-    A_lambda = flux(xl, Ax, yf, units='f_l')
+    #A_lambda = flux(xl, Ax, yf, units='f_l')
     mx_0 = -2.5 * log10(flux(xl, ysed, yf))  # Normal
     mx_1 = -2.5 * log10(flux(xl, ysed * 10**(-0.4 * Ax * AV), yf))  # Redder
     A_AV = old_div((mx_1 - mx_0), AV)
@@ -52,7 +52,7 @@ def compute_AEBV(filter='r_SDSS', sed='flat'):
     yf = np.asarray(yf)
     ysed = np.array(ysed) * 0.0 + 1.0
     Ax = AAV_ccm(xl)
-    A_lambda = flux(xl, Ax, yf, units='f_l')
+    #A_lambda = flux(xl, Ax, yf, units='f_l')
     mV_0 = -2.5 * log10(flux(xl, ysed, yf))  # Normal
     mV_1 = -2.5 * log10(flux(xl, ysed * 10**(-0.4 * Ax * AV), yf))  # Redder
 
@@ -66,7 +66,7 @@ def compute_AEBV(filter='r_SDSS', sed='flat'):
     yf = np.asarray(yf)
     ysed = np.array(ysed) * 0.0 + 1.0
     Ax = AAV_ccm(xl)
-    A_lambda = flux(xl, Ax, yf, units='f_l')
+    #A_lambda = flux(xl, Ax, yf, units='f_l')
     mB_0 = -2.5 * log10(flux(xl, ysed, yf))  # Normal
     mB_1 = -2.5 * log10(flux(xl, ysed * 10**(-0.4 * Ax * AV), yf))  # Redder
 
@@ -255,10 +255,9 @@ def filterFactor(filter):
     try:
         return ffactors[filter]
     except KeyError:
-        return compute_AEBV(filter='K_KittPeak',sed='flat')[1]
+        return compute_AEBV(filter='K_KittPeak', sed='flat')[1]
 
-#############################################################################################
-
+##############################################################################
 
 def _calc_ebv(cmd):
     sproc = popen2.Popen3(cmd, 1)
