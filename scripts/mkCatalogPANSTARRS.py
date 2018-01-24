@@ -1,6 +1,4 @@
-import sys
 import os
-from astLib import astCoords
 import numpy as np
 from time import sleep
 
@@ -32,7 +30,7 @@ def work(ra, dec, target):
               m.zflags,
               m.zqfperfect
             INTO   MyDB.{}
-            FROM   Fgetnearbyobjeq({}, {}, 30) AS nb
+            FROM   Fgetnearbyobjeq({}, {}, 10) AS nb
                 INNER JOIN objectthin AS o
                         ON o.objid = nb.objid
                             AND o.ndetections > 1
@@ -49,21 +47,23 @@ def work(ra, dec, target):
     # build the command
     cmd = 'java -jar casjobs.jar run "{}"'.format(sql)
 
-    os.system(cmd)
+    #os.system(cmd)
+    print(cmd)
 
     cmd = 'java -jar casjobs.jar extract -b '
     cmd += '{} -F -d PS1/'.format(target)
 
-    os.system(cmd)
+    #os.system(cmd)
+    print(cmd)
 
     cmd = 'java -jar casjobs.jar execute -t "MyDB/1" -n '
     cmd += '"drop query" "drop table {}"'.format(target)
 
-    os.system(cmd)
-
+    #os.system(cmd)
+    print(cmd)
 
 # get file data
-data = np.genfromtxt('../catalogs/PSZ2_unconfirmed_catalog - Master.csv',
+data = np.genfromtxt('../catalogs/PSZ2_unconfirmed_catalog - proc2.csv',
            delimiter=',', names=True, dtype=None)
 
 for i, (ra, dec,
@@ -76,3 +76,4 @@ for i, (ra, dec,
     name = ''.join(e for e in name.decode() if e.isalnum())
     work(ra, dec, '{}'.format(name))
     sleep(1)
+    break
