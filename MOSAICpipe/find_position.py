@@ -609,11 +609,14 @@ class finder:
     ##################################################
     # Read in the jpg file and corresponding fitsfile
     ##################################################
-    def jpg_read(self, dx=1200, dy=1200, RA=None, DEC=None):
+    def jpg_read(self, dx=1200, dy=1200, RA=None, DEC=None, toggle=False):
 
         # The fitsfile with the wcs information
         self.fitsfile = os.path.join(self.datapath, self.ctile + 'i.fits')
-        self.jpgfile = os.path.join(self.datapath, self.ctile + '.tiff')
+        if toggle:
+            self.jpgfile = os.path.join(self.datapath, self.ctile + 'irg.tiff')
+        else:
+            self.jpgfile = os.path.join(self.datapath, self.ctile + '.tiff')
         t0 = time.time()
         print("Reading %s" % self.jpgfile, file=sys.stderr)
         self.jpg_array = sci_misc.imread(self.jpgfile)
@@ -805,11 +808,13 @@ class finder:
               'v:\t write info onto the figure\n'
               '1-3:\t write confidence info onto the figure. 1: High 3: Low\n'
               'w:\t write out the result\n'
-              'h:\t recenter the figure onto the clicked location')
+              'h:\t recenter the figure onto the clicked location\n'
+              'i:\t toggle between optical and Optical + IR image')
         print('You used:\t %s' % event.key)
 
         if event.key == 'q' or event.key == 'Q':
             sys.exit()
+            pylab.close('all')
             return
 
         # Remap to right positions
@@ -939,6 +944,17 @@ class finder:
         if event.key == 'h':
             xloc, yloc = self.click(event)
             self.jpg_read(dx=self.dx, dy=self.dy, RA=xloc, DEC=yloc)
+            self.jpg_display()
+
+        if event.key == 'i':
+            try:
+                if self.toggled:
+                    print('Reading Op/IR Image...')
+                    self.toggled = False
+            except AttributeError:
+                print('Reading Optical Image...')
+                self.toggled = True
+            self.jpg_read(dx=self.dx, dy=self.dy, toggle=self.toggled)
             self.jpg_display()
 
         # Print info
