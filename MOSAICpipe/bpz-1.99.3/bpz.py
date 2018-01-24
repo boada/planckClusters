@@ -512,7 +512,8 @@ if pars.d['MAG'] == 'yes':
 
 #Check that the observed error fluxes are reasonable
 #if sometrue(less(ef_obs,0.)): raise 'Negative input flux errors'
-if less(ef_obs, 0.).any(): raise 'Negative input flux errors'
+if less(ef_obs, 0.).any():
+    raise ValueError('Negative input flux errors')
 
 f_obs = where(less(f_obs, 0.), 0., f_obs)  #Put non-detections to 0
 ef_obs = where(
