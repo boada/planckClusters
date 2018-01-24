@@ -1430,10 +1430,16 @@ class combcat:
         #     blue = './{}{}.fits'.format(self.tilename, 'g')
         #     bands = 'irg'
 
-        red = './{}{}.fits'.format(self.tilename, 'Red')
-        green = './{}{}.fits'.format(self.tilename, 'Green')
-        blue = './{}{}.fits'.format(self.tilename, 'Blue')
-        bands = 'rgb'
+        if newfirm:
+            red = './{}{}.fits'.format(self.tilename, 'Red')
+            green = './{}{}.fits'.format(self.tilename, 'Green')
+            blue = './{}{}.fits'.format(self.tilename, 'Blue')
+            bands = 'rgb'
+        else:
+            red = './{}{}.fits'.format(self.tilename, 'i')
+            green = './{}{}.fits'.format(self.tilename, 'r')
+            blue = './{}{}.fits'.format(self.tilename, 'g')
+            bands = 'irg'
 
         # output file
         output = '{}{}.tiff'.format(self.tilename, bands)
@@ -1788,7 +1794,7 @@ def SEx_head(catalog, verb='yes'):
             SExcols[key] = int(col) - 1
             if verb:
                 print("# %-20s %s" % (key, SExcols[key] + 1), file=sys.stderr)
-        except:
+        except IndexError:
             continue
 
     return SExcols
@@ -1922,7 +1928,7 @@ def match_SEx(tilename, filters):
             # merge the matches
             cat['sdss_objid'][idxc] = sdss_cat['objid'][idxs]
             cat['sdss_{}'.format(filter)][idxc] = sdss_cat[
-                                                'fiberMag_{}'.format(filter)][idxs]
+                                            'fiberMag_{}'.format(filter)][idxs]
             cat['sdss_{}_err'.format(filter)][idxc] = sdss_cat[
                                             'fiberMagErr_{}'.format(filter)][idxs]
             cat['sdss_petro_{}'.format(filter)][idxc] = \
@@ -1937,7 +1943,8 @@ def match_SEx(tilename, filters):
 
         #### NOW THE PANSTARRS DATA ####
         if ps1 and not kband:
-            idxc, idxp, d2d, d3d = p_coord.search_around_sky(c_coord, 1 * u.arcsec)
+            idxc, idxp, d2d, d3d = p_coord.search_around_sky(c_coord, 1 *
+                                                             u.arcsec)
             # make some data to catch
             d = np.ones(len(cat)) * 99.0 # 99 is the non-detection value in SEx...
             col = Column(d, name='ps1_{}'.format(filter))
@@ -1950,15 +1957,16 @@ def match_SEx(tilename, filters):
             # merge the matches
             cat['ps1_{}'.format(filter)][idxc] = ps1_cat[
                                             '{}meanpsfmag'.format(filter)][idxp]
-            cat['ps1_{}_err'.format(filter)][idxc] = ps1_cat[
-                                            '{}meanpsfmagerr'.format(filter)][idxp]
+            cat['ps1_{}_err'.format(filter)][idxc] = \
+                                ps1_cat['{}meanpsfmagerr'.format(filter)][idxp]
 
         #### NOW THE 2MASS DATA -- IF KBAND ####
         if kband and twoMASS:
             idxc, idxp, d2d, d3d = tm_coord.search_around_sky(c_coord,
                                                               1 * u.arcsec)
             # make some data to catch
-            d = np.ones(len(cat)) * 99.0 # 99 is the non-detection value in SEx...
+            # 99 is the non-detection value in Sextractor
+            d = np.ones(len(cat)) * 99.0
             col = Column(d, name='2MASS_{}'.format(filter))
             col_err = Column(d, name='2MASS_{}_err'.format(filter))
             try:
@@ -2422,8 +2430,6 @@ def main():
     assocfile = arg[0]
     inpath = arg[1]
     outpath = arg[2]
-
-
 
     # SWarp
     if not opt.SWarp:
