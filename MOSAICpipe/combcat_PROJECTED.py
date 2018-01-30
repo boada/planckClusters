@@ -589,7 +589,10 @@ class combcat:
             os.system("rm %s" % outweight)
             for file in outfiles:
                 print("Removing %s" % file)
-                os.system("rm %s" % file)
+                try:
+                    os.system("rm %s" % file)
+                except FileNotFoundError:
+                    pass
 
         return
 
@@ -1392,12 +1395,18 @@ class combcat:
 
         print('cleaning up files', end='.')
         for f in self.infiles:
+                try:
+                    os.remove(f)
+                except FileNotFoundError:
+                    continue
                 print('', end='.')
-                os.remove(f)
         for filtername in self.filters:
             for f in self.files_weight[filtername]:
+                try:
+                    os.remove(f.rstrip("'[0]'"))
+                except FileNotFoundError:
+                    continue
                 print('', end='.')
-                os.remove(f.rstrip("'[0]'"))
         print('')
         return
 
@@ -2040,22 +2049,25 @@ def add_Speczs(tilename, dust=False):
         sdss_cat = ascii.read('/home/boada/Projects/'
                          'planckClusters/data/extern/SDSS/{}/'
                          '{}_SDSS_catalog.csv'.format(tilename, tilename))
+        sdss = True
         if len(sdss_cat) < 2:
-            return
+            sdss = False
     except FileNotFoundError:
         print('SDSS CATALOG NOT FOUND!')
-        return
-    c_coord = SkyCoord(ra=cat['RA'] * u.degree, dec=cat['DEC'] * u.degree)
-    s_coord = SkyCoord(ra=sdss_cat['ra'] * u.degree, dec=sdss_cat['dec'] *
+        sdss = False
+    if sdss:
+        c_coord = SkyCoord(ra=cat['RA'] * u.degree, dec=cat['DEC'] * u.degree)
+        s_coord = SkyCoord(ra=sdss_cat['ra'] * u.degree, dec=sdss_cat['dec'] *
                        u.degree)
-    idxc, idxs, d2d, d3d = s_coord.search_around_sky(c_coord, 1 * u.arcsec)
+        idxc, idxs, d2d, d3d = s_coord.search_around_sky(c_coord, 1 * u.arcsec)
 
-    # set the fill value
-    sdss_cat['specz'].fill_value = -99.0
+        # set the fill value
+        sdss_cat['specz'].fill_value = -99.0
 
     # make a new column to catch the results
     zspec = np.ones(len(cat)) * -99.0
-    zspec[idxc] = sdss_cat['specz'].filled()[idxs]
+    if sdss:
+        zspec[idxc] = sdss_cat['specz'].filled()[idxs]
     zspec = Column(zspec, name='Z_S')
     cat.add_column(zspec)
     cat.write('tmp.color', format='ascii.commented_header', overwrite=True)
