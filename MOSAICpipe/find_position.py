@@ -22,6 +22,10 @@ import aux
 import tableio
 import extras
 import astrometry
+# fix large image error
+import PIL
+PIL.Image.MAX_IMAGE_PIXELS = None
+
 Polygon = matplotlib.patches.Polygon
 
 float32 = numpy.float32
@@ -626,6 +630,10 @@ class finder:
         print('Orig. Image Size: %s, %s, %s' % self.jpg_array.shape)
         (self.ny, self.nx, self.nz) = self.jpg_array.shape
 
+        # pass up to class
+        self.RA = RA
+        self.DEC = DEC
+
         if float(dx) < 0 or float(dy) < 0:
             self.dx = self.nx / 2.0
             self.dy = self.ny / 2.0
@@ -639,11 +647,12 @@ class finder:
                 RA = astrometry.hms2dec(RA)
                 DEC = astrometry.deg2dec(DEC)
                 self.xo, self.yo = astrometry.rd2xy(RA, DEC, self.fitsfile)
+                print(self.xo, self.yo)
                 yo_tmp = self.yo
             else:
                 RA = float(RA)
                 DEC = float(DEC)
-        if isinstance(RA, float) and isinstance(DEC, float):
+        elif isinstance(RA, float) and isinstance(DEC, float):
             self.xo = RA
             self.yo = DEC
             yo_tmp = self.yo
@@ -654,6 +663,8 @@ class finder:
         else:
             print('Center not understood')
             sys.exit()
+
+        print(self.xo, self.yo)
 
         # a little fix when not centered -- it has something to do with the way
         # the image is being displayed. Without this fix, the the catalog is in
@@ -667,6 +678,7 @@ class finder:
         y1 = int(self.yo - self.dy)
         y2 = int(self.yo + self.dy)
 
+        # this is part of the little fix described above.
         self.yo = yo_tmp
 
         # Get the region to use for plotting
@@ -954,7 +966,9 @@ class finder:
             except AttributeError:
                 print('Reading Optical Image...')
                 self.toggled = True
-            self.jpg_read(dx=self.dx, dy=self.dy, toggle=self.toggled)
+            print(self.RA, self.DEC)
+            self.jpg_read(dx=self.dx, dy=self.dy, RA=self.RA, DEC=self.DEC,
+                          toggle=self.toggled)
             self.jpg_display()
 
         # Print info
