@@ -62,6 +62,7 @@ def work(ra, dec, target):
     #os.system(cmd)
     print(cmd)
 
+
 # get file data
 data = np.genfromtxt('../catalogs/PSZ2_unconfirmed_catalog - proc2.csv',
            delimiter=',', names=True, dtype=None)
