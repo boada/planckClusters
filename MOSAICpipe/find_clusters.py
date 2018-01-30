@@ -1,22 +1,35 @@
 from glob import glob
 import os
 import time
-import sys
+from numpy import genfromtxt, where
 
-def mkCommands(dirs):
+def mkCommands(dirs, radec=False):
     cmds = []
     for d in dirs:
         parts = d.split('/') # get the path parts
 
         cluster = parts[1]
-
         # start building the command
         cmd = 'python3 find_position.py'
 
         # build the rest
         cmd += ' {} --path {} --dx 1000 --dy 1000'.format(cluster, d)
-
         cmd += ' --pixelscale 0.25'
+
+        if radec:
+            # patch for a silly situation
+            if cluster == 'PSZ2_G128.15-24.17':
+                cluster = 'PSZ2_G128.15-24.71'
+            cat_dir = '/home/boada/Projects/planckClusters/catalogs'
+            data = genfromtxt(cat_dir + '/PSZ2_unconfirmed_catalog - proc2.csv',
+                              delimiter=',', names=True, dtype=None)
+
+            # find the ra and dec position
+            # find the index first -- the zeros just remove the arrays
+            indx = where(data['Name'] == cluster.encode())[0][0]
+
+            cmd += ' --RA {}'.format(data['RA_SEX'][indx].decode())
+            cmd += ' --DEC {}'.format(data['DEC_SEX'][indx].decode())
 
         cmds.append(cmd)
 
@@ -92,17 +105,36 @@ def doWork():
                     tracker.write('{} {}\n'.format(done, cmd))
                 return
 
+def cmdline():
+    from optparse import OptionParser
+
+    USAGE = 'usage:\t % prog [options] \n'
+    USAGE += 'i.e.: %prog --rebuild or %prog --radec'
+
+    parser = OptionParser(usage=USAGE)
+
+    parser.add_option('--rebuild', dest='rebuild', default=False,
+                      help='Rebuild Tracker')
+    parser.add_option('--radec', dest='radec', default=False,
+                      help='Use RA/DEC for centering')
+
+    options, args = parser.parse_args()
+
+    return options, args
+
 
 if __name__ == "__main__":
-    try:
-        if 'rebuild' in sys.argv[1].lower():
-            rebuild = True
-    except IndexError:
-        rebuild = False
+
+    opt, args = cmdline()
+
+    # get the directory list
     dirs = glob('./PS*', recursive=True)
-    cmds = mkCommands(dirs)
+
+    cmds = mkCommands(dirs, radec=opt.radec)
     mkTracker(cmds)
-    if rebuild:
+
+    if opt.rebuild:
         rebuildTracker(cmds)
     else:
-        doWork()
+        pass
+        #doWork()
