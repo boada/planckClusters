@@ -13,7 +13,7 @@ def loadClusters():
     tables = [pd.read_table(r, delim_whitespace=True) for r in results]
 
     # clean off the extra columns
-    cols = ['RA', 'DEC', 'zBCG', 'z_cl', 'Ngal', 'L_i', 'L_iBCG', 'Mr', 'Mi',
+    cols = ['RA', 'DEC', 'z_cl', 'Ngal', 'L_i', 'L_iBCG', 'Mr', 'Mi',
             'r', 'i', 'p_BCG', 'R[kpc]', 'area[%]']
 
     tables = [t.drop(cols, axis=1) for t in tables]
@@ -29,7 +29,9 @@ def loadClusters():
     for i, u in enumerate(users):
         tables[i] = tables[i].rename(columns={'ID_BCG': 'BCG_{}'.format(u),
                                              'Confidence':
-                                             'Confidence_{}'.format(u)})
+                                             'Confidence_{}'.format(u),
+                                             'zBCG':
+                                             'zBCG_{}'.format(u)})
 
     # merge the first two together
     df = pd.merge(tables[0], tables[1], how='outer', on=['Cluster'])
