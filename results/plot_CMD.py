@@ -5,8 +5,23 @@ from get_catalogs import loadCatalogs
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 from astropy.io import ascii
-#from math import sqrt
 from numpy import abs, linspace
+import ezgal # BC03 model maker
+
+def setup_models(zf):
+    model = ezgal.model('bc03_exp_0.1_z_0.02_salp.model')
+    # set cosmology
+    model.set_cosmology(Om=0.3, Ol=0.7, h=0.7, w=-1)
+    # set the model normalization to Dai et al 2009 (ApJ, 697, 506)
+    model.set_normalization('ch1', 0.24, -25.06, vega=True)
+    model.add_filter('g_MOSAICII.res', name='g_MOSAICII_MAG_ISO')
+    model.add_filter('r_MOSAICII.res', name='r_MOSAICII_MAG_ISO')
+    model.add_filter('SLOAN-SDSS.i.res', name='i_MOSAICII_MAG_ISO')
+    model.add_filter('SLOAN-SDSS.z.res', name='z_MOSAICII_MAG_ISO')
+    model.add_filter('K_KittPeak.res', name='K_KittPeak_MAG_ISO')
+    model.set_zfs(zf)
+
+    return model
 
 def find_nearest(array, value):
     ''' returns the index and value of the nearest value in an array. '''
@@ -14,11 +29,9 @@ def find_nearest(array, value):
     return idx, array[idx]
 
 
-plt.ioff()
-
-# get the ezgal models
+# get the models for BC03
 zf = [1, 1.5, 2, 2.5, 3]
-ezgs = [ascii.read('ezgal_zf{}_Dai2009.txt'.format(i)) for i in zf]
+models = setup_models(zf)
 
 # make some colored lines for the plots
 cm_subset = linspace(0.2, 0.8, len(zf))
@@ -86,21 +99,16 @@ for user in users:
                     cat.iloc[members.ID.astype('int') - 1][filters[j + 1]],
                     c='#a60628', )# label='Cluster Galaxies')
 
-            for ii, (ezg, color) in enumerate(zip(ezgs, colors)):
-                index, near = find_nearest(ezg['redshift'], z_cl)
-
-                try:
-                    model_color = (ezg[filters[j][0]][index] -
-                                   ezg[filters[j + 1][0]][index])
-                except KeyError:
-                    model_color = ezg['z'][index] - ezg['Ks'][index]
-
-                try:
-                    ax[j].axhline(model_color, color=color,
-                                  label='zf={}'.format(zf[ii]))
-                except IndexError:
-                    ax[j].axhline(model_color, color=color,
-                                  label='zf={}'.format(zf[ii]))
+            # add the model colors
+            for ii, color in zip(zf, colors):
+                mag1 = models.get_observed_absolute_mags(ii,
+                                                        filters=filters[j],
+                                                        zs=z_cl)
+                mag2 = models.get_observed_absolute_mags(ii,
+                                                        filters=filters[j + 1],
+                                                        zs=z_cl)
+                ax[j].axhline(mag1 - mag2, color=color,
+                                  label='zf={}'.format(ii))
 
             ax[j].set_xlabel(filters[j + 1][0], fontsize=16) # only the filter letter
             ax[j].set_ylabel('{} - {}'.format(filters[j][0], filters[j +
