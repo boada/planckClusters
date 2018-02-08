@@ -2,7 +2,6 @@ from astropy.io import fits
 from astLib import astImages
 from astLib.astWCS import WCS
 from numpy import genfromtxt
-from sys import argv
 import os
 
 data_dir = '../data/proc2'
@@ -55,16 +54,22 @@ def cutouts(name, ra, dec):
         except FileNotFoundError:
             return
 
-        img_data = fits.getdata('{}/{}/{}{}.fits'.format(data_dir, name, name,
+        try:
+            img_data = fits.getdata('{}/{}/{}{}.fits'.format(data_dir, name, name,
                                                          color))
-
+        except TypeError:
+            continue
         # clip and write the new image
         img_clipped = astImages.clipImageSectionWCS(img_data, wcs, ra, dec,
                                                     8 / 60)
+        ra2, dec2 = wcs.wcs2pix(ra, dec)
+        d = astImages.clipImageSectionPix(img_data, ra2, dec2,
+                                                    1920)
         astImages.saveFITS('{}/{}/{}{}_cutout.fits'.format(data_dir, name,
                                                            name,
                                                            color),
-                           img_clipped['data'],
+                           #img_clipped['data'],
+                           d,
                            img_clipped['wcs'])
     print('Done {}'.format(name))
 
@@ -85,6 +90,3 @@ if __name__ == "__main__":
             make_RGB(name.decode())
         else:
             print('')
-
-
-
