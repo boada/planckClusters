@@ -4,7 +4,6 @@ from get_results import loadClusters, loadMembers
 from get_catalogs import loadCatalogs
 from astropy.coordinates import SkyCoord
 import astropy.units as u
-from astropy.io import ascii
 from numpy import abs, linspace
 import ezgal # BC03 model maker
 
@@ -110,7 +109,7 @@ for user in users:
                 ax[j].axhline(mag1 - mag2, color=color,
                                   label='zf={}'.format(ii))
 
-            ax[j].set_xlabel(filters[j + 1][0], fontsize=16) # only the filter letter
+            ax[j].set_xlabel(filters[j + 1][0], fontsize=16) # filter letter
             ax[j].set_ylabel('{} - {}'.format(filters[j][0], filters[j +
                                                                      1][0]),
                              fontsize=16)
@@ -124,6 +123,6 @@ for user in users:
         ax[0].legend(loc='lower left', ncol=2)
 
         plt.tight_layout()
-        plt.savefig('{}/{}/{}/{}_CMD.png'.format(user, c, c, c), bbox='tight')
+        plt.savefig('{}/{}/{}/{}_CMD.pdf'.format(user, c, c, c), bbox='tight')
         plt.close('all')
 
