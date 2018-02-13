@@ -14,7 +14,8 @@ import cosmology
 import math
 import scipy
 import scipy.interpolate
-from pyfits import getheader
+from astropy.io.fits import getheader
+#from pyfits import getheader
 #from pyraf import iraf
 #from iraf import artdata
 from pyraf.iraf import artdata
@@ -33,10 +34,12 @@ class simgal(object):
         self.Ngal = Ngal
         self.pixscale = pixscale
         self.cosmo = cosmo
-        self.datapath = os.path.join(os.environ['HOME'], 'SOAR-data/COMB')
+        #self.datapath = os.path.join(os.environ['HOME'], 'SOAR-data/COMB')
+        self.outpath = '/home/boada/Projects/planckClusters/data/proc2'
 
         # The output datapath
-        self.outpath = os.path.join(os.environ['HOME'], 'SOAR-data/Sim')
+        #self.outpath = os.path.join(os.environ['HOME'], 'SOAR-data/Sim')
+        self.outpath = '/home/boada/Projects/planckClusters/data/sims'
 
         # Get the z-magnitude relation -- only once
         self.get_zmag()
@@ -184,7 +187,8 @@ class simgal(object):
         self.header = getheader(real_fits)
         exptime = 1.0
         zeropt = self.header['ZEROPT']
-        artdata.mkobject.background = 0.0  # Default background artdata.mkobject.in ADU)
+        # Default background artdata.mkobject.in ADU)
+        artdata.mkobject.background = 0.0
         artdata.mkobject.title = "%s_%ssim" % (field, filter)  # Image title
         artdata.mkobject.objects = self.GaList
         artdata.mkobject.xoffset = 0.0
@@ -232,15 +236,19 @@ class simgal(object):
 
         # SPATIAL DISTRIBUTION
         artdata.gallist.interactive = "no"  # Interactive mode?
-        artdata.gallist.spatial = "uniform"  # Spatial density function (uniform|hubble|file)
+        # Spatial density function (uniform|hubble|file)
+        artdata.gallist.spatial = "uniform"
         artdata.gallist.xmin = 40.  # Minimum x coaordinate value
         artdata.gallist.xmax = NX  # Maximum x coordinate value
         artdata.gallist.ymin = 40.  # Minimum y coordinate value
         artdata.gallist.ymax = NY  # Maximum y coordinate value
-        artdata.gallist.sseed = sseed  # Seed for sampling the spatial probability function
+        # Seed for sampling the spatial probability function
+        artdata.gallist.sseed = sseed
 
         # MAGNITUDE DISTRIBUTION
-        artdata.gallist.luminosity = "uniform"  # Luminosity function artdata.gallist.uniform|powlaw|schecter|file
+        artdata.gallist.minmag = m  # Minimum magnitude
+        # Luminosity function artdata.gallist.uniform|powlaw|schecter|file
+        artdata.gallist.luminosity = "uniform"
         artdata.gallist.minmag = m  # Minimum magnitude
         artdata.gallist.maxmag = m  # Maximum magnitude
 
@@ -249,7 +257,8 @@ class simgal(object):
         artdata.gallist.ar = 0.3  # Minimum elliptical galaxy axial ratio
         artdata.gallist.eradius = esize  # Maximum elliptical half flux radius
         artdata.gallist.sradius = 1.2  # Spiral/ellipical radius at same magnitude
-        artdata.gallist.absorption = 1.2  # Absorption in edge on spirals artdata.gallist.mag
+        # Absorption in edge on spirals artdata.gallist.mag
+        artdata.gallist.absorption = 1.2
         artdata.gallist.z = 0.1  # Minimum redshift
 
         artdata.gallist(self.GaList, self.Ngal)
