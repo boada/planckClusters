@@ -928,8 +928,7 @@ class combcat:
 
             # correct the header information to make sure floats are floats and
             # not strings
-            with fits.open('{}.fits'.format(self.combima[filter]),
-                                            mode='update') as f:
+            with fits.open(mosaic, mode='update') as f:
                 header = f[0].header
                 for key, val in list(header.items()):
                     if 'CD1_' in key or 'CD2_' in key or \
@@ -938,6 +937,15 @@ class combcat:
                         f[0].header[key] = float(val)
                     if 'PV' in key:
                         f[0].header[key] = str(val)
+
+                # write the zeropt info to the header
+                _tmp = np.genfromtxt(
+                    'photometry_control_star_{}.dat'.format(filter),
+                    names=True, dtype=None)
+
+                f[0].header['MAGZERO'] = float(_tmp['ZP'])
+                f[0].header['MAGZSIG'] = float(_tmp['ZP_sig'])
+                f[0].header['MAGZCAT'] = _tmp['6'].flatten()[0].decode()
 
         return
 
