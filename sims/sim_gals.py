@@ -14,32 +14,37 @@ import cosmology
 import math
 import scipy
 import scipy.interpolate
-from astropy.io.fits import getheader
-#from pyfits import getheader
-#from pyraf import iraf
-#from iraf import artdata
-from pyraf.iraf import artdata
+from astropy.io import fits as pyfits
+from pyfits import getheader
+from pyraf import iraf
+from iraf import artdata
 import numpy
 
 class simgal(object):
     def __init__(self,
                  fields,
                  Ngal=25,
-                 filter='r_SDSS',
+                 filter='SLOAN-SDSS.r',
                  cosmo=(0.3, 0.7, 0.7),
-                 pixscale=0.1533):
+                 pixscale=0.25):
 
         self.fields = fields
         self.filter = filter
         self.Ngal = Ngal
         self.pixscale = pixscale
         self.cosmo = cosmo
-        #self.datapath = os.path.join(os.environ['HOME'], 'SOAR-data/COMB')
-        self.outpath = '/home/boada/Projects/planckClusters/data/proc2'
+
+        self.pipeline = '/home/boada/Projects/planckClusters/MOSAICpipe'
+        # The input datapath
+        self.datapath = '/home/boada/Projects/planckClusters/data/proc2'
 
         # The output datapath
-        #self.outpath = os.path.join(os.environ['HOME'], 'SOAR-data/Sim')
         self.outpath = '/home/boada/Projects/planckClusters/data/sims'
+
+        # Check for environ vars
+        # gotta set this for the SExtractor configuration files to work
+        if not os.getenv('PIPE'):
+            os.environ['PIPE'] = os.path.join(self.pipeline)
 
         # Get the z-magnitude relation -- only once
         self.get_zmag()
@@ -139,22 +144,23 @@ class simgal(object):
     # Run SExtractor on the field
     def SEx(self, field):
 
-        SExinpar = os.path.join(os.environ['SOARpipe'],
-                                'LIB/pars/soi_Catalog_SIM.inpar')
+        # The configuration file
+        SExinpar = os.path.join(self.pipeline, 'confs', 'bcs_Catalog_SIM.inpar')
+
         #header = self.header
-        filter = self.filter[0]
+        filter = self.filter[-1]
         simu_fits = os.path.join(self.outpath, "Images", "%s%s_sim.fits" %
                                  (field, filter))
         out_cat = os.path.join(self.outpath, "Catalogs", "%s%s_sim.cat" %
                                (field, filter))
-        zp_use = self.header['ZEROPT']
+        zp_use = self.header['MAGZERO']
 
         opts = ''
         # Do the SEx
         print("# Will run SEx on %s" % field)
         cmd = "sex %s -CATALOG_NAME %s -MAG_ZEROPOINT %s -c %s %s > /dev/null" % (
             simu_fits, out_cat, zp_use, SExinpar, opts)
-        #cmd = "sex %s -CATALOG_NAME %s -MAG_ZEROPOINT %s -c %s %s " % (simu_fits,out_cat,zp_use,SExinpar,opts)
+        print(cmd)
         os.system(cmd)
 
         # pass them up
@@ -165,7 +171,7 @@ class simgal(object):
     def run_mkobject(self, field):
 
         # N exp and instrument values for SOAR/SOI
-        filter = self.filter[0]
+        filter = self.filter[-1]
         Nexp = {}
         Nexp['g'] = 4
         Nexp['r'] = 3
@@ -186,7 +192,7 @@ class simgal(object):
         # The header info
         self.header = getheader(real_fits)
         exptime = 1.0
-        zeropt = self.header['ZEROPT']
+        zeropt = self.header['MAGZERO']
         # Default background artdata.mkobject.in ADU)
         artdata.mkobject.background = 0.0
         artdata.mkobject.title = "%s_%ssim" % (field, filter)  # Image title
@@ -298,7 +304,7 @@ def m_star(z, filter_out='r_SDSS', h=0.7, cosmo=(0.3, 0.7, 0.7)):
     Mi_star = -21.22 - 5 * math.log10(h)  # + self.evf['i'](z)[0]
     M_star = cosmology.reobs('El_Benitez2003',
                              m=Mi_star,
-                             oldfilter="i_SDSS",
+                             oldfilter="SLOAN-SDSS.i",
                              newfilter=filter_out)
     return M_star + 5.0 * numpy.log10(dlum) + 25
 
@@ -344,34 +350,8 @@ def main():
 
     # The SOAR fields to be used
     fields = [
-        "ACT_J0050-5133",
-        "ACT_J0138-5409",
-        "ACT_J0306-4944",
-        #"ACT_J0316-5520", # black region
-        #"ACT_J0334-5311", # black region
-        #"ACT_J0343-5418", # black region
-        "ACT_J0345-5219",
-        "ACT_J0523-4927",
-        "ACT_J0603-5258",
-        "ACT_J0605-5256",
-        "ACT_J0616-5241",
-        "ACT_J0626-5043",
-        "ACT_J0657-5120",
-        "ACT_J0706-5615",
-        "ACT_J2357-5307"
+        'PSZ1_G031.91+67.94',
     ]
-
-    #fields = ["ACT_J0138-5409",] # 21/25
-    #fields = ["ACT_J0050-5133",] # 23/25
-    #fields = ["ACT_J0306-4944",] # 18/25
-    #fields = ["ACT_J0345-5219",] # 25/25
-    #fields = ["ACT_J0523-4927",] # 22/25
-    #fields = ["ACT_J0603-5258",] # 21/25
-    #fields = ["ACT_J0605-5256",] # 21/25
-    fields = ["ACT_J0616-5241", ]  # 21/25
-    #fields = ["ACT_J0626-5043",]
-    #fields = ["ACT_J0657-5120",]
-    #fields = ["ACT_J2357-5307",]
 
     # Initialize the function
     m1 = 23.5
@@ -389,4 +369,5 @@ def main():
     return
 
 
-main()
+if __name__ == "__main__":
+    main()
