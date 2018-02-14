@@ -4,7 +4,6 @@ from __future__ import print_function
 from __future__ import division
 from builtins import range
 from builtins import object
-from past.utils import old_div
 import os
 import time
 import extras
@@ -15,7 +14,7 @@ import math
 import scipy
 import scipy.interpolate
 from astropy.io import fits as pyfits
-from pyfits import getheader
+#from pyfits import getheader
 from pyraf import iraf
 from iraf import artdata
 import numpy
@@ -349,9 +348,7 @@ def main():
     t0 = time.time()
 
     # The SOAR fields to be used
-    fields = [
-        'PSZ1_G031.91+67.94',
-    ]
+    fields = ['PSZ1_G031.91+67.94', ]
 
     # Initialize the function
     m1 = 23.5
