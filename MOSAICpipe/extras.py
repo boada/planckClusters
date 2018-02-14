@@ -4,7 +4,7 @@ from __future__ import print_function
 from builtins import object
 from past.utils import old_div
 import string
-import pyfits
+from astropy.io import fits as pyfits
 import os
 import sys
 import random
