@@ -9,7 +9,6 @@ from past.utils import old_div
 import bpz_tools
 import useful
 import numpy
-import string
 import glob
 import os
 import sys
@@ -20,8 +19,8 @@ equal = numpy.equal
 log10 = numpy.log10
 ABtoVega = bpz_tools.ABtoVega
 
-cho = 2.99e3  #c/H_0 in Mpc
-ht = 9.7776e9  #hubble time in h^-1 yr
+cho = 2.99e3  # c/H_0 in Mpc
+ht = 9.7776e9  # hubble time in h^-1 yr
 
 #Get the ABflux files in stock
 ab_db = []

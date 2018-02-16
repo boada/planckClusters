@@ -169,28 +169,33 @@ class simgal(object):
     # Run artdata's mkobjects
     def run_mkobject(self, field):
 
-        # N exp and instrument values for SOAR/SOI
-        filter = self.filter[-1]
-        Nexp = {}
-        Nexp['g'] = 4
-        Nexp['r'] = 3
-        Nexp['i'] = 4
-        seeing = old_div(0.5, self.pixscale)
-        gain = 2.0  # e/ADU SOAR
-        rdnoise = 4.4  # e SOAR
-
         # Real and simulated data
+        filter = self.filter[-1]
         real_fits = os.path.join(self.datapath, field, "%s%s.fits" %
                                  (field, filter))
         simu_fits = os.path.join(self.outpath, "Images", "%s%s_sim.fits" %
                                  (field, filter))
 
+        # get header info
+        self.header = pyfits.getheader(real_fits)
+
+        # N exp and instrument values for SOAR/SOI
+        Nexp = {}
+        Nexp['g'] = 4
+        Nexp['r'] = 3
+        Nexp['i'] = 4
+        seeing = 0.5 / self.pixscale
+        #gain = 2.0  # e/ADU SOAR
+        gain = self.header['GAIN']  # e/ADU
+        #rdnoise = 4.4  # e SOAR
+        rdnoise = 5.075  # e MOSAICII
+
         print("# Creating: %s" % simu_fits)
         print("# Based on: %s" % real_fits)
 
         # The header info
-        self.header = getheader(real_fits)
-        exptime = 1.0
+        #exptime = self.header['EXPTIME']
+        exptime = 1
         zeropt = self.header['MAGZERO']
         # Default background artdata.mkobject.in ADU)
         artdata.mkobject.background = 0.0
@@ -217,41 +222,37 @@ class simgal(object):
     # Make the galaxy list for a given size, mag and Luminosity
     def make_gallist(self, m, rh=3.0, Lstar=0.5, sseed=1.0):
 
-        # The file with the list
-        #self.GaList = os.path.join(self.outpath,'gal_ell_m%.2f_rh%.1f.dist' % (m,rh))
         self.GaList = '/tmp/gal_ell_m%.2f_rh%.1f.dist' % (m, rh)
         if os.path.exists(self.GaList):
             print("# Cleaning %s" % self.GaList)
             os.remove(self.GaList)
 
-        # The redshift for that magnitude
-        # z = self.zmag(m, Lstar=Lstar)
-        #if z > 0.8 and rh > 0.6:
-        #    rh = 0.6
-        #    print "changed rh to %s" % rh
-
         # The size for the magnitude
         esize = self.size(m, rh=rh, Lstar=Lstar)
 
-        # Transform into pixels
-        esize = old_div(esize, self.pixscale)
+        print(esize)
 
-        NX = self.NX - 40
-        NY = self.NY - 40
+        #esize=5
+        # Transform into pixels
+        esize = esize / self.pixscale
+
+        #NX = self.NX - 40
+        #NY = self.NY - 40
+        NX = 512
+        NY = 512
 
         # SPATIAL DISTRIBUTION
         artdata.gallist.interactive = "no"  # Interactive mode?
         # Spatial density function (uniform|hubble|file)
         artdata.gallist.spatial = "uniform"
-        artdata.gallist.xmin = 40.  # Minimum x coaordinate value
+        artdata.gallist.xmin = 40 # Minimum x coaordinate value
         artdata.gallist.xmax = NX  # Maximum x coordinate value
-        artdata.gallist.ymin = 40.  # Minimum y coordinate value
+        artdata.gallist.ymin = 40  # Minimum y coordinate value
         artdata.gallist.ymax = NY  # Maximum y coordinate value
         # Seed for sampling the spatial probability function
         artdata.gallist.sseed = sseed
 
         # MAGNITUDE DISTRIBUTION
-        artdata.gallist.minmag = m  # Minimum magnitude
         # Luminosity function artdata.gallist.uniform|powlaw|schecter|file
         artdata.gallist.luminosity = "uniform"
         artdata.gallist.minmag = m  # Minimum magnitude
@@ -291,8 +292,13 @@ class simgal(object):
     # The size[arc] magnitude relation for a give half-light radius rh in kpc
     def size(self, m, rh=3.0, Lstar=0.5):
         mx = m - 2.5 * math.log10(Lstar)
+        print(mx)
         zx = self.zm(mx)
+        print(zx)
+        print(self.cosmo)
+        print(rh)
         size = astrometry.kpc2arc(zx, rh, self.cosmo)
+        print(size)
         return size
 
 
