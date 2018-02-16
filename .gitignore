@@ -9,8 +9,6 @@
 *.bz2
 **.png
 legacy/
-spec1d_IRAF/
-pyraf/
 *.ps
 *.txt
 *.reg
@@ -24,3 +22,8 @@ results/
 !results/*.py
 
 cluster_search/
+# iraf stuff
+uparm
+login.cl
+spec1d_IRAF/
+pyraf/
