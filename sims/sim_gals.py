@@ -194,8 +194,7 @@ class simgal(object):
         print("# Based on: %s" % real_fits)
 
         # The header info
-        #exptime = self.header['EXPTIME']
-        exptime = 1
+        exptime = self.header['EXPTIME']
         zeropt = self.header['MAGZERO']
         # Default background artdata.mkobject.in ADU)
         artdata.mkobject.background = 0.0
@@ -230,12 +229,11 @@ class simgal(object):
         # The size for the magnitude
         esize = self.size(m, rh=rh, Lstar=Lstar)
 
-        print(esize)
-
         #esize=5
         # Transform into pixels
         esize = esize / self.pixscale
 
+        print(esize)
         #NX = self.NX - 40
         #NY = self.NY - 40
         NX = 512
@@ -361,10 +359,11 @@ def main():
     m2 = 25.5
     dm = 0.25
     Lstar = 0.5
-    rh = 0.5  # kpc
+    rh = 3  # kpc
+    filter = 'SLOAN-SDSS.i'
 
     # Initialize the class
-    sim = simgal(fields)
+    sim = simgal(fields, filter=filter)
 
     # Do the mag loop m1, m2
     sim.mag_loop(m1, m2, dm=dm, rh=rh, Lstar=Lstar, N=1)
