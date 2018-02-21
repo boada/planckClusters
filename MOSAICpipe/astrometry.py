@@ -120,8 +120,6 @@ def rd2xy(ra, dec, fitsfile, units='degrees'):
     from pyfits import getheader
     from math import pi
 
-    atan2 = numpy.arctan2
-    sqrt = numpy.sqrt
     cos = numpy.cos
     sin = numpy.sin
 
@@ -137,12 +135,12 @@ def rd2xy(ra, dec, fitsfile, units='degrees'):
 
     try:
         CD1_2 = header["CD1_2"]
-    except:
+    except KeyError:
         CD1_2 = 0.0
 
     try:
         CD2_1 = header["CD2_1"]
-    except:
+    except KeyError:
         CD2_1 = 0.0
 
     # invert the CD Matrix
@@ -188,8 +186,6 @@ def rd2xy_sdss(dec, ra, fitsfile, units='degrees'):
     from pyfits import getheader
     from math import pi
 
-    atan2 = numpy.arctan2
-    sqrt = numpy.sqrt
     cos = numpy.cos
     sin = numpy.sin
 
@@ -205,12 +201,12 @@ def rd2xy_sdss(dec, ra, fitsfile, units='degrees'):
 
     try:
         CD1_2 = header["CD1_2"]
-    except:
+    except KeyError:
         CD1_2 = 0.0
 
     try:
         CD2_1 = header["CD2_1"]
-    except:
+    except KeyError:
         CD2_1 = 0.0
 
     # invert the CD Matrix
@@ -260,7 +256,6 @@ def circle_distance(ra1, dec1, ra2, dec2, units='deg'):
     cos = numpy.cos
     sin = numpy.sin
     acos = numpy.arccos
-    asin = numpy.arcsin
 
     if units == 'deg':
         ra1 = ra1 * pi / 180.
@@ -272,7 +267,8 @@ def circle_distance(ra1, dec1, ra2, dec2, units='deg'):
     x = numpy.where(x > 1.0, 1, x)  # Avoid x>1.0 values
 
     d = acos(x)
-    #d = math.acos(math.sin(dec1)*math.sin(dec2) + math.cos(dec1)*math.cos(dec2) * math.cos(ra2-ra1))
+    # d = math.acos(math.sin(dec1)*math.sin(dec2) +
+    # math.cos(dec1)*math.cos(dec2) * math.cos(ra2-ra1))
 
     if units == 'deg':
         d = d * 180.0 / pi
@@ -331,7 +327,6 @@ def hms2dec(RAString, delimiter=':'):
 def dec2deg(dec, short=None, sep=":"):
 
     import numpy
-    import sys
 
     dec = numpy.asarray(dec)
     # Keep the sign for later
@@ -504,9 +499,11 @@ def format_deg_short(x):
         f2 = "%2d"
 
     if float(x[3]) < 10:
-        f3 = "0%.1f"
+        pass
+        # f3 = "0%.1f"
     else:
-        f3 = "%.1f"
+        pass
+        # f3 = "%.1f"
 
     format = sig + f1 + ":" + f2
     return format % (abs(x[1]), x[2])
@@ -520,7 +517,7 @@ def arc2kpc(z, theta, cosmo):
     # We need to go from rad/Mpc
     # 1 arcsec is (pi/180) * 1/3600. rad x 1000 kpc
     # Da is in rad/Mpc
-    scale = (old_div(pi, 180)) * 1 / 3600. * 1000
+    scale = (pi / 180) * 1 / 3600. * 1000
     Da = get_Da(z, cosmo)
     kpc = Da * theta * scale
     return kpc
@@ -530,7 +527,7 @@ def kpc2arc(z, kpc, cosmo):
 
     from math import pi
     # scale factor from Mpc -> kpc -> rad -> arcs
-    scale = (old_div(180, pi)) * 3600. / 1000.
+    scale = (180 / pi) * 3600. / 1000.
     Da = get_Da(z, cosmo)
     theta = kpc * scale / Da
     return theta
@@ -548,7 +545,6 @@ def get_Da(z, cosmo):
 
     except ImportError:
         import Cosmology
-        import types
         #print "Will use Cosmology"
         c = Cosmology.Cosmology()
         c.Om, c.Ol, c.h = cosmo
@@ -577,9 +573,8 @@ def get_Dl(z, cosmo):
         c = cosmopy.set(cosmo)
         dl = c.dlum(z)
 
-    except:
+    except ImportError:
         import Cosmology
-        import types
         c = Cosmology.Cosmology()
         c.Om, c.Ol, c.h = cosmo
 
@@ -643,7 +638,6 @@ def sky2xy_list(ra, dec, fitsfile):
 # wrapper for wcstool functions
 def xy2sky(x, y, fitsfile, units='degrees'):
     import os
-    import tableio
 
     if units == 'degrees':
         opts = ' -d '
