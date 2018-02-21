@@ -20,7 +20,7 @@ def main(tile, path, filters):
     # Go for each tile, read and print
     header = 1
     print("Doing tile: %s" % tile, file=sys.stderr)
-    read_cats(tile, path, filters, det_filter='i', header=header)
+    read_cats(tile, path, filters_real, det_filter='i', header=header)
     return
 
 def read_cats(tilename, path, filters, det_filter='i', header=None):
@@ -46,7 +46,7 @@ def read_cats(tilename, path, filters, det_filter='i', header=None):
         cat = c.cat[det_filter]
 
         # mask out the stars
-        if cat['CLASS_STAR'][ID] > 0.8:
+        if cat['CLASS_STAR'][ID] > 1:
             goodID = 0
 
             # If OK add them to the list
