@@ -950,7 +950,7 @@ class combcat:
         return
 
     # run sextractor
-    def SEx(self, det_filter='Detec'):
+    def SEx(self, det_filter='Detec', deblend=False):
         ''' Runs SEXTRACTOR on the mosaicked images created by swarp. It should
         use the zero point created by the photometrypipline.
 
@@ -963,8 +963,13 @@ class combcat:
         self.combcat = {}
 
         # The configuration file
-        self.SExinpar = os.path.join(self.pipeline, 'confs',
+
+        if not deblend:
+            self.SExinpar = os.path.join(self.pipeline, 'confs',
                                      'bcs_Catalog.inpar')
+        else:
+            self.SExinpar = os.path.join(self.pipeline, 'confs',
+                                     'bcs_Catalog_deblend.inpar')
 
         # The detection image that we'll use
         if self.DetImage:
@@ -2503,7 +2508,7 @@ def main():
 
     # SExtractor
     if opt.SEx:
-        c.SEx()
+        c.SEx(deblend=True)
 
     # Dust Extinction Correction
     if opt.Dust:
