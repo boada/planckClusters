@@ -1371,10 +1371,7 @@ class combcat:
     def calc_airmass(self, filter, combtype='median'):
         ''' Calculates the mean airmass for a set of observations. '''
 
-        x = []
-        for file in self.files[filter]:
-            #print file,self.airmass[file]
-            x.append(self.airmass[file])
+        x = [self.airmass[file] for file in self.files[filter]]
         x = np.asarray(x)
         if combtype == 'mean':
             return x.mean()
@@ -1387,10 +1384,7 @@ class combcat:
     def calc_exptime(self, filter, combtype='median'):
         ''' Calculates the mean airmass for a set of observations. '''
 
-        x = []
-        for file in self.files[filter]:
-            #print file,self.airmass[file]
-            x.append(self.exptime[file])
+        x = [self.exptime[file] for file in self.files[filter]]
         x = np.asarray(x)
         if combtype == 'mean':
             return x.mean()
