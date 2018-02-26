@@ -15,9 +15,11 @@ import scipy
 import scipy.interpolate
 from astropy.io import fits as pyfits
 #from pyfits import getheader
-from pyraf import iraf
-from iraf import artdata
 import numpy
+from pyraf import iraf
+#iraf.noao(_doprint=0)
+#iraf.artdata(_doprint=0)
+from iraf import artdata
 
 class simgal(object):
     def __init__(self,
@@ -150,6 +152,7 @@ class simgal(object):
         filter = self.filter[-1]
         simu_fits = os.path.join(self.outpath, "Images", "%s%s_sim.fits" %
                                  (field, filter))
+        #simu_fits = 'gals.fits'
         out_cat = os.path.join(self.outpath, "Catalogs", "%s%s_sim.cat" %
                                (field, filter))
         zp_use = self.header['MAGZERO']
@@ -180,15 +183,11 @@ class simgal(object):
         self.header = pyfits.getheader(real_fits)
 
         # N exp and instrument values for SOAR/SOI
-        Nexp = {}
-        Nexp['g'] = 4
-        Nexp['r'] = 3
-        Nexp['i'] = 4
         seeing = 0.5 / self.pixscale
         #gain = 2.0  # e/ADU SOAR
         gain = self.header['GAIN']  # e/ADU
         #rdnoise = 4.4  # e SOAR
-        rdnoise = 5.075  # e MOSAICII
+        rdnoise = 0  # e MOSAICII
 
         print("# Creating: %s" % simu_fits)
         print("# Based on: %s" % real_fits)
@@ -243,10 +242,10 @@ class simgal(object):
         artdata.gallist.interactive = "no"  # Interactive mode?
         # Spatial density function (uniform|hubble|file)
         artdata.gallist.spatial = "uniform"
-        artdata.gallist.xmin = 40 # Minimum x coaordinate value
-        artdata.gallist.xmax = NX  # Maximum x coordinate value
-        artdata.gallist.ymin = 40  # Minimum y coordinate value
-        artdata.gallist.ymax = NY  # Maximum y coordinate value
+        artdata.gallist.xmin = 1000 # Minimum x coaordinate value
+        artdata.gallist.xmax = 5000  # Maximum x coordinate value
+        artdata.gallist.ymin = 1000  # Minimum y coordinate value
+        artdata.gallist.ymax = 5000  # Maximum y coordinate value
         # Seed for sampling the spatial probability function
         artdata.gallist.sseed = sseed
 
@@ -355,8 +354,8 @@ def main():
     fields = ['PSZ1_G031.91+67.94', ]
 
     # Initialize the function
-    m1 = 23.5
-    m2 = 25.5
+    m1 = 18
+    m2 = 19
     dm = 0.25
     Lstar = 0.5
     rh = 3  # kpc
