@@ -700,7 +700,7 @@ class combcat:
             # THis should be commented out when not working specifically with
             # the bad k-band data. I'll make that easy with a if True: statement
 
-            if True:
+            if False:
                 with fits.open(fname, mode='readonly') as orig:
                     if orig[0].header['instrume'] == 'newfirm':
 
