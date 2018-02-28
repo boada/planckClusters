@@ -78,7 +78,7 @@ CHECKIMAGE_NAME  check.fits     # Filename for the check-image
  
 MEMORY_OBJSTACK  3000           # number of objects in stack
 MEMORY_PIXSTACK  300000         # number of pixels in stack
-MEMORY_BUFSIZE   1024           # number of lines in buffer
+MEMORY_BUFSIZE   2048           # number of lines in buffer
  
 #-------------------------- Miscellaneous ---------------------------------
                                                                                   
