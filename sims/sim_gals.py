@@ -17,14 +17,14 @@ from astropy.io import fits as pyfits
 #from pyfits import getheader
 import numpy
 from pyraf import iraf
-#iraf.noao(_doprint=0)
-#iraf.artdata(_doprint=0)
 from iraf import artdata
+iraf.noao(_doprint=0)
+iraf.artdata(_doprint=0)
 
 class simgal(object):
     def __init__(self,
                  fields,
-                 Ngal=25,
+                 Ngal=100,
                  filter='SLOAN-SDSS.r',
                  cosmo=(0.3, 0.7, 0.7),
                  pixscale=0.25):
@@ -179,13 +179,20 @@ class simgal(object):
         simu_fits = os.path.join(self.outpath, "Images", "%s%s_sim.fits" %
                                  (field, filter))
 
+        if os.path.exists(simu_fits):
+            print("# Cleaning %s" % simu_fits)
+            os.remove(simu_fits)
+
+        Nexp = {'g': 3, 'r': 4, 'i': 4, 'z': 4}
+
         # get header info
         self.header = pyfits.getheader(real_fits)
 
         # N exp and instrument values for SOAR/SOI
         seeing = 0.5 / self.pixscale
         #gain = 2.0  # e/ADU SOAR
-        gain = self.header['GAIN']  # e/ADU
+        gain = self.header['GAIN'] * Nexp[filter]  # e/ADU
+        #gain = 5.06
         #rdnoise = 4.4  # e SOAR
         rdnoise = 0  # e MOSAICII
 
@@ -193,8 +200,9 @@ class simgal(object):
         print("# Based on: %s" % real_fits)
 
         # The header info
-        exptime = self.header['EXPTIME']
+        exptime = 1.0
         zeropt = self.header['MAGZERO']
+
         # Default background artdata.mkobject.in ADU)
         artdata.mkobject.background = 0.0
         artdata.mkobject.title = "%s_%ssim" % (field, filter)  # Image title
@@ -205,13 +213,14 @@ class simgal(object):
         artdata.mkobject.exptime = exptime  # Exposure time
         artdata.mkobject.magzero = zeropt  # Magnitude zero point
         artdata.mkobject.gain = gain  # Gain artdata.mkobject.electrons/ADU
-        artdata.mkobject.rdnoise = rdnoise  # Read noise artdata.mkobject.electrons
+        # Read noise artdata.mkobject.electrons
+        artdata.mkobject.rdnoise = rdnoise
         artdata.mkobject.poisson = "no"  # Add Poisson noise?
         artdata.mkobject.seed = 1  # Random number seed
         artdata.mkobject.comments = 'yes'  # Add comments to image?
 
         # Run mkobjects
-        print("# Creating list: %s" % self.GaList)
+        print("# Creating image using list: %s" % self.GaList)
         artdata.mkobjects(input=real_fits,
                           output=simu_fits,
                           objects=self.GaList)
@@ -227,16 +236,11 @@ class simgal(object):
 
         # The size for the magnitude
         esize = self.size(m, rh=rh, Lstar=Lstar)
-
-        #esize=5
+        print(esize)
+        esize=5
         # Transform into pixels
         esize = esize / self.pixscale
-
         print(esize)
-        #NX = self.NX - 40
-        #NY = self.NY - 40
-        NX = 512
-        NY = 512
 
         # SPATIAL DISTRIBUTION
         artdata.gallist.interactive = "no"  # Interactive mode?
@@ -289,13 +293,8 @@ class simgal(object):
     # The size[arc] magnitude relation for a give half-light radius rh in kpc
     def size(self, m, rh=3.0, Lstar=0.5):
         mx = m - 2.5 * math.log10(Lstar)
-        print(mx)
         zx = self.zm(mx)
-        print(zx)
-        print(self.cosmo)
-        print(rh)
         size = astrometry.kpc2arc(zx, rh, self.cosmo)
-        print(size)
         return size
 
 
@@ -334,7 +333,6 @@ def simple_match(GaList, SExCat, dmax=5):
     print(len(idx))
     return
 
-
 # Simple format
 def format_iter(n):
 
@@ -347,17 +345,22 @@ def format_iter(n):
 
 
 def main():
+    #from glob import glob
 
     t0 = time.time()
 
-    # The SOAR fields to be used
+    #data_dir = '/home/boada/Projects/planckClusters/data/proc2/'
+    #files = glob('{}PSZ*/PSZ*i.fits'.format(data_dir), recursive=True)
+    #fields = [f.split('/')[-2] for f in files]
+
+    # The fields to be used
     fields = ['PSZ1_G031.91+67.94', ]
 
     # Initialize the function
-    m1 = 18
-    m2 = 19
-    dm = 0.25
-    Lstar = 0.5
+    m1 = 20
+    m2 = 25
+    dm = 0.5
+    Lstar = 1
     rh = 3  # kpc
     filter = 'SLOAN-SDSS.i'
 
