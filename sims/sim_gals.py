@@ -236,11 +236,8 @@ class simgal(object):
 
         # The size for the magnitude
         esize = self.size(m, rh=rh, Lstar=Lstar)
-        print(esize)
-        esize=5
         # Transform into pixels
         esize = esize / self.pixscale
-        print(esize)
 
         # SPATIAL DISTRIBUTION
         artdata.gallist.interactive = "no"  # Interactive mode?
@@ -354,8 +351,10 @@ def main():
     #fields = [f.split('/')[-2] for f in files]
 
     # The fields to be used
-    fields = ['PSZ1_G031.91+67.94', ]
-
+    #fields = ['PSZ1_G031.91+67.94', ]
+    #fields = ['PSZ2_G125.55+32.72', ]
+    fields = ['PSZ2_G043.44-41.27', ]
+    #fields = ['PSZ2_G029.66-47.63', ]
     # Initialize the function
     m1 = 20
     m2 = 25
@@ -368,7 +367,7 @@ def main():
     sim = simgal(fields, filter=filter)
 
     # Do the mag loop m1, m2
-    sim.mag_loop(m1, m2, dm=dm, rh=rh, Lstar=Lstar, N=1)
+    sim.mag_loop(m1, m2, dm=dm, rh=rh, Lstar=Lstar, N=4)
     print(extras.elapsed_time_str(t0))
     return
 
