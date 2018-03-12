@@ -9,6 +9,7 @@ import extras
 import tableio
 from astropy.io import fits as pyfits
 from astropy.modeling.models import Sersic1D, Sersic2D
+from astropy.modeling.models import Gaussian1D, Gaussian2D
 import numpy
 import multiprocessing
 import traceback
@@ -40,7 +41,7 @@ class AsyncFactory:
     def __init__(self, func, cb_func):
         self.func = func
         self.cb_func = cb_func
-        self.pool = multiprocessing.Pool(maxtasksperchild=1,
+        self.pool = multiprocessing.Pool(maxtasksperchild=10,
                                          processes=multiprocessing.cpu_count())
 
     def call(self, *args, **kwargs):
@@ -85,7 +86,6 @@ class simgal(object):
         for mag in mx:
             print("#\n# Starting loop for m=%.2f" % mag)
             self.iter_loop(field, mag, N=N)
-            break
         return
 
     # Iter loop for a give magnitude
@@ -116,7 +116,6 @@ class simgal(object):
             self.merge_matched(field)
             print("# %s " % extras.elapsed_time_str(t1))
             print("# ------\n")
-            break
         return
 
     # Make the galaxy list for a given size, mag and Luminosity
@@ -133,10 +132,10 @@ class simgal(object):
         artdata.gallist.interactive = "no"  # Interactive mode?
         # Spatial density function (uniform|hubble|file)
         artdata.gallist.spatial = "uniform"
-        artdata.gallist.xmin = 1000  # Minimum x coaordinate value
-        artdata.gallist.xmax = 8000  # Maximum x coordinate value
-        artdata.gallist.ymin = 1000  # Minimum y coordinate value
-        artdata.gallist.ymax = 8000  # Maximum y coordinate value
+        artdata.gallist.xmin = 1050  # Minimum x coaordinate value
+        artdata.gallist.xmax = 1950  # Maximum x coordinate value
+        artdata.gallist.ymin = 1050  # Minimum y coordinate value
+        artdata.gallist.ymax = 1950  # Maximum y coordinate value
         # Seed for sampling the spatial probability function
         artdata.gallist.sseed = sseed
 
@@ -184,6 +183,12 @@ class simgal(object):
             gain = infile[0].header['GAIN']
             magzero = infile[0].header['MAGZERO']
 
+        # only get part of the total image
+        # this will speed up the sextractor run
+        limit = 1000 # make a 2000x2000 final image
+        image = image[image.shape[1] // 2 - limit: image.shape[1] // 2 + limit,
+                    image.shape[0] // 2 - limit: image.shape[0] // 2 + limit]
+
         xsize, ysize = image.shape
 
         # zero flux corresponding to magzero in ADU:
@@ -196,12 +201,15 @@ class simgal(object):
 
         flux = zeroflux * 10.0**(0.4 * (magzero - mag))
         galsize = numpy.sqrt(size**2 + radius**2)
+        #galsize = numpy.ones_like(size) * radius
         # numpy.loadtxt() creates a view, but we need contiguous array
         x = numpy.copy(x)
         y = numpy.copy(y)
 
-        self.make_galaxies_astropy(image, flux, galsize, x, y, ar, pa)
+        image = self.make_galaxies_astropy(image, flux, galsize, x, y, ar, pa)
+        #image = self.make_PS_astropy(image, flux, galsize, x, y, pa)
 
+        # write out the image
         hdu = pyfits.PrimaryHDU(image)
         hdu.header['GAIN'] = (gain, 'the gain')
         hdulist = pyfits.HDUList([hdu])
@@ -209,168 +217,89 @@ class simgal(object):
 
         return None
 
-    def make_galaxies_astropy(image, flux, galsize, x, y, ar, pa, n=4):
+    def make_galaxies_astropy(self, image, flux, galsize, x, y, ar, pa, n=4):
 
         for f, s, xi, yi, pai, ari, in zip(flux, galsize, x, y, pa, ar):
 
-            fluxlim = 0.0001 * flux  # 0.1
-            scale = 1  # arcsec/pixel
-            r_e = s  # effective radius
-            n = n  # sersic index
-            ellip = ari  # ellipticity
-            theta = numpy.deg2rad(pai)  # position angle
-            x_cent = 0  # x centroid
-            y_cent = 0  # x centroid
-            tot_flux = flux  # total flux
-
-            s1 = Sersic1D(amplitude=1, r_eff=r_e, n=n)
-            r = numpy.arange(0, 1000, scale)
-            s1_n = s1(r) / sum(s1(r))
-            extent = numpy.where(s1_n * flux > fluxlim)[0].max()
-
-            if extent % 2 > 0:
-                extent += 1
-
-            ser_model = Sersic2D(r_eff=r_e,
-                                 n=n,
-                                 ellip=ellip,
-                                 theta=theta,
-                                 x_0=x_cent,
-                                 y_0=y_cent)
-
-            x = numpy.arange(-extent / 2., extent / 2., scale) + x_cent / scale
-            y = numpy.arange(-extent / 2., extent / 2., scale) + y_cent / scale
-
-            X, Y = numpy.meshgrid(x, y)
-
-            img = ser_model(X, Y)
-            img /= numpy.sum(img)
-            img *= tot_flux
-
-            image[xi - img.shape[0] // 2:xi + img.shape[0] // 2,
-                  yi - img.shape[1] // 2:yi + img.shape[1] // 2] += img
-
-        return None
-
-    def make_galaxies_astropy(image, flux, galsize, x, y, ar, pa, n=4):
-
-        for f, s, xi, yi, pai, ari, in zip(flux, galsize, x, y, pa, ar):
-
-            fluxlim = 0.0001 * flux  # 0.1
-            scale = 1  # arcsec/pixel
-            r_e = s  # effective radius
-            n = n  # sersic index
-            ellip = ari  # ellipticity
-            theta = numpy.deg2rad(pai)  # position angle
-            x_cent = 0  # x centroid
-            y_cent = 0  # x centroid
-            tot_flux = flux  # total flux
-
-            s1 = Sersic1D(amplitude=1, r_eff=r_e, n=n)
-            r = numpy.arange(0, 1000, scale)
-            s1_n = s1(r) / sum(s1(r))
-            extent = numpy.where(s1_n * flux > fluxlim)[0].max()
-
-            if extent % 2 > 0:
-                extent += 1
-
-            ser_model = Sersic2D(r_eff=r_e,
-                                 n=n,
-                                 ellip=ellip,
-                                 theta=theta,
-                                 x_0=x_cent,
-                                 y_0=y_cent)
-
-            x = numpy.arange(-extent / 2., extent / 2., scale) + x_cent / scale
-            y = numpy.arange(-extent / 2., extent / 2., scale) + y_cent / scale
-
-            X, Y = numpy.meshgrid(x, y)
-
-            img = ser_model(X, Y)
-            img /= numpy.sum(img)
-            img *= tot_flux
-
-            image[xi - img.shape[0] // 2:xi + img.shape[0] // 2,
-                  yi - img.shape[1] // 2:yi + img.shape[1] // 2] += img
-
-        return None
-
-    # numpy implementation:
-    def make_galaxies(image, flux, galsize, x, y, pa, ar, profile='devauc'):
-        """ Adds a fake object to 'image'. The object's flux is 'flux', and its
-        size 'galsize' and positions 'x' and 'y' are given in pixels. """
-
-        if not isinstance(flux, list):
-            flux = [flux]
-            galsize = [galsize]
-            x = [x]
-            y = [y]
-            pa = [pa]
-            ar = [ar]
-
-        for f, s, xi, yi, pai, ari, in zip(flux, galsize, x, y, pa, ar):
-            # Select region to add object to.
-            # Choosing the entire image is too inefficient, so choose the size that
-            # is just large enough that the object's flux is 10% below the
-            # zeropoint.
             fluxlim = 0.0001 * f  # 0.1
-            #fluxlim = 0.01 * f  # 0.1
+            scale = 1  # arcsec/pixel
+            r_e = s  # effective radius
+            ellip = ari  # ellipticity
+            theta = numpy.deg2rad(pai)  # position angle
+            x_cent = 0  # x centroid
+            y_cent = 0  # x centroid
+            tot_flux = f  # total flux
 
-            if profile == 'devauc':
-                radius = s * numpy.log(fluxlim / f)**4 * -7.66925 ** -4
-                radius = s * 3
-            elif profile == 'expdisk':
-                radius = s * numpy.log(fluxlim / f) * -1.6783 ** -1
-            elif profile == 'gaussian':
-                radius = s
-                #radius = s * numpy.log(fluxlim / f) ** 0.5 * -numpy.log(2)**-0.5
-            else:
-                raise ValueError('Profile not understood. Check.')
+            s1 = Sersic1D(amplitude=1, r_eff=r_e, n=n)
+            r = numpy.arange(0, 1000, scale)
+            s1_n = s1(r) / sum(s1(r))
+            extent = numpy.where(s1_n * f > fluxlim)[0].max()
 
-            xmin = int(numpy.floor(xi - radius))
-            xmax = int(numpy.ceil(xi + radius))
-            xmin = max(0, xmin)
-            xmax = min(xmax, image.shape[1])
+            if extent % 2 > 0:
+                extent += 1
 
-            ymin = int(numpy.floor(yi - radius))
-            ymax = int(numpy.ceil(yi + radius))
-            ymin = max(0, ymin)
-            ymax = min(ymax, image.shape[0])
+            ser_model = Sersic2D(r_eff=r_e,
+                                 n=n,
+                                 ellip=ellip,
+                                 theta=theta,
+                                 x_0=x_cent,
+                                 y_0=y_cent)
 
-            ii = numpy.arange(xmin, xmax, 1, dtype=int)
-            for j in range(ymin, ymax):
+            x = numpy.arange(-extent / 1., extent / 1., scale) + x_cent / scale
+            y = numpy.arange(-extent / 1., extent / 1., scale) + y_cent / scale
 
-                # from iraf.mkobjects manual
-                dx = ii - xi
-                dy = j - yi
-                #dX = dx * numpy.cos(pai) + dy * numpy.sin(pai)
-                #dY = (-dx * numpy.sin(pai) + dy * numpy.cos(pai)) / ari
-                #R = numpy.sqrt(dX ** 2 + dY ** 2)
-                R = numpy.sqrt(dx**2 + dy**2)
+            X, Y = numpy.meshgrid(x, y)
 
-                # from the SimGal paper
-                # https://arxiv.org/pdf/1407.7676.pdf
-                if profile == 'devauc':
-                    val = f / (0.010584 * s**2) * numpy.exp(-7.66925 *
-                                                            (R / s)**(1 / 4))
-                elif profile == 'expdisk':
-                    val = f / (2.23057 * s**2) * numpy.exp(-1.6783 * (R / s))
-                elif profile == 'gaussian':
-                    val = f * numpy.exp(-numpy.log(2) * (R / s)**2)
-                image[j, xmin:xmax] += val
+            img = ser_model(X, Y)
+            img /= numpy.sum(img)
+            img *= tot_flux
 
-        return None
+            xi, yi = int(xi), int(yi)
+            # COLUMNS FIRST -- because FITS are silly
+            image[yi - img.shape[1] // 2: yi + img.shape[1] // 2,
+                  xi - img.shape[0] // 2: xi + img.shape[0] // 2] += img
 
-    def make_galaxy(image, flux, galsize, x, y):
-        for i in range(image.shape[0]):
-            for j in range(image.shape[1]):
-                R = numpy.sqrt((x - i)**2 + (y - j)**2)
-                # devauc
-                val = flux / (0.010584 * galsize**2) * numpy.exp(-7.66925 * (
-                    R / galsize)**(1 / 4))
-                # expdisk
-                #val = flux / (2.23057 * galsize**2) * numpy.exp(-1.6783 * (R / galsize))
-                image[j, i] += val
+        return image
+
+    def make_PS_astropy(self, image, flux, galsize, x, y, pa):
+
+        for f, s, xi, yi, pai, in zip(flux, galsize, x, y, pa):
+
+            fluxlim = 0.0001 * f  # 0.1
+            scale = 1  # arcsec/pixel
+            theta = numpy.deg2rad(pai)  # position angle
+            tot_flux = f  # total flux
+            x_cent = 0
+            y_cent = 0
+
+            g1 = Gaussian1D(amplitude=1, stddev=s)
+            r = numpy.arange(0, 100, scale)
+            g1_n = g1(r) / sum(g1(r))
+            extent = numpy.where(g1_n * f > fluxlim)[0].max()
+
+            if extent % 2 > 0:
+                extent += 1
+
+            gaus_model = Gaussian2D(amplitude=1,
+                                    x_stddev=s,
+                                    y_stddev=s,
+                                    theta=theta)
+
+            x = numpy.arange(-extent / 1, extent / 1, scale) + x_cent / scale
+            y = numpy.arange(-extent / 1, extent / 1, scale) + y_cent / scale
+
+            X, Y = numpy.meshgrid(x, y)
+
+            img = gaus_model(X, Y)
+            img /= numpy.sum(img)
+            img *= tot_flux
+
+            xi, yi = int(xi), int(yi)
+            # COLUMNS FIRST -- because FITS are silly
+            image[yi - img.shape[1] // 2: yi + img.shape[1] // 2,
+                  xi - img.shape[0] // 2: xi + img.shape[0] // 2] += img
+
+        return image
 
     # Merge the matched catalogs
     @trace_unhandled_exceptions
@@ -474,34 +403,36 @@ def main():
 
     # Initialize the function
     m1 = 20
-    m2 = 25
-    dm = 0.5
+    m2 = 26
+    dm = 0.2
     Ngal = 100
-    N = 1
-    filt = 'i'
+    N = 4
+    filters = ['g', 'r', 'i', 'z', 'K']
 
-    # The fields to be used
-    data_dir = '/home/boada/Projects/planckClusters/data/proc2/'
-    files = glob('{}PSZ*/PSZ*{}.fits'.format(data_dir, filt), recursive=True)
-    fields = [f.split('/')[-2] for f in files][:34]
+    for filt in filters:
 
-    fields = ['PSZ1_G031.91+67.94', ]
-    #fields = ['PSZ2_G125.55+32.72', ]
-    #fields = ['PSZ2_G043.44-41.27', 'PSZ2_G029.66-47.63', ]
-    #fields = ['PSZ2_G189.79-37.25']
-    #fields = ['PSZ1_G183.26+12.25']
+        # The fields to be used
+        data_dir = '/home/boada/Projects/planckClusters/data/proc2/'
+        files = glob('{}PSZ*/PSZ*{}.fits'.format(data_dir, filt), recursive=True)
+        fields = [f.split('/')[-2] for f in files]
 
-    # Initialize the class
-    sim = simgal(filter=filt, m1=m1, m2=m2, dm=dm, Ngal=Ngal, N=N)
+        #fields = ['PSZ1_G031.91+67.94', ]
+        #fields = ['PSZ2_G125.55+32.72', ]
+        #fields = ['PSZ2_G043.44-41.27', 'PSZ2_G029.66-47.63', ]
+        #fields = ['PSZ2_G189.79-37.25']
+        #fields = ['PSZ1_G183.26+12.25']
 
-    # start the async factory
-    async_worker = AsyncFactory(sim.mag_loop, cb_func)
+        # Initialize the class
+        sim = simgal(filter=filt, m1=m1, m2=m2, dm=dm, Ngal=Ngal, N=N)
 
-    for field in fields:
-        # Do the mag loop m1, m2
-        async_worker.call(field, m1, m2, dm=dm, N=N)
-        #sim.mag_loop(field, m1, m2, dm=dm, N=4)
-    async_worker.wait()
+        # start the async factory
+        async_worker = AsyncFactory(sim.mag_loop, cb_func)
+
+        for field in fields:
+            # Do the mag loop m1, m2
+            async_worker.call(field, m1, m2, dm=dm, N=N)
+            #sim.mag_loop(field, m1, m2, dm=dm, N=4)
+        async_worker.wait()
 
     print(extras.elapsed_time_str(t0))
     return
