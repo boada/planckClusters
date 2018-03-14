@@ -27,3 +27,9 @@ uparm
 login.cl
 spec1d_IRAF/
 pyraf/
+
+sims/plots_gal/
+
+sims/plots_PS/
+
+sims/plots/
