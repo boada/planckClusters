@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
+from scipy import interpolate
 from astropy.io import ascii
 from astropy.table import vstack
 import numpy
 from glob import glob
 import os
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-import matplotlib
-matplotlib.use('Agg')
+#import matplotlib
+#matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 # input values
@@ -72,6 +73,10 @@ for f in fields:
         # plot the crap
         axPlot.plot(mag, frac, color=c[ii], marker='o', ms=5, label=filter)
         axHistx.scatter(mag, d_mag, color=c[ii], marker='o', s=5, label=filter)
+
+        # plot the 80% completeness lines
+        func = interpolate.interp1d(frac, mag)
+        axPlot.axvline(func(0.8), lw=1, color=c[ii], zorder=0)
 
     xmin = m1
     xmax = m2
