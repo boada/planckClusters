@@ -17,9 +17,9 @@ def mag_z(axes):
     mstar_sub = mstar - 2.5 * numpy.log10(0.4)
     BCG = mstar - 2.5 * numpy.log10(LBCG)
 
-    axes.plot(z, mstar, 'k-', linewidth=3, label='$L^*$ galaxy')
-    axes.plot(z, mstar_sub, 'k--', linewidth=1, label='$0.4L^*$ galaxy')
-    axes.plot(z, BCG, 'k-', linewidth=1, label='$%dL^*$ (BCG)' % LBCG)
+    axes.plot(z, mstar, 'k-', linewidth=3, label='$L_\star$ galaxy')
+    axes.plot(z, mstar_sub, 'k--', linewidth=1, label='$0.4L_\star$ galaxy')
+    axes.plot(z, BCG, 'k-', linewidth=1, label='$%dL_\star$ (BCG)' % LBCG)
     axes.set_xlabel('Redshift')
     axes.set_ylabel('i magnitude')
 
@@ -44,6 +44,7 @@ def mag_lim_hist(axes):
     mag = numpy.arange(m1, m2, dm)
 
     completeness = []
+    completeness_low = []
     for f in fields:
         frac = numpy.zeros_like(mag)
         Ngal = Ngal_o * Niter
@@ -61,11 +62,12 @@ def mag_lim_hist(axes):
         try:
             completeness.append(func(0.8))
         except ValueError:
-            continue
+            completeness_low.append(mag[numpy.argmax(frac)])
 
     axes.hist(completeness, bins=mag)
+    axes.hist(completeness_low, bins=mag)
     axes.set_ylabel('$N_{fields}$')
-    axes.set_xlabel('80% Limit')
+    axes.set_xlabel("$i'$ 80% Limit")
 
 # observed mi_star as a function of redshift
 def mi_star_evol(z, h=0.7, cosmo=(0.3, 0.7, 0.7)):
