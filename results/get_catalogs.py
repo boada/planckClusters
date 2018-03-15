@@ -21,4 +21,4 @@ def loadCatalogs(user, cluster):
 
 
 if __name__ == "__main__":
-    pass
+    print("Don't call this script. Import it into other scripts!")
