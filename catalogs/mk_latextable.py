@@ -2,13 +2,14 @@ from numpy import genfromtxt
 import calendar
 
 # read the catalog
-d = genfromtxt('./PSZ2_unconfirmed_catalog - proc2.csv', delimiter=',',
+d = genfromtxt('./PSZ2_unconfirmed_catalog - current.csv', delimiter=',',
                names=True, dtype=None)
 # make a new catalog with selected columns
 d2 = d[['Name', 'RA_SEX', 'DEC_SEX', 'SNR_PSZ1', 'SNR_PSZ2', 'MOSAIC_Imaging',
         'NEWFIRM_Imaging']]
 # mask out the data we want
-mask = (d2['NEWFIRM_Imaging'] != b'') | (d2['MOSAIC_Imaging'] != b'')
+#mask = (d2['NEWFIRM_Imaging'] != b'') | (d2['MOSAIC_Imaging'] != b'')
+mask = d2['MOSAIC_Imaging'] != b''
 
 mi = [date.decode() for date in d2['MOSAIC_Imaging'][mask]]
 ni = [date.decode() for date in d2['NEWFIRM_Imaging'][mask]]
