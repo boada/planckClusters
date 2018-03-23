@@ -19,7 +19,7 @@ Really this should only have to be run one time and then it will fix everything.
 files = sorted(glob('./vo_proc/201*/*/*.fz', recursive=True))
 
 data = genfromtxt('/home/boada/Projects/planckClusters/'
-                'catalogs/PSZ2_unconfirmed_catalog - PSZ2 catalog.csv',
+                'catalogs/PSZ2_unconfirmed_catalog - current.csv',
                   delimiter=',',
                   names=True, dtype=None)
 for i, f in enumerate(files):
@@ -78,8 +78,10 @@ for i, f in enumerate(files):
             obj = 'Hilt1089'
         elif obj == 'BD+25 1981':
             obj = 'BD+25o1981'
-        elif obj == 'PSZ1_G153.56+36.23':
-            obj = 'PSZ1_G153.56+36.32'
+        elif obj == 'PSZ1_G153.56+36.32':
+            obj = 'PSZ1_G153.56+36.23'
+        elif obj == 'PSZ2_G093.71-30.91':
+            obj = 'PSZ2_G093.71-30.90'
         elif obj == 'PSZ2_203.32+08.91':
             obj = 'PSZ2_G203.32+08.91'
         elif obj == 'OBJECT OBSERVATION(s)':
