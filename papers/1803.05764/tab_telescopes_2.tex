@@ -1,0 +1,47 @@
+\begin{table*}[h!]
+\begingroup
+\newdimen\tblskip \tblskip=5pt
+\caption{Telescopes and instruments at ORM used in this optical follow-up 
+validation programme. Columns 3 to 5 show field of view, the pixel scale and the resolution 
+used in the imaging and spectroscopic observing mode. The last two columns list the total number 
+of clusters observed performing imaging and spectroscopy.}
+\label{tab:telescopes}
+\nointerlineskip 
+\vskip -2mm 
+\footnotesize
+%\setbox\tablebox=\vbox{
+\newdimen\digitwidth
+\setbox0=\hbox{\rm 0}
+\digitwidth=\wd0
+\catcode`*=\active
+\def*{\kern\digitwidth}
+%
+\newdimen\signwidth
+\setbox0=\hbox{+}
+\signwidth=\wd0
+\catcode`!=\active
+\def!{\kern\signwidth}
+%
+% \halign{\hbox to 1.3in{#\leaderfil}\tabskip=2em&
+\halign{\hbox to 1.3in{#}\tabskip=2em&
+        \hfil#\hfil& 
+        \hfil#\hfil&
+        \hfil#\hfil&
+        \hfil#\hfil&
+        \hfil#\hfil&
+        \hfil#\hfil&
+        \hfil#\hfil\tabskip=0pt\cr
+% \noalign{\doubleline}
+\omit\hfil Telescope & Instrument & FoV & Pixel Scale
+           [$\arcs$]& Resolution & N$_{\textrm{ima}}$ & N$_{\textrm{spec}}$ \cr
+\noalign{\vskip 3pt\hrule\vskip 5pt}
+%%%%%%%%%%%%%%%
+2.5m  INT&      WFC  & $34\arcm \times 34\arcm$    & 0.33* &   --    & 42 & -- \cr
+3.6m  TNG&  DOLORES  & $8\parcm6 \times 8\parcm6$  & 0.252 & $R=600$ & *1 & 20 \cr
+4.2m  WHT&     ACAM  & $8\arcm \times 8\arcm$      & 0.253 & $R=400$ & 71 & *2 \cr
+10.4m GTC&   OSIRIS  & $7\parcm8 \times 7\parcm 8$ & 0.254 & $R=500$ & -- & 26 \cr
+\noalign{\vskip 5pt\hrule\vskip 3pt}}
+%}
+% \endPlancktable
+\endgroup
+\end{table*}
