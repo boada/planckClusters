@@ -56,4 +56,5 @@ for i, j in df['R'].iteritems():
     df.loc[i, 'R'] = parts[0]
     df.loc[i, 'R_err'] = parts[-1]
 
-
+if True:
+    df.to_csv('Barrena_tbl3.csv', index=False)
