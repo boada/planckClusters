@@ -108,12 +108,12 @@ for i, f in enumerate(files):
 
         # now we need to change all of the PSZ1 names to PSZ2 names. Going to
         # use the catalog we loaded at the top of this block
-        elif 'PSZ1' in obj:
-            try:
-                indx = where(data['PSZ1_Name'] == obj.encode())[0][0]
-                obj = data['Name'][indx].decode() # this is the PSZ2 name
-            except IndexError:
-                pass
+#        elif 'PSZ1' in obj:
+#            try:
+#                indx = where(data['PSZ1_Name'] == obj.encode())[0][0]
+#                obj = data['Name'][indx].decode() # this is the PSZ2 name
+#            except IndexError:
+#                pass
 
         if obj_old != obj:
             print('updated: {} --> {}'.format(obj_old, obj))

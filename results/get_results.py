@@ -2,7 +2,7 @@ import pandas as pd
 from astropy.io import ascii
 from numpy import nan
 
-def loadClusters():
+def loadClusters(confirmed=False):
 
     users = ['boada', 'felipe', 'doze']
 
@@ -36,6 +36,22 @@ def loadClusters():
     # merge the first two together
     df = pd.merge(tables[0], tables[1], how='outer', on=['Cluster'])
     df = pd.merge(df, tables[2], how='outer', on=['Cluster'])
+
+    if confirmed:
+        high_conf = ['PSZ2_G145.25+50.84',
+             'PSZ2_G120.76+44.14',
+             'PSZ2_G305.76+44.79',
+             'PSZ2_G029.66-47.63',
+             'PSZ2_G173.76+22.92',
+             'PSZ1_G224.82+13.62',
+             'PSZ2_G048.47+34.86',
+             'PSZ2_G106.11+24.11',
+             'PSZ1_G084.62-15.86',
+             'PSZ2_G125.55+32.72',
+             'PSZ2_G043.44-41.27',
+             'PSZ2_G096.43-20.89']
+
+        df = df.loc[results.Cluster.isin(high_conf)]
 
     return df
 

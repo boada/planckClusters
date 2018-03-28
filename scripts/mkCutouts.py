@@ -1,5 +1,6 @@
 from astropy.io import fits
 from astLib import astImages
+from astLib import astCoords
 from astLib.astWCS import WCS
 from numpy import genfromtxt
 import os
@@ -12,12 +13,12 @@ def make_RGB(name, conf='stiff-common.conf'):
                          'MOSAICpipe', 'confs', conf)
 
     # input files
-    red = '{}/{}/{}Red_cutout.fits'.format(data_dir, name, name)
-    green = '{}/{}/{}Green_cutout.fits'.format(data_dir, name, name)
-    blue = '{}/{}/{}Blue_cutout.fits'.format(data_dir, name, name)
+    red = '{}/{}/{}Red_cutout_paper.fits'.format(data_dir, name, name)
+    green = '{}/{}/{}Green_cutout_paper.fits'.format(data_dir, name, name)
+    blue = '{}/{}/{}Blue_cutout_paper.fits'.format(data_dir, name, name)
 
     # output file
-    output = '{}/{}/{}_cutout.tiff'.format(data_dir, name, name)
+    output = '{}/{}/{}_cutout_paper.tiff'.format(data_dir, name, name)
 
     # options
     opts = ['-MIN_LEVEL', '0.01',
@@ -43,6 +44,11 @@ def make_RGB(name, conf='stiff-common.conf'):
 
 def cutouts(name, ra, dec):
 
+    if isinstance(ra, (str, bytes)):
+        ra = astCoords.hms2decimal(ra.decode(), ':')
+    if isinstance(dec, (str, bytes)):
+        dec = astCoords.dms2decimal(dec.decode(), ':')
+
     if os.path.isfile('{}/{}/{}Red.fits'.format(data_dir, name, name)):
         filters = ['Red', 'Green', 'Blue']
     else:
@@ -65,7 +71,7 @@ def cutouts(name, ra, dec):
         ra2, dec2 = wcs.wcs2pix(ra, dec)
         d = astImages.clipImageSectionPix(img_data, ra2, dec2,
                                                     1920)
-        astImages.saveFITS('{}/{}/{}{}_cutout.fits'.format(data_dir, name,
+        astImages.saveFITS('{}/{}/{}{}_cutout_paper.fits'.format(data_dir, name,
                                                            name,
                                                            color),
                            #img_clipped['data'],
@@ -78,14 +84,16 @@ def cutouts(name, ra, dec):
 
 if __name__ == "__main__":
     # get catalog data
-    data = genfromtxt('../catalogs/PSZ2_unconfirmed_catalog - proc2.csv',
+    data = genfromtxt('../catalogs/PSZ2_unconfirmed_catalog - matches.csv',
             delimiter=',', names=True, dtype=None)
 
-    for i, (ra, dec, name) in enumerate(zip(data['RA'], data['DEC'],
+    for i, (ra, dec, name) in enumerate(zip(data['RA_x'], data['DEC_x'],
                                             data['Name'])):
-        print(name, end='...')
+        print(name, ra, dec, end='...')
 
         if os.path.isdir('{}/{}'.format(data_dir, name.decode())):
+            if ra == b'':
+                continue
             cutouts(name.decode(), ra, dec)
             make_RGB(name.decode())
         else:

@@ -1,6 +1,7 @@
 from astropy.io import ascii
-from astropy.table import vstack
+from astropy.table import Table, vstack
 from numpy import sort
+from get_results import loadClusters
 
 def main():
     ''' This creates a simple latex table with the results using the columns
@@ -11,34 +12,17 @@ def main():
 
     '''
 
-    high_conf = ['PSZ2_G145.25+50.84',
-                'PSZ2_G120.76+44.14',
-                'PSZ2_G305.76+44.79',
-                'PSZ2_G029.66-47.63',
-                'PSZ2_G173.76+22.92',
-                'PSZ1_G224.82+13.62',
-                'PSZ2_G048.47+34.86',
-                'PSZ2_G106.11+24.11',
-                'PSZ1_G084.62-15.86',
-                'PSZ2_G125.55+32.72',
-                'PSZ2_G043.44-41.27',
-                'PSZ2_G096.43-20.89']
+    # the confirmed = True gets the 12 confirmed clusters
+    results = loadClusters(confirmed=True)
 
-    results_dir = '/home/boada/Projects/planckClusters/results/boada'
+    # load the master spreadsheet
+    t_ss = Table.read('../catalogs/PSZ2_unconfirmed_catalog - current.csv')
+    df_ss = t_ss.to_pandas()
 
-    hc = sort(high_conf)
+    observed = df_ss.loc[~df_ss['MOSAIC Imaging'].isnull()]
 
-    results = [ascii.read('{}/{}/{}/{}.info'.format(results_dir, c, c, c)) for c in
-                        hc]
-
-    table = vstack(results)
-    # get the columns we want
-    t = table[['RA', 'DEC', 'zBCG', 'z_cl', 'Ngal']]
-    # add the cluster names
-    t['Cluster'] = hc
-
-    # reorder things
-    t = t[['Cluster', 'RA', 'DEC', 'zBCG', 'z_cl', 'Ngal']]
+    confirmed = observed.merge(results, left_on='Name', right_on='Cluster',
+                               how='left')
 
 
 if __name__ == "__main__":
