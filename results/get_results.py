@@ -51,7 +51,7 @@ def loadClusters(confirmed=False):
              'PSZ2_G043.44-41.27',
              'PSZ2_G096.43-20.89']
 
-        df = df.loc[results.Cluster.isin(high_conf)]
+        df = df.loc[df.Cluster.isin(high_conf)]
 
     return df
 
