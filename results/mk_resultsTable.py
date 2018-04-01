@@ -1,7 +1,7 @@
-from astropy.io import ascii
-from astropy.table import Table, vstack
-from numpy import sort
-from get_results import loadClusters
+from astropy.table import Table
+from get_results import loadClusters, loadMembers
+from astLib import astCoords
+from numpy import nan
 
 def main():
     ''' This creates a simple latex table with the results using the columns
@@ -23,6 +23,46 @@ def main():
 
     confirmed = observed.merge(results, left_on='Name', right_on='Cluster',
                                how='left')
+
+    # now we add all of the extra info
+    # Berrena paper
+    Bpaper = Table.read('../papers/1803.05764/Barrena_tbl3.csv')
+    df_paper = Bpaper.to_pandas()
+
+    complete = confirmed.merge(df_paper, left_on='Name', right_on='Planck Name',
+                               how='left')
+
+    # combine some columns to get extra info
+    complete['z_extern'] = complete['PSZ1 Redshift'].fillna(complete['z_cl'])
+    complete['S/N'] = complete['SNR_PSZ2'].fillna(complete['SNR_PSZ1'])
+
+    # get the columns we want
+    cols = ['Name', 'S/N', 'RA_SEX', 'DEC_SEX', 'BCG_boada', 'zBCG_boada',
+            'z_bcg', 'Cmag_i', 'z_extern']
+
+    c = complete[cols]
+
+    c.loc[:, ('RA_SEX', 'DEC_SEX')] = nan
+
+    # let's the the RA/DEC of our BCGs
+    m = c.loc[~c['BCG_boada'].isnull()]
+
+    for i, row in m.iterrows():
+        mems = loadMembers('boada', row['Name'])
+        ra = mems.loc[mems['ID'] == row['BCG_boada'], 'RA'].values[0]
+        dec = mems.loc[mems['ID'] == row['BCG_boada'], 'DEC'].values[0]
+        # convert to sexigesimal
+        ra_sex = astCoords.decimal2hms(ra, ':')
+        dec_sex = astCoords.decimal2dms(dec, ':')
+
+        # write it back into the main frame
+        c.loc[i, 'RA_SEX'] = ra_sex
+        c.loc[i, 'DEC_SEX'] = dec_sex
+
+
+
+
+    c.to_latex('table2.tex', index=False, float_format='%0.2f')
 
 
 if __name__ == "__main__":
