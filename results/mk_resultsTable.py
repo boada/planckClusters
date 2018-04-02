@@ -24,6 +24,10 @@ def main():
     confirmed = observed.merge(results, left_on='Name', right_on='Cluster',
                                how='left')
 
+    # load the PSZ1 catalog
+    t_1 = Table.read('../catalogs/PSZ1v2.1.fits')
+    df1 = t_1.to_pandas()
+
     # now we add all of the extra info
     # Berrena paper
     Bpaper = Table.read('../papers/1803.05764/Barrena_tbl3.csv')
@@ -32,17 +36,24 @@ def main():
     complete = confirmed.merge(df_paper, left_on='Name', right_on='Planck Name',
                                how='left')
 
+    # tack on the PSZ1 catalog
+    complete = complete.merge(df1, left_on='PSZ1 Indx', right_on='INDEX',
+                              how='left')
+
     # combine some columns to get extra info
     complete['z_extern'] = complete['PSZ1 Redshift'].fillna(complete['z_cl'])
     complete['S/N'] = complete['SNR_PSZ2'].fillna(complete['SNR_PSZ1'])
 
     # get the columns we want
     cols = ['Name', 'S/N', 'RA_SEX', 'DEC_SEX', 'BCG_boada', 'zBCG_boada',
-            'z_bcg', 'Cmag_i', 'z_extern']
+            'z_bcg', 'Cmag_i', 'z_extern', 'REDSHIFT_SOURCE']
 
-    c = complete[cols]
+    c = complete.loc[:, cols]
 
     c.loc[:, ('RA_SEX', 'DEC_SEX')] = nan
+
+    c.loc[(~c['z_extern'].isnull()) & (c['REDSHIFT_SOURCE'] == -1.0),
+          'REDSHIFT_SOURCE'] = 99
 
     # let's the the RA/DEC of our BCGs
     m = c.loc[~c['BCG_boada'].isnull()]
