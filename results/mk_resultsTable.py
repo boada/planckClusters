@@ -70,9 +70,6 @@ def main():
         c.loc[i, 'RA_SEX'] = ra_sex
         c.loc[i, 'DEC_SEX'] = dec_sex
 
-
-
-
     c.to_latex('table2.tex', index=False, float_format='%0.2f')
 
 
