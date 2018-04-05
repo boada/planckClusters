@@ -19,7 +19,7 @@ results = loadClusters(confirmed=True)
 t_ss = Table.read('../catalogs/PSZ2_unconfirmed_catalog - current.csv')
 df_ss = t_ss.to_pandas()
 
-observed = df_ss.loc[~df_ss['MOSAIC Imaging'].isnull()]
+observed = df_ss.loc[df_ss['MOSAIC Imaging'].notnull()]
 
 confirmed = observed.merge(results, left_on='Name', right_on='Cluster',
                             how='left')
@@ -33,7 +33,10 @@ df1 = t_1.to_pandas()
 Bpaper = Table.read('../papers/1803.05764/Barrena_tbl3.csv')
 df_paper = Bpaper.to_pandas()
 
-complete = confirmed.merge(df_paper, left_on='Name', right_on='Planck Name',
+# do this to not match on values of NAN
+df_paper = df_paper.loc[df_paper['Planck Name'].notnull()]
+
+complete = confirmed.merge(df_paper, left_on='PSZ1 Name', right_on='Planck Name',
                             how='left')
 
 # tack on the PSZ1 catalog
@@ -52,7 +55,7 @@ df_pir['ID'] += 1
 complete = complete.merge(df_pir, left_on='PSZ1 Indx', right_on='ID',
                         suffixes=('_cat', '_pir'), how='left')
 
-m = complete.loc[~complete['z_extern'].isnull()]
+m = complete.loc[complete['z_extern'].notnull()]
 
 # PSZ info
 table = pd.DataFrame(index=m.index)
