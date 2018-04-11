@@ -2584,6 +2584,12 @@ def cmdline():
                       default=False,
                       help='Use the NEWFIRM imaging for BPZ and RGB.')
 
+    parser.add_option("--deblend",
+                      action='store_true',
+                      dest='deblend',
+                      default=False,
+                      help='Deblend mode in SExtractor.')
+
     (options, args) = parser.parse_args()
 
     if len(args) < 3:
@@ -2676,7 +2682,7 @@ def main():
 
     # SExtractor
     if opt.SEx:
-        c.SEx(deblend=True)
+        c.SEx(deblend=opt.deblend)
 
     # Dust Extinction Correction
     if opt.Dust:
