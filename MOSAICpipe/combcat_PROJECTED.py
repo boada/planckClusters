@@ -265,6 +265,8 @@ class combcat:
             os.system(cmd)
         else:
             print('# Mosaic already centered', file=sys.stderr)
+            if not os.path.isfile(opts['IMAGEOUT_NAME']):
+                opts['IMAGEOUT_NAME'] = '{}{}.fits'.format(self.tilename, filter)
 
         # Read in the header
         print(opts['IMAGEOUT_NAME'])
