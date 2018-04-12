@@ -276,10 +276,10 @@ class combcat:
         x_center = header["CRVAL1"]
         y_center = header["CRVAL2"]
 
-        x_center = dec2sex(x_center / 15)
-        y_center = dec2sex(y_center)
+        x_center = dec2sex(float(x_center) / 15)
+        y_center = dec2sex(float(y_center))
 
-        pixscale = abs(header['CD1_1'] * 3600)
+        pixscale = abs(float(header['CD1_1']) * 3600)
 
         print("\tImage Size:  %s x %s" % (nx, ny))
         print("\tCentered on: %s   %s" % (x_center, y_center))
