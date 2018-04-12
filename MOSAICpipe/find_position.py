@@ -670,23 +670,32 @@ class finder:
     ######################################
 
     def draw_zone2(self):
-        ''' This draws a 2' circle where we think the clusters will be. This
+        ''' This draws a 5' and 2' circle where we think the clusters will be. This
         should be the region we select clusters from.
 
         '''
 
         (nx, ny, nz) = self.jpg_region.shape
         center = nx / 2, ny / 2
-        r_pixels = 2 * 60.0 / self.pixscale
+        r1_pixels = 5 * 60.0 / self.pixscale
+        r2_pixels = 2 * 60.0 / self.pixscale
         ax = pylab.gca()
-        Cc = PCircle(center,
-                    r_pixels,
+        Cc1 = PCircle(center,
+                    r1_pixels,
                     resolution=80,
                     fill=0,
                     edgecolor="white",
                     linestyle='dashed',
                     linewidth=0.5)
-        ax.add_patch(Cc)
+        Cc2 = PCircle(center,
+                    r2_pixels,
+                    resolution=80,
+                    fill=0,
+                    edgecolor="white",
+                    linestyle='dashed',
+                    linewidth=0.5)
+        ax.add_patch(Cc1)
+        ax.add_patch(Cc2)
         return
 
     def draw_zone(self, n=8):
@@ -1094,7 +1103,7 @@ class finder:
 
         ax = pylab.gca()
         # Delete all patches, reset ellipses before redraw
-        del ax.patches[1:]
+        del ax.patches[2:]
         self.ellipses = {}
         #zo = self.z_ph[iclose]
         pylab.title("%s" % (self.ctile))
@@ -1169,7 +1178,7 @@ class finder:
 
         ax = pylab.gca()
         # Delete all patches, reset ellipses before redraw
-        del ax.patches[1:]
+        del ax.patches[2:]
         self.ellipses = {}
         # construct the ellipses for each members
         for i in self.idx_BCG[0]:
@@ -1299,7 +1308,7 @@ class finder:
         ax = pylab.gca()
 
         # Delete all patches, before redraw
-        del ax.patches[1:]
+        del ax.patches[2:]
 
         # construct the ellipse for the current display
         a = self.a_image[i]
