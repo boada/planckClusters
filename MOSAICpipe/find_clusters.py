@@ -13,7 +13,7 @@ def mkCommands(dirs, radec=False):
         cmd = 'python3 find_position.py'
 
         # build the rest
-        cmd += ' {} --path {} --dx 1000 --dy 1000'.format(cluster, d)
+        cmd += ' {} --path {} '.format(cluster, d)
         cmd += ' --pixelscale 0.25'
 
         if radec:
@@ -21,7 +21,7 @@ def mkCommands(dirs, radec=False):
             if cluster == 'PSZ2_G128.15-24.17':
                 cluster = 'PSZ2_G128.15-24.71'
             cat_dir = '/home/boada/Projects/planckClusters/catalogs'
-            data = genfromtxt(cat_dir + '/PSZ2_unconfirmed_catalog - proc2.csv',
+            data = genfromtxt(cat_dir + '/PSZ2_unconfirmed_catalog - current.csv',
                               delimiter=',', names=True, dtype=None)
 
             # find the ra and dec position
@@ -116,6 +116,7 @@ def cmdline():
     parser.add_option('--rebuild', dest='rebuild', default=False,
                       help='Rebuild Tracker')
     parser.add_option('--radec', dest='radec', default=False,
+                      action='store_true',
                       help='Use RA/DEC for centering')
 
     options, args = parser.parse_args()
@@ -136,5 +137,4 @@ if __name__ == "__main__":
     if opt.rebuild:
         rebuildTracker(cmds)
     else:
-        pass
-        #doWork()
+        doWork()

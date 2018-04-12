@@ -47,7 +47,7 @@ def worker(pos, d):
     print(os.getcwd())
     # build the command
     cmd = 'python3 combcat_PROJECTED.py {} ./ ./'.format(assocFile)
-    cmd += ' --dust --newfirm --bpz'
+    cmd += ' --swarpextras --astro --photo --sex --bpz --RGB'
 
     print(cmd)
     os.system(cmd)
