@@ -1803,7 +1803,11 @@ def main():
     else:
         pixelscale = float(opt.pixelscale)
 
-    if not os.path.isfile('{}/{}.tiff'.format(opt.path, ctile)):
+    if opt.dx < 0 and opt.dy < 0:
+        opt.dx = 5.1 * 60 / pixelscale
+        opt.dy = 5.1 * 60 / pixelscale
+
+    if not os.path.isfile('{}/{}irg.tiff'.format(opt.path, ctile)):
         print('RGB image does not exist -- probably only kband data')
         sys.exit()
 
