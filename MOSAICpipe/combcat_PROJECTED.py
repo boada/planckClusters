@@ -952,12 +952,11 @@ class combcat:
 
                 # write the zeropt info to the header
                 _tmp = np.genfromtxt(
-                    'photometry_control_star_{}.dat'.format(filter),
-                    names=True, dtype=None)
+                    'photometry_control_star_{}.dat'.format(filter), dtype=None)
 
-                f[0].header['MAGZERO'] = float(_tmp['ZP'])
-                f[0].header['MAGZSIG'] = float(_tmp['ZP_sig'])
-                f[0].header['MAGZCAT'] = _tmp['6'].flatten()[0].decode()
+                f[0].header['MAGZERO'] = float(_tmp['f11'])
+                f[0].header['MAGZSIG'] = float(_tmp['f12'])
+                f[0].header['MAGZCAT'] = _tmp['f15'].flatten()[0].decode()
 
         return
 
@@ -999,10 +998,9 @@ class combcat:
         for filter in self.filters:
 
             input = self.combima[filter] + ".fits"
-            photocal = 'photometry_control_star_{}.dat'.format(filter)
+            hdr = getheader(input)
             try:
-                _tmp = np.genfromtxt(photocal, names=True, dtype=None)
-                zeropt = _tmp['ZP']
+                zeropt = hdr['MAGZERO']
                 if zeropt == 0.0:
                     print('WARNING!: Photometric calibration not set!')
                     try:
@@ -1163,10 +1161,11 @@ class combcat:
             if not newfirm and filter == 'K':
                 continue
             # get the zeropoint Info
-            tmp = np.genfromtxt('photometry_control_star_{}.dat'.format(
-                                filter), names=True, dtype=None)
-            zpoint = tmp['ZP']
-            zp_error = tmp['ZP_sig']
+
+            input = self.combima[filter] + ".fits"
+            hdr = getheader(input)
+            zpoint = hdr['MAGZERO']
+            zp_error = hdr['MAGZSIG']
 
             # Get the columns
             sexcols = SEx_head(self.combcat[filter], verb=None)
@@ -1297,11 +1296,11 @@ class combcat:
                 if not newfirm and filter == 'K':
                     continue
                 # Get the zeropoint information
-                tmp = ascii.read('photometry_control_star_{}.dat'.format(
-                                    filter))
-                zpoint = tmp['ZP'].data[0]
-                zp_error = tmp['ZP_sig'].data[0]
-                cal_catalog = tmp['[6]'].data[0]
+                input = self.combima[filter] + ".fits"
+                hdr = getheader(input)
+                zpoint = hdr['MAGZERO']
+                zp_error = hdr['MAGZSIG']
+                cal_catalog = hdr['MAGZCAT']
 
                 # this says whether or not we should use the photometric catalog
                 # calibrating filter or whether we should use the filters from
