@@ -514,8 +514,8 @@ class finder:
 
         # The fitsfile with the wcs information
         self.fitsfile = os.path.join(self.datapath,
-                                     self.ctile + 'Red_cutout.fits')
-        self.jpgfile = os.path.join(self.datapath, self.ctile + '_cutout.tiff')
+                                     self.ctile + 'Detec.fits')
+        self.jpgfile = os.path.join(self.datapath, self.ctile + 'irg.tiff')
         t0 = time.time()
         print("Reading %s" % self.jpgfile, file=sys.stderr)
         self.jpg_array = sci_misc.imread(self.jpgfile)
