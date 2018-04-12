@@ -764,7 +764,7 @@ class combcat:
 
         return
 
-    def get_astrometry(self):
+    def get_astrometry(self, newfirm=False):
         ''' This calls the pp script to astrometrically correct the images. I'm
         breaking it appart from the rest of the script so I can control when
         things happen. It is mostly for testing.
@@ -795,6 +795,8 @@ class combcat:
 
         subprocs = []
         for filter in self.filters:
+            if not newfirm and filter == 'K':
+                continue
             mosaic = '{}.fits'.format(self.combima[filter])
             if self.pixscale == 0.25:
                 cmd = 'pp_prepare -ra {} -dec {} -telescope {} {}'.format(
@@ -814,6 +816,8 @@ class combcat:
         [i.kill() for i in subprocs]
 
         for filter in self.filters:
+            if not newfirm and filter == 'K':
+                continue
             mosaic = '{}.fits'.format(self.combima[filter])
 
             cmd = 'pp_register -snr 10 -minarea 12 {}'.format(mosaic)
@@ -826,7 +830,7 @@ class combcat:
 
         return
 
-    def get_zeropt(self):
+    def get_zeropt(self, newfirm=False):
         from astropy.io import fits
         ''' This is going to call the photometrypipline script that lives in
         the projects directory. It should both astrometrically correct the
@@ -853,6 +857,8 @@ class combcat:
         subprocs = []
 
         for filter in self.filters:
+            if not newfirm and filter == 'K':
+                continue
             if os.path.isfile('photometry_control_star_{}.dat'.format(filter)):
                 print('# remove old photometry')
                 os.remove('photometry_control_star_{}.dat'.format(filter))
@@ -901,6 +907,8 @@ class combcat:
         [p.wait() for p in subprocs]
 
         for filter in self.filters:
+            if not newfirm and filter == 'K':
+                continue
             mosaic = '{}.fits'.format(self.combima[filter])
             cmd = 'pp_calibrate {}'.format(mosaic)
 
@@ -916,6 +924,8 @@ class combcat:
         #[i.kill() for i in subprocs]
 
         for filter in self.filters:
+            if not newfirm and filter == 'K':
+                continue
             mosaic = '{}.fits'.format(self.combima[filter])
             # the positions file fails -- it's just used to make sure it doesn't
             # query JPL because our stuff isn't an asteroid.
@@ -1507,20 +1517,20 @@ class combcat:
         return
 
     # Run Benitez BPZ
-    def runBPZ(self, Specz=True):
+    def runBPZ(self, Specz=True, newfirm=False):
         """Runs BPZ on the multicolor catalog file using the .columns """
 
         print()
         # first we update with Specz's if we want to
         print('# Match Catalogs -- Add spec-zs')
-        match_SEx(self.tilename, self.filters)
+        match_SEx(self.tilename, self.filters, newfirm=False)
         try:
             if not self.XCorr['i'].all() == 0:
-                add_Speczs(self.tilename, dust=True)
+                add_Speczs(self.tilename, dust=True, newfirm=False)
             else:
-                add_Speczs(self.tilename, dust=False)
+                add_Speczs(self.tilename, dust=False, newfirm=False)
         except AttributeError:
-            add_Speczs(self.tilename, dust=False)
+            add_Speczs(self.tilename, dust=False, newfirm=False)
         #add_extra_photometry(self.tilename)
 
         print('# Starting photometric redshift determination...',
@@ -1991,7 +2001,7 @@ def SEx_head(catalog, verb='yes'):
 
     return SExcols
 
-def match_SEx(tilename, filters):
+def match_SEx(tilename, filters, newfirm=False):
     from astropy.io import ascii
     from astropy import wcs
     from astropy.table import Column
@@ -2057,6 +2067,8 @@ def match_SEx(tilename, filters):
                     dec=twoMASS_cat['dec'] * u.degree)
 
     for filter in filters:
+        if not newfirm and filter == 'K':
+            continue
         # only do the Kband when we get there
         if filter == 'K':
             if os.path.isfile('{}{}_cal.cat'.format(tilename, filter)):
@@ -2205,7 +2217,7 @@ def match_SEx(tilename, filters):
 
         os.remove('tmp.color')
 
-def add_Speczs(tilename, dust=False):
+def add_Speczs(tilename, dust=False, newfirm=False):
     ''' This function adds the spec-z's to the color catalog. The previous
     function adds all of the extra information to the sextractor catalogs. So
     you can run either one, or both. Because they don't do the same thing even
@@ -2671,10 +2683,10 @@ def main():
                       combtype=opt.combtype, newfirm=opt.newfirm)
 
     if opt.Astro:
-        c.get_astrometry()
+        c.get_astrometry(newfirm=opt.newfirm)
 
     if opt.Photo:
-        c.get_zeropt()
+        c.get_zeropt(newfirm=opt.newfirm)
 
     # Make the detection image
     if opt.useMask:
