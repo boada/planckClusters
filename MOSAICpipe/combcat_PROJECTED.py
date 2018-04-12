@@ -1547,7 +1547,7 @@ class combcat:
             print("Running full prior", file=sys.stderr)
             p = subprocess.Popen(shlex.split(cmd))
             #p.wait(timeout=600) # this prevents really long running. for testing
-            p.wait() # this prevents really long running. for testing
+            p.wait()
             print("Photo-z ready", file=sys.stderr)
         else:
             print(cmd)
