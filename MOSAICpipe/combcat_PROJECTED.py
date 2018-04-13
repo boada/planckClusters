@@ -828,6 +828,23 @@ class combcat:
         [p.wait(timeout=600) for p in subprocs]
         [i.kill() for i in subprocs]
 
+        for filter in self.filters:
+            if not newfirm and filter == 'K':
+                continue
+            mosaic = '{}.fits'.format(self.combima[filter])
+
+            # correct the header information to make sure floats are floats and
+            # not strings
+            with fits.open(mosaic, mode='update') as f:
+                header = f[0].header
+                for key, val in list(header.items()):
+                    if 'CD1_' in key or 'CD2_' in key or \
+                        'CRVAL' in key or 'CRPIX' in key or \
+                            'EQUINOX' in key:
+                        f[0].header[key] = float(val)
+                    if 'PV' in key:
+                        f[0].header[key] = str(val)
+
         return
 
     def get_zeropt(self, newfirm=False):
