@@ -1156,6 +1156,8 @@ class combcat:
 
         flux = {}
         fluxerr = {}
+        mag = {}
+        magerr = {}
 
         m = {}
         em = {}
@@ -1190,12 +1192,17 @@ class combcat:
             fluxList = []
             fluxList.append(sexcols['FLUX_ISO'])
             fluxList.append(sexcols['FLUXERR_ISO'])
+            fluxList.append(sexcols['MAG_AUTO'])
+            fluxList.append(sexcols['MAGERR_AUTO'])
             fluxColumns = tuple(
                 fluxList)  # the get_data function interface requires a tuple
 
             # Get the array using tableio
-            flux[filter], fluxerr[filter] = tableio.get_data(
-                self.combcat[filter], fluxColumns)
+            (flux[filter],
+             fluxerr[filter],
+             mag[filter],
+             magerr[filter]) = tableio.get_data(self.combcat[filter],
+                                                fluxColumns)
             m[filter] = flux[filter] * 0.0
             em[filter] = flux[filter] * 0.0
 
@@ -1226,13 +1233,12 @@ class combcat:
             # When flux error > 100*(flux), mark as nonobserved (Benitez,
             # 24-Oct-03).
 
-            nonobserved = np.where(fluxerr[filter] > 100 *
+            #nonobserved = np.where(fluxerr[filter] > 100 *
+            big_errors = np.where(fluxerr[filter] > 100 *
                                         (abs(flux[filter])), True,
                                    nonobserved)
 
             detected = np.logical_not(nonobserved + nondetected)
-
-            print(filter, zpoint)
 
             flux[filter] = np.clip(flux[filter], 1e-100, 1e100)
             m[filter] = np.where(detected,
@@ -1242,16 +1248,27 @@ class combcat:
             m[filter] = np.where(nondetected, 99.0, m[filter])
             m[filter] = np.where(nonobserved, -99.0, m[filter])
 
+            # use the mag_auto where we have big errors
+            m[filter] = np.where(big_errors, mag[filter] - self.XCorr[filter],
+                                 m[filter])
+
             # clip values from being too small or large, i.e. 0 or inf.
             fluxerr[filter] = np.clip(fluxerr[filter], 1e-100, 1e100)
+
+            # detected
             em[filter] = np.where(
                 detected,
                 2.5 * np.log10(1.0 + abs(fluxerr[filter] / flux[filter])) +
                 self.XCorrError[filter], em[filter])
+
+            # non-detected
             em[filter] = np.where(
                 nondetected,
                 2.5 * np.log10(abs(fluxerr[filter])) - zpoint, em[filter])
             em[filter] = np.where(nonobserved, 0.0, em[filter])
+
+            # use the magerr_auto where we have big ERRORS
+            em[filter] = np.where(big_errors, magerr[filter], em[filter])
 
             #outColumns.append(filter +'_SDSS_MAG_ISO')
             #outColumns.append(filter +'_SDSS_MAGERR_ISO')
