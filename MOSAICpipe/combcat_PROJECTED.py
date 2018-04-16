@@ -12,7 +12,6 @@ import subprocess
 import shlex
 from astropy.io import fits
 from astropy.io.fits import getheader
-from astropy.io import ascii
 
 class combcat:
     ''' Combine, swarp and get catalogs '''
