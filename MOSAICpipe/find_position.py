@@ -39,21 +39,24 @@ lor = numpy.logical_or
 
 sout = sys.stderr
 
-class finder:
 
-    def __init__(self, ctile, maglim=25.0,
-                 pixscale=0.25,
-                 zlim=1.8,
-                 zo=None,
-                 dz=0.05,
-                 radius=1000.0, # Radius in kpc
-                 cosmo=(0.3, 0.7, 0.7),
-                 zuse="ZB", # Use ZB (Bayesian) or ML (Max Like)
-                 outpath='plots',
-                 path='./',
-                 evolfile="0_1gyr_hr_m62_salp_Ks.color",
-                 p_lim=0.4,
-                 verb='yes'):
+class finder:
+    def __init__(
+            self,
+            ctile,
+            maglim=25.0,
+            pixscale=0.25,
+            zlim=1.8,
+            zo=None,
+            dz=0.05,
+            radius=1000.0,  # Radius in kpc
+            cosmo=(0.3, 0.7, 0.7),
+            zuse="ZB",  # Use ZB (Bayesian) or ML (Max Like)
+            outpath='plots',
+            path='./',
+            evolfile="0_1gyr_hr_m62_salp_Ks.color",
+            p_lim=0.4,
+            verb='yes'):
 
         # Check for environ vars
         self.home = os.environ['HOME']
@@ -123,7 +126,7 @@ class finder:
                 16, 17, 18, 19, 20, 21, 22, 31, 32, 33, 34, 35, 36)
 
         sout.write("# Reading cols:%s\n# Reading cats from: %s... \n" %
-            (cols, self.catsfile))
+                   (cols, self.catsfile))
         (ra,
         dec,
         z_b,
@@ -169,7 +172,7 @@ class finder:
             # t = t_b
 
         i_lim = self.maglim
-        odds_lim = 0.80 # not currently used
+        odds_lim = 0.80  # not currently used
         star_lim = 0.95
 
         # Clean up according to BPZ
@@ -399,10 +402,11 @@ class finder:
         sout.write("# Computing p_BCG probabilities... ")
 
         # The Abs mag limit @ z=0.1 in the i-band
-        Mi_limit = cosmology.reobs('El_Benitez2003',
-                                   m=Mr_limit,
-                                   oldfilter="r_MOSAICII",
-                                   newfilter="i_MOSAICII")
+        Mi_limit = cosmology.reobs(
+            'El_Benitez2003',
+            m=Mr_limit,
+            oldfilter="r_MOSAICII",
+            newfilter="i_MOSAICII")
 
         # Evaluate the genertic mask for BCG only onece
         if not self.BCG_probs:
@@ -441,27 +445,30 @@ class finder:
 
             # Construct the final mask now
             self.mask_BCG = (mask_t * mask_g * mask_r * mask_i * mask_z *
-                                mask_br * mask_bi * mask_p * mask_star)
+                             mask_br * mask_bi * mask_p * mask_star)
 
             self.BCG_masked = True
 
             # Model color only once
             #self.zx = numpy.arange(0.01, self.zlim, 0.01)
-            self.gr_model = cosmology.color_z(sed='El_Benitez2003',
-                                              filter_new='g_MOSAICII',
-                                              filter_old='r_MOSAICII',
-                                              z=self.zx,
-                                              calibration='AB')
-            self.ri_model = cosmology.color_z(sed='El_Benitez2003',
-                                              filter_new='r_MOSAICII',
-                                              filter_old='i_MOSAICII',
-                                              z=self.zx,
-                                              calibration='AB')
-            self.iz_model = cosmology.color_z(sed='El_Benitez2003',
-                                              filter_new='i_MOSAICII',
-                                              filter_old='z_MOSAICII',
-                                              z=self.zx,
-                                              calibration='AB')
+            self.gr_model = cosmology.color_z(
+                sed='El_Benitez2003',
+                filter_new='g_MOSAICII',
+                filter_old='r_MOSAICII',
+                z=self.zx,
+                calibration='AB')
+            self.ri_model = cosmology.color_z(
+                sed='El_Benitez2003',
+                filter_new='r_MOSAICII',
+                filter_old='i_MOSAICII',
+                z=self.zx,
+                calibration='AB')
+            self.iz_model = cosmology.color_z(
+                sed='El_Benitez2003',
+                filter_new='i_MOSAICII',
+                filter_old='z_MOSAICII',
+                z=self.zx,
+                calibration='AB')
 
             sout.write(" \t Done: %s\n" % extras.elapsed_time_str(t0))
 
@@ -513,8 +520,7 @@ class finder:
     def jpg_read(self, dx=1200, dy=1200, RA=None, DEC=None):
 
         # The fitsfile with the wcs information
-        self.fitsfile = os.path.join(self.datapath,
-                                     self.ctile + 'i.fits')
+        self.fitsfile = os.path.join(self.datapath, self.ctile + 'i.fits')
         self.jpgfile = os.path.join(self.datapath, self.ctile + 'irg.tiff')
         t0 = time.time()
         print("Reading %s" % self.jpgfile, file=sys.stderr)
@@ -651,10 +657,8 @@ class finder:
         nameB = self.ctile + "_figB.png"
         self.figAname = os.path.join(self.datapath, self.ctile, nameA)
         self.figBname = os.path.join(self.datapath, self.ctile, nameB)
-        pylab.savefig(self.figAname,
-                      transparent=True,
-                      dpi=100,
-                      bbox_inches='tight')
+        pylab.savefig(
+            self.figAname, transparent=True, dpi=100, bbox_inches='tight')
         print("Done in %s sec." % (time.time() - t0), file=sys.stderr)
         print("Wrote Fig A, %s " % (self.figAname), file=sys.stderr)
 
@@ -683,20 +687,22 @@ class finder:
         r1_pixels = 5 * 60.0 / self.pixscale
         r2_pixels = 2 * 60.0 / self.pixscale
         ax = pylab.gca()
-        Cc1 = PCircle(center,
-                    r1_pixels,
-                    resolution=80,
-                    fill=0,
-                    edgecolor="white",
-                    linestyle='dashed',
-                    linewidth=0.5)
-        Cc2 = PCircle(center,
-                    r2_pixels,
-                    resolution=80,
-                    fill=0,
-                    edgecolor="white",
-                    linestyle='dashed',
-                    linewidth=0.5)
+        Cc1 = PCircle(
+            center,
+            r1_pixels,
+            resolution=80,
+            fill=0,
+            edgecolor="white",
+            linestyle='dashed',
+            linewidth=0.5)
+        Cc2 = PCircle(
+            center,
+            r2_pixels,
+            resolution=80,
+            fill=0,
+            edgecolor="white",
+            linestyle='dashed',
+            linewidth=0.5)
         ax.add_patch(Cc1)
         ax.add_patch(Cc2)
         return
@@ -806,13 +812,15 @@ class finder:
 
             xo = 2 * self.dx - 80
             yo = 80
-            self.conf_back = pylab.text(xo + 2,
-                       self.ny - yo + 2,
-                       text,
-                       color='black',
-                       fontsize=18, ha='right')
-            self.conf_front = pylab.text(xo, self.ny - yo, text, color='white',
-                                    fontsize=18, ha='right')
+            self.conf_back = pylab.text(
+                xo + 2,
+                self.ny - yo + 2,
+                text,
+                color='black',
+                fontsize=18,
+                ha='right')
+            self.conf_front = pylab.text(
+                xo, self.ny - yo, text, color='white', fontsize=18, ha='right')
             pylab.draw()
             #pylab.show()
             return
@@ -837,13 +845,10 @@ class finder:
                                                            self.radius)
             xo = 80
             yo = 80
-            self.txt_back = pylab.text(xo + 2,
-                       self.ny - yo + 2,
-                       text,
-                       color='black',
-                       fontsize=18)
-            self.txt_front = pylab.text(xo, self.ny - yo, text, color='white',
-                                    fontsize=18)
+            self.txt_back = pylab.text(
+                xo + 2, self.ny - yo + 2, text, color='black', fontsize=18)
+            self.txt_front = pylab.text(
+                xo, self.ny - yo, text, color='white', fontsize=18)
             pylab.draw()
             #pylab.show()
             return
@@ -874,8 +879,12 @@ class finder:
                 print('Reading Optical Image...')
                 self.toggled = True
             print(self.RA, self.DEC)
-            self.jpg_read(dx=self.dx, dy=self.dy, RA=self.RA, DEC=self.DEC,
-                          toggle=self.toggled)
+            self.jpg_read(
+                dx=self.dx,
+                dy=self.dy,
+                RA=self.RA,
+                DEC=self.DEC,
+                toggle=self.toggled)
             self.jpg_display()
 
         # Print info
@@ -953,8 +962,8 @@ class finder:
                 gr[idc], ddof=1)
             c2 = numpy.abs(ri[idc] - ri[idc].mean()) > Nsigma * numpy.std(
                 ri[idc], ddof=1)
-            iclip = numpy.where(lor(c1, c2))[
-                0]  # where any of the conditions fails
+            iclip = numpy.where(lor(
+                c1, c2))[0]  # where any of the conditions fails
             if len(iclip) > 0:
                 idc = numpy.delete(idc, iclip)  # Removed failed ones
                 converge = False
@@ -977,15 +986,14 @@ class finder:
         sout.write(" \t Done: %s\n" % extras.elapsed_time_str(t0))
 
         # Or we can make a new mask where the condition's are true
-        c1 = numpy.abs(self.gr - gr[idc].mean()) > Nsigma * numpy.std(gr[idc],
-                                                                      ddof=1)
-        c2 = numpy.abs(self.ri - ri[idc].mean()) > Nsigma * numpy.std(ri[idc],
-                                                                      ddof=1)
+        c1 = numpy.abs(self.gr - gr[idc].mean()) > Nsigma * numpy.std(
+            gr[idc], ddof=1)
+        c2 = numpy.abs(self.ri - ri[idc].mean()) > Nsigma * numpy.std(
+            ri[idc], ddof=1)
         mask_cm = numpy.where(lor(c1, c2), 0, 1)  # where condition fails
         iRadius = numpy.where(
-                    mask_R * mask_L1 * mask_L2 * mask_z * mask_cm == 1)
-        iRadius_all = numpy.where(
-                    mask_L1 * mask_L2 * mask_z * mask_cm == 1)
+            mask_R * mask_L1 * mask_L2 * mask_z * mask_cm == 1)
+        iRadius_all = numpy.where(mask_L1 * mask_L2 * mask_z * mask_cm == 1)
         Ngal = len(iRadius[0])
         sout.write("# Total: %s objects selected in %s [kpc] around %s\n" %
                    (Ngal, radius, self.ID))
@@ -999,7 +1007,7 @@ class finder:
         self.z_cl = z_cl
         self.z_clerr = z_clrms
         self.rdeg = r  # in degress
-        self.r1Mpc = r # naming fix for background estimates
+        self.r1Mpc = r  # naming fix for background estimates
         self.idc = idc  # galaxies used for mean redshift
         self.ID_BCG = ID_BCG
 
@@ -1093,8 +1101,8 @@ class finder:
         if self.d_Ngal_c2 < 0:
             self.d_Ngal_c = 0
         else:
-            self.d_Ngal_c = math.sqrt(self.Ngal_c + ((old_div(
-                area_r1Mpc, area_bgr))**2) * N_bgr)
+            self.d_Ngal_c = math.sqrt(self.Ngal_c + (
+                (old_div(area_r1Mpc, area_bgr))**2) * N_bgr)
 
         return
 
@@ -1131,12 +1139,13 @@ class finder:
                 ec = 'yellow'
             else:
                 ec = 'red'
-            E = PEllipse((xgal, ygal), (a, b),
-                         resolution=80,
-                         angle=theta,
-                         fill=0,
-                         edgecolor=ec,
-                         linewidth=1.0)
+            E = PEllipse(
+                (xgal, ygal), (a, b),
+                resolution=80,
+                angle=theta,
+                fill=0,
+                edgecolor=ec,
+                linewidth=1.0)
             self.ellipse[i] = E
             ax.add_patch(E)
 
@@ -1148,13 +1157,14 @@ class finder:
         Yo = self.ny - Yo
 
         r_pixels = self.rdeg * 3600.0 / self.pixscale
-        C = PCircle((Xo, Yo),
-                    r_pixels,
-                    resolution=80,
-                    fill=0,
-                    edgecolor="white",
-                    linestyle='solid',
-                    linewidth=0.5)
+        C = PCircle(
+            (Xo, Yo),
+            r_pixels,
+            resolution=80,
+            fill=0,
+            edgecolor="white",
+            linestyle='solid',
+            linewidth=0.5)
         ax.add_patch(C)
 
         # Get the area coverage
@@ -1200,12 +1210,13 @@ class finder:
             ygal = self.ny - ygal
 
             ec = 'cyan'
-            E = PEllipse((xgal, ygal), (a, b),
-                         resolution=80,
-                         angle=theta,
-                         fill=0,
-                         edgecolor=ec,
-                         linewidth=1)
+            E = PEllipse(
+                (xgal, ygal), (a, b),
+                resolution=80,
+                angle=theta,
+                fill=0,
+                edgecolor=ec,
+                linewidth=1)
             self.ellipse[i] = E
             ax.add_patch(E)
 
@@ -1275,7 +1286,7 @@ class finder:
                     "%8s %8s %8s %8s %8s %11s\n" %
                     ('ID_BCG', 'RA', 'DEC', 'zBCG', 'z_cl', 'z_clerr', 'Ngal',
                      'Ngal_c', 'L_i', 'L_iBCG', 'Mr', 'Mi', 'r', 'i', 'p_BCG',
-                                            'R[kpc]', 'area[%]', 'Confidence'))
+                     'R[kpc]', 'area[%]', 'Confidence'))
             format = ("%20s %12s %12s %7.3f %7.3f %7.3f %5d %5d %10.3e %10.3e"
                       "%8.2f %8.2f %8.2f %8.2f %8.3f %8.1f %8.2f %2d\n")
 
@@ -1299,7 +1310,7 @@ class finder:
                 "%8s %8s %8s %8s %8s %11s\n" %
                 ('ID_BCG', 'RA', 'DEC', 'zBCG', 'z_cl', 'z_clerr', 'Ngal',
                  'Ngal_c', 'L_i', 'L_iBCG', 'Mr', 'Mi', 'r', 'i', 'p_BCG',
-                                           'R[kpc]', 'area[%]', 'Confidence'))
+                 'R[kpc]', 'area[%]', 'Confidence'))
         format = ("%20s %12s %12s %7.3f %7.3f %7.3f %5d %5d %10.3e %10.3e"
                   "%8.2f %8.2f %8.2f %8.2f %8.3f %8.1f %8.2f %2d\n")
 
@@ -1353,12 +1364,13 @@ class finder:
         ygal = self.ny - ygal
 
         ec = 'white'
-        E = PEllipse((xgal, ygal), (a, b),
-                     resolution=80,
-                     angle=theta,
-                     fill=0,
-                     edgecolor=ec,
-                     linewidth=1.0)
+        E = PEllipse(
+            (xgal, ygal), (a, b),
+            resolution=80,
+            angle=theta,
+            fill=0,
+            edgecolor=ec,
+            linewidth=1.0)
         ax.add_patch(E)
         return
 
@@ -1371,16 +1383,18 @@ class finder:
                 #print("Ellipse for ID:%s is not defined" % ID)
             current_ell = None
         else:
-            self.ellipse[i] = PEllipse((xgal, ygal), (a, b),
-                                       resolution=100,
-                                       angle=theta,
-                                       fill=0,
-                                       edgecolor="yellow")
-            current_ell = PEllipse((xgal, ygal), (a, b),
-                                   resolution=100,
-                                   angle=theta,
-                                   fill=0,
-                                   edgecolor="white")
+            self.ellipse[i] = PEllipse(
+                (xgal, ygal), (a, b),
+                resolution=100,
+                angle=theta,
+                fill=0,
+                edgecolor="yellow")
+            current_ell = PEllipse(
+                (xgal, ygal), (a, b),
+                resolution=100,
+                angle=theta,
+                fill=0,
+                edgecolor="white")
 
         # Draw all ellipses in list
         for id in list(self.ellipse.keys()):
@@ -1428,8 +1442,9 @@ class finder:
         z2_95 = x[i2]
 
         s = open(filename, "w")
-        head = ("# %-18s " + "%8s " * 7 + "\n") % (
-            'ID_BCG', 'z_cl', 'err', 'zBCG', 'z1', 'z2', 'z1', 'z2')
+        head = ("# %-18s " + "%8s " * 7 + "\n") % ('ID_BCG', 'z_cl', 'err',
+                                                   'zBCG', 'z1', 'z2', 'z1',
+                                                   'z2')
         format = ("%20s " + "%8.3f " * 7 + "\n")
         vars = (self.ID_BCG, self.z_cl, self.z_clerr, zo, z1_68, z2_68, z1_95,
                 z2_95)
@@ -1472,12 +1487,13 @@ class finder:
         ytxt = dy - 1.5 * dy / float(n)
         text = "zBCG = %.3f +%.3f/-%.3f)\n" % (zBCG, dz2, dz1)
         text = text + "z_cl = %.3f +/- %.3f" % (self.z_cl, self.z_clerr)
-        pylab.text(xtxt,
-                   ytxt,
-                   text,
-                   color='k',
-                   size=size,
-                   horizontalalignment='right')
+        pylab.text(
+            xtxt,
+            ytxt,
+            text,
+            color='k',
+            size=size,
+            horizontalalignment='right')
 
         pylab.tight_layout()
         pylab.show()
@@ -1493,9 +1509,9 @@ class finder:
         print("Will write members to %s" % filename)
 
         head = ("# %-23s %15s %15s  %6s %6s %6s %6s %6s  %6s  %6s  "
-               "%6s  %6s  %6s \n" % ("ID", "RA", "DEC", "ZB", "TB", "ZML",
-                                     "TML", "g_mag", "g_err", "r_mag", "r_err",
-                                     "i_mag", "i_err"))
+                "%6s  %6s  %6s \n" %
+                ("ID", "RA", "DEC", "ZB", "TB", "ZML", "TML", "g_mag", "g_err",
+                 "r_mag", "r_err", "i_mag", "i_err"))
         m.write(head)
         for i in self.iRadius[0]:
             format = "%-25s %15f %15f  %6.3f %6.3f %6.3f %6.2f  %6.3f  %6.3f  %6.3f  %6.3f  %6.3f  %6.3f\n"
@@ -1620,11 +1636,13 @@ def mi_star(z, cosmo=(0.3, 0.7, 0.7)):
     dlum = c.dlum(z)[0]
 
     Mb_star = -19.43 - 1.01 * z
-    Mi_star = cosmology.reobs('El_Benitez2003',
-                              m=Mb_star,
-                              oldfilter="B_Johnson",
-                              newfilter="i_MOSAICII")
+    Mi_star = cosmology.reobs(
+        'El_Benitez2003',
+        m=Mb_star,
+        oldfilter="B_Johnson",
+        newfilter="i_MOSAICII")
     return Mi_star + 5.0 * math.log10(dlum) + 25
+
 
 ####################################################
 # Fake an ellipse using an N-sided polygon
@@ -1649,6 +1667,7 @@ def PEllipse(xxx_todo_changeme,
     y = xtmp * sin(angle) + ytmp * cos(angle) + yo
     return Polygon(list(zip(x, y)), **kwargs)
 
+
 ##############################
 # A circle as a polygon too
 ###############################
@@ -1661,6 +1680,7 @@ def PCircle(xxx_todo_changeme2, radius, resolution=100, **kwargs):
     x = xtmp + xo
     y = ytmp + yo
     return Polygon(list(zip(x, y)), **kwargs)
+
 
 #######################################
 # make an array with power law growth
@@ -1696,11 +1716,9 @@ def histo(x, xbin, center=None):
     nbin = numpy.zeros(n).astype(int16)
     for i in range(n):
         if i == 0:
-            nbin[i] = len(numpy.where(land(x >= xbin[i], x <= xbin[i + 1]))[
-                0])
+            nbin[i] = len(numpy.where(land(x >= xbin[i], x <= xbin[i + 1]))[0])
         else:
-            nbin[i] = len(numpy.where(land(x > xbin[i], x <= xbin[i + 1]))[
-                0])
+            nbin[i] = len(numpy.where(land(x > xbin[i], x <= xbin[i + 1]))[0])
     # Center and reduce to n-1
     if center:
         ix = numpy.indices(xbin.shape)[0]
@@ -1734,6 +1752,7 @@ def bin_data(x, y, xbin, center=None):
         xbin = xbin[:-1] + old_div(dx, 2.0)
 
     return ybin, xbin
+
 
 def Mass_calib(N200, L200, LBCG, z, h=1.0):
 
@@ -1770,13 +1789,14 @@ def Mass_calib(N200, L200, LBCG, z, h=1.0):
     LBCG_N = aN * N200**bN
     LBCG_L = aL * L200**bL
 
-    M_N200 = (old_div(1.e14, h)) * M0_N * (
-        (old_div(N200, 20.0))**alphaN) * (old_div(LBCG, LBCG_N))**gammaN
-    M_L200 = (old_div(1.e14, h)) * M0_L * (
-        (old_div(L200, 40.0))**alphaL) * (old_div(LBCG, LBCG_L))**gammaL
+    M_N200 = (old_div(1.e14, h)) * M0_N * ((old_div(N200, 20.0))**alphaN) * (
+        old_div(LBCG, LBCG_N))**gammaN
+    M_L200 = (old_div(1.e14, h)) * M0_L * ((old_div(L200, 40.0))**alphaL) * (
+        old_div(LBCG, LBCG_L))**gammaL
     M_LBCG = (old_div(1.e14, h)) * 1.07 * (old_div(LBCG, 5.0))**1.10
 
     return M_N200, M_L200, M_LBCG
+
 
 def cmdline():
 
@@ -1788,20 +1808,29 @@ def cmdline():
     parser = OptionParser(usage=USAGE)
 
     parser.add_option("--path", dest="path", default='./', help="Path to data")
-    parser.add_option("--radius", dest="radius", default=1000.0,
-                        help="Radius in kpc")
+    parser.add_option(
+        "--radius", dest="radius", default=1000.0, help="Radius in kpc")
     parser.add_option("--zo", dest="zo", default=None, help="zo of cluster")
     parser.add_option("--dz", dest="dz", default=0.08, help="dz of shell")
     parser.add_option("--zuse", dest="zuse", default="ZB", help="use ZB or ML")
     parser.add_option("--dx", dest="dx", default=-1, help="cutout width")
     parser.add_option("--dy", dest="dy", default=-1, help="cutout heigth")
-    parser.add_option("--RA", dest="RA", default=None,
-                      help="Center Right Ascension - x pixel or SEX RA")
-    parser.add_option("--DEC", dest="DEC", default=None,
-                      help="Center Declination - y pixel or SEX DEC")
+    parser.add_option(
+        "--RA",
+        dest="RA",
+        default=None,
+        help="Center Right Ascension - x pixel or SEX RA")
+    parser.add_option(
+        "--DEC",
+        dest="DEC",
+        default=None,
+        help="Center Declination - y pixel or SEX DEC")
 
     # add a bit to figure out Mosaic1/mosaic3
-    parser.add_option("--pixelscale", dest='pixelscale', default=-1,
+    parser.add_option(
+        "--pixelscale",
+        dest='pixelscale',
+        default=-1,
         help='pixel scale of the instrument used MOS1:0.2666 or MOS3:0.25')
 
     (options, args) = parser.parse_args()
@@ -1809,6 +1838,7 @@ def cmdline():
         parser.error("Must supply at least one arguments required")
 
     return options, args
+
 
 def main():
 
@@ -1838,21 +1868,22 @@ def main():
         print('RGB image does not exist -- probably only kband data')
         sys.exit()
 
-    f = finder(ctile,
-                maglim=26.0,
-                pixscale=pixelscale,
-                zlim=1.8,
-                zo=zo,
-                dz=float(opt.dz),
-                radius=radius,
-                cosmo=(0.3, 0.7, 0.7),
-                #zuse="ZB", # Use ZB (Bayesian) or ML (Max Like)
-                zuse=opt.zuse, # Use ZB (Bayesian) or ML (Max Like)
-                outpath='plots',
-                path=opt.path,
-                evolfile="0_1gyr_hr_m62_salp_Ks.color",
-                p_lim=0.4,
-                verb='yes')
+    f = finder(
+        ctile,
+        maglim=26.0,
+        pixscale=pixelscale,
+        zlim=1.8,
+        zo=zo,
+        dz=float(opt.dz),
+        radius=radius,
+        cosmo=(0.3, 0.7, 0.7),
+        #zuse="ZB", # Use ZB (Bayesian) or ML (Max Like)
+        zuse=opt.zuse,  # Use ZB (Bayesian) or ML (Max Like)
+        outpath='plots',
+        path=opt.path,
+        evolfile="0_1gyr_hr_m62_salp_Ks.color",
+        p_lim=0.4,
+        verb='yes')
 
     f.jpg_read(dx=opt.dx, dy=opt.dy, RA=opt.RA, DEC=opt.DEC)
     f.jpg_display()
