@@ -10,7 +10,7 @@ import os
 
 def xy2rd(x, y, fitsfile, units='hms', wrap=True):
     import numpy
-    from pyfits import getheader
+    from astropy.io.fits import getheader
     from math import pi
 
     atan2 = numpy.arctan2
@@ -63,7 +63,7 @@ def xy2rd(x, y, fitsfile, units='hms', wrap=True):
 
 def xy2rd_sdss(x, y, fitsfile, units='hms'):
     import numpy
-    from pyfits import getheader
+    from astropy.io.fits import getheader
     from math import pi
 
     atan2 = numpy.arctan2
@@ -117,7 +117,7 @@ def xy2rd_sdss(x, y, fitsfile, units='hms'):
 # transforms (RA,DEC) --> (x,y)
 def rd2xy(ra, dec, fitsfile, units='degrees'):
     import numpy
-    from pyfits import getheader
+    from astropy.io.fits import getheader
     from math import pi
 
     cos = numpy.cos
@@ -183,7 +183,7 @@ def rd2xy(ra, dec, fitsfile, units='degrees'):
 # transforms (RA,DEC) --> (x,y)
 def rd2xy_sdss(dec, ra, fitsfile, units='degrees'):
     import numpy
-    from pyfits import getheader
+    from astropy.io.fits import getheader
     from math import pi
 
     cos = numpy.cos
@@ -663,7 +663,7 @@ def xy2sky(x, y, fitsfile, units='degrees'):
 def transform_grid(ACT_fits, optical_fits):
 
     import tableio
-    from pyfits import getheader
+    from astropy.io.fits import getheader
     import numpy
 
     header = getheader(ACT_fits)
