@@ -1271,14 +1271,15 @@ class finder:
 
             print("Will write info to %s" % filename)
             s = open(filename, "w")
-            head = ("# %-18s %12s %12s %7s %7s %5s %10s %10s %8s %8s "
-                    "%8s %8s %8s %8s %8s %11s\n" % ('ID_BCG', 'RA', 'DEC', 'zBCG',
-                                            'z_cl', 'Ngal', 'L_i', 'L_iBCG',
-                                            'Mr', 'Mi', 'r', 'i', 'p_BCG',
+            head = ("# %-18s %12s %12s %7s %7s %7s %5s %5s %10s %10s %8s %8s "
+                    "%8s %8s %8s %8s %8s %11s\n" %
+                    ('ID_BCG', 'RA', 'DEC', 'zBCG', 'z_cl', 'z_clerr', 'Ngal',
+                     'Ngal_c', 'L_i', 'L_iBCG', 'Mr', 'Mi', 'r', 'i', 'p_BCG',
                                             'R[kpc]', 'area[%]', 'Confidence'))
-            format = ("%20s %12s %12s %7.3f %7.3f %5d %10.3e %10.3e %8.2f %8.2f "
-                    "%8.2f %8.2f %8.3f %8.1f %8.2f %2d\n")
-            vars = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            format = ("%20s %12s %12s %7.3f %7.3f %7.3f %5d %5d %10.3e %10.3e"
+                      "%8.2f %8.2f %8.2f %8.2f %8.3f %8.1f %8.2f %2d\n")
+
+            vars = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
             s.write(head)
             s.write(format % vars)
             s.close()
@@ -1294,17 +1295,18 @@ class finder:
         DEC = astrometry.dec2deg(self.dec[i])
 
         s = open(filename, "w")
-        head = ("# %-18s %12s %12s %7s %7s %5s %10s %10s %8s %8s "
-                "%8s %8s %8s %8s %8s %11s\n" % ('ID_BCG', 'RA', 'DEC', 'zBCG',
-                                           'z_cl', 'Ngal', 'L_i', 'L_iBCG',
-                                           'Mr', 'Mi', 'r', 'i', 'p_BCG',
+        head = ("# %-18s %12s %12s %7s %7s %7s %5s %5s %10s %10s %8s %8s "
+                "%8s %8s %8s %8s %8s %11s\n" %
+                ('ID_BCG', 'RA', 'DEC', 'zBCG', 'z_cl', 'z_clerr', 'Ngal',
+                 'Ngal_c', 'L_i', 'L_iBCG', 'Mr', 'Mi', 'r', 'i', 'p_BCG',
                                            'R[kpc]', 'area[%]', 'Confidence'))
-        format = ("%20s %12s %12s %7.3f %7.3f %5d %10.3e %10.3e %8.2f %8.2f "
-                  "%8.2f %8.2f %8.3f %8.1f %8.2f %2d\n")
-        vars = (self.ID_BCG, RA, DEC, self.z_ph[i], self.z_cl, self.Ngal,
-                self.Lsum, self.Lr[i], self.Mr[i], self.Mi[i], self.r[i],
-                self.i[i], self.p[i], self.radius, self.area_fraction,
-                self.confidence)
+        format = ("%20s %12s %12s %7.3f %7.3f %7.3f %5d %5d %10.3e %10.3e"
+                  "%8.2f %8.2f %8.2f %8.2f %8.3f %8.1f %8.2f %2d\n")
+
+        vars = (self.ID_BCG, RA, DEC, self.z_ph[i], self.z_cl, self.z_clerr,
+                self.Ngal, self.Ngal_c, self.Lsum, self.Lr[i], self.Mr[i],
+                self.Mi[i], self.r[i], self.i[i], self.p[i], self.radius,
+                self.area_fraction, self.confidence)
         s.write(head)
         s.write(format % vars)
         s.close()
