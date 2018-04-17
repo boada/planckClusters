@@ -657,6 +657,9 @@ class finder:
                       bbox_inches='tight')
         print("Done in %s sec." % (time.time() - t0), file=sys.stderr)
         print("Wrote Fig A, %s " % (self.figAname), file=sys.stderr)
+
+        # save blank info.
+        self.write_info(blank=True)
         # Draw the search zone
         #self.draw_zone(n=8)
         self.draw_zone2()
@@ -1253,7 +1256,32 @@ class finder:
         print("--------------------------------")
         return
 
-    def write_info(self):
+    def write_info(self, blank=False):
+        ''' This writes out the info for the cluster we found. If we didn't
+        find a cluster it still writes out a file with nothing but zeros. That
+        will make sure we always have a file even for the fields where we
+        didn't find anything.
+
+        '''
+
+        if blank:
+            filename = os.path.join(self.datapath, self.ctile,
+                                    self.ctile + ".info")
+
+            print("Will write info to %s" % filename)
+            s = open(filename, "w")
+            head = ("# %-18s %12s %12s %7s %7s %5s %10s %10s %8s %8s "
+                    "%8s %8s %8s %8s %8s %11s\n" % ('ID_BCG', 'RA', 'DEC', 'zBCG',
+                                            'z_cl', 'Ngal', 'L_i', 'L_iBCG',
+                                            'Mr', 'Mi', 'r', 'i', 'p_BCG',
+                                            'R[kpc]', 'area[%]', 'Confidence'))
+            format = ("%20s %12s %12s %7.3f %7.3f %5d %10.3e %10.3e %8.2f %8.2f "
+                    "%8.2f %8.2f %8.3f %8.1f %8.2f %2d\n")
+            vars = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            s.write(head)
+            s.write(format % vars)
+            s.close()
+            return
 
         filename = os.path.join(self.datapath, self.ctile,
                                 self.ctile + ".info")
