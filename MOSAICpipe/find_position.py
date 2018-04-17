@@ -170,7 +170,7 @@ class finder:
 
         i_lim = self.maglim
         odds_lim = 0.80 # not currently used
-        star_lim = 0.80
+        star_lim = 0.95
 
         # Clean up according to BPZ
         sout.write("# Avoiding magnitudes -99 and 99 in BPZ \n")
@@ -732,8 +732,8 @@ class finder:
         print('You used:\t %s' % event.key)
 
         if event.key == 'q' or event.key == 'Q':
-            sys.exit()
             pylab.close('all')
+            sys.exit()
             return
 
         # Remap to right positions
@@ -909,6 +909,7 @@ class finder:
             print("Will use z:%.3f for cluster" % zo)
         else:
             zo = self.z_ph[i]
+            print("Will use z:%.3f for cluster" % zo)
         # 1 - Select in position around ra0,dec0
         # Define radius in degress @ zo
         R = radius  # in kpc
@@ -1417,16 +1418,12 @@ class finder:
         i2 = numpy.where(Psum > 0.841)[0][0]
         z1_68 = x[i1]
         z2_68 = x[i2]
-        #dz1 = zo - x[i1]
-        #dz2 = x[i2] - zo
 
         # And the 2-sigma (95.4%)
         i1 = numpy.where(Psum >= 0.023)[0][0]
         i2 = numpy.where(Psum > 0.977)[0][0]
         z1_95 = x[i1]
         z2_95 = x[i2]
-        #dz1 = zo - x[i1]
-        #dz2 = x[i2] - zo
 
         s = open(filename, "w")
         head = ("# %-18s " + "%8s " * 7 + "\n") % (
