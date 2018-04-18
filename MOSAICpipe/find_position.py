@@ -45,6 +45,7 @@ class finder:
             self,
             ctile,
             maglim=25.0,
+            starlim=0.95,
             pixscale=0.25,
             zlim=1.8,
             zo=None,
@@ -87,7 +88,10 @@ class finder:
         self.datapath = path
         self.catsfile = os.path.join(path, ctile, ctile + "_merged.cat")
         self.probsfile = os.path.join(path, ctile, ctile + "_probs.dat")
+
+        # limits
         self.maglim = maglim
+        self.starlim = starlim
 
         self.verb = verb
         self.ellipse = {}
@@ -173,7 +177,7 @@ class finder:
 
         i_lim = self.maglim
         odds_lim = 0.80  # not currently used
-        star_lim = 0.95
+        star_lim = self.starlim
 
         # Clean up according to BPZ
         sout.write("# Avoiding magnitudes -99 and 99 in BPZ \n")
@@ -424,7 +428,7 @@ class finder:
             self.BCG_probs = True
 
             i_lim = 25.0
-            star_lim = 0.8
+            star_lim = self.starlim
             p_lim = max(self.p) * 0.8
             sout.write("# Avoiding BCG_prob < %.3f in BGCs\n" % p_lim)
             mask_p = numpy.where(self.p >= p_lim, 1, 0)
@@ -1826,6 +1830,10 @@ def cmdline():
         default=None,
         help="Center Declination - y pixel or SEX DEC")
 
+    # stellarity
+    parser.add_option("--starlim", dest="starlim", default=0.95,
+                      help="SExtractor star/gal limit: range 0:1")
+
     # add a bit to figure out Mosaic1/mosaic3
     parser.add_option(
         "--pixelscale",
@@ -1871,6 +1879,7 @@ def main():
     f = finder(
         ctile,
         maglim=26.0,
+        starlim=float(opt.starlim),
         pixscale=pixelscale,
         zlim=1.8,
         zo=zo,
