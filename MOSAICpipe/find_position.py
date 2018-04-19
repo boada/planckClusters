@@ -1441,8 +1441,11 @@ class finder:
 
         # And the 2-sigma (95.4%)
         i1 = numpy.where(Psum >= 0.023)[0][0]
-        i2 = numpy.where(Psum > 0.977)[0][0]
         z1_95 = x[i1]
+        try:
+            i2 = numpy.where(Psum > 0.977)[0][0]
+        except IndexError:
+            z2_95 = -1
         z2_95 = x[i2]
 
         s = open(filename, "w")
@@ -1857,6 +1860,8 @@ def main():
 
     ctile = arg[0]
     radius = float(opt.radius)
+    opt.dx = float(opt.dx)
+    opt.dy = float(opt.dy)
     if opt.zo:
         zo = float(opt.zo)
     else:
