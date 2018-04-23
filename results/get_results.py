@@ -2,13 +2,22 @@ import pandas as pd
 from astropy.io import ascii
 from numpy import nan
 
-def loadClusters(confirmed=False):
+''' specify which round of cluster finding we want use. This can be changed by
+calling
+
+>>> loadClusters(round=2)
+
+for example.
+
+'''
+
+def loadClusters(confirmed=False, round=1):
 
     users = ['boada', 'felipe', 'doze']
 
-    results = ['boada/boada_results.txt',
-            'felipe/felipe_results.txt',
-            'doze/doze_results.txt']
+    results = ['round{}/boada/boada_results.txt'.format(round),
+            'round{}/felipe/felipe_results.txt'.format(round),
+            'round{}/doze/doze_results.txt'.format(round)]
     # read in the files
     tables = [pd.read_table(r, delim_whitespace=True) for r in results]
 
@@ -55,9 +64,9 @@ def loadClusters(confirmed=False):
 
     return df
 
-def loadMembers(user, cluster):
+def loadMembers(user, cluster, round=1):
 
-    data_dir = '{}/{}/{}/'.format(user, cluster, cluster)
+    data_dir = 'round{}/{}/{}/{}/'.format(round, user, cluster, cluster)
 
     table = ascii.read('{}/{}.members'.format(data_dir, cluster))
 

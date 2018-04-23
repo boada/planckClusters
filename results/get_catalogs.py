@@ -1,8 +1,17 @@
 from numpy import nan
 from astropy.io import ascii
 
-def loadCatalogs(user, cluster):
-    data_dir = '{}/{}/'.format(user, cluster)
+''' specify which round of cluster finding you want to use by calling the function
+with
+
+>>> loadCatalogs(round=1)
+
+for example.
+
+'''
+
+def loadCatalogs(user, cluster, round=1):
+    data_dir = 'round{}/{}/{}/'.format(round, user, cluster)
     table = ascii.read('{}/{}.color'.format(data_dir, cluster))
 
     # convert to pandas
