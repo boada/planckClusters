@@ -18,20 +18,19 @@ BCSpipe/
 SOARpipe/
 MOSAICpipe/LIB/
 CasJobs.config
-results/
+
+results/*
 !results/*.py
 
+sims/plots_gal/
+sims/plots_PS/
+sims/plots/
+cluster_search_redo/
 cluster_search/
+
 # iraf stuff
 uparm
 login.cl
 spec1d_IRAF/
 pyraf/
 
-sims/plots_gal/
-
-sims/plots_PS/
-
-sims/plots/
-
-cluster_search_redo/
