@@ -28,8 +28,8 @@ for i, f in enumerate(files):
 
     mask = mask1 & mask2 & mask3 & ~lowz
 
-#    ax1.scatter(zspec[mask], zphot[mask], c='#a60628', alpha=0.6)
-#    ax2.scatter(zspec[mask], zml[mask], c='#188487', alpha=0.6)
+    #    ax1.scatter(zspec[mask], zphot[mask], c='#a60628', alpha=0.6)
+    #    ax2.scatter(zspec[mask], zml[mask], c='#188487', alpha=0.6)
 
     print(f, zspec[mask].size)
 
@@ -60,7 +60,8 @@ thresh = 5  # density threshold
 
 xdat = specs_all
 
-for ax, ydat, c in zip([ax1, ax2], [phots_all, ml_all], ['#a60628', '#188487']):
+for ax, ydat, c in zip([ax1, ax2], [phots_all, ml_all],
+                       ['#a60628', '#188487']):
 
     # histogram the data
     hh, locx, locy = scipy.histogram2d(xdat, ydat, range=xyrange, bins=bins)
@@ -70,22 +71,22 @@ for ax, ydat, c in zip([ax1, ax2], [phots_all, ml_all], ['#a60628', '#188487']):
     #select points within the histogram
     ind = (posx > 0) & (posx <= bins[0]) & (posy > 0) & (posy <= bins[1])
     hhsub = hh[posx[ind] - 1,
-            posy[ind] - 1]  # values of the histogram where the points are
+               posy[ind] - 1]  # values of the histogram where the points are
     xdat1 = xdat[ind][hhsub < thresh]  # low density points
     ydat1 = ydat[ind][hhsub < thresh]
     hh[hh < thresh] = np.nan  # fill the areas with low density by NaNs
 
-#    ax.scatter(xdat1, ydat1, alpha=0.7, c=c)
+    #    ax.scatter(xdat1, ydat1, alpha=0.7, c=c)
     ax.scatter(xdat, ydat, alpha=0.7, c=c, edgecolors='k')
 #    ax.imshow(hh.T,
 #            cmap='binary',
 #            extent=np.array(xyrange).flatten(),
 #            interpolation='none')
 
-zml = pyl.Line2D((0, 1), (0, 0), color='#188487', marker='o', linestyle='',
-                 label='Z_ML')
-zb = pyl.Line2D((0, 1), (0, 0), color='#a60628', marker='o', linestyle='',
-                 label='Z_B')
+zml = pyl.Line2D(
+    (0, 1), (0, 0), color='#188487', marker='o', linestyle='', label='Z_ML')
+zb = pyl.Line2D(
+    (0, 1), (0, 0), color='#a60628', marker='o', linestyle='', label='Z_B')
 
 ax1.legend([zb], ['z_b'], frameon=True, loc='upper left')
 ax2.legend([zml], ['z_ml'], frameon=True, loc='upper left')
@@ -105,18 +106,17 @@ ax1.set_ylabel('z-bpz')
 ax2.set_yticklabels([])
 ax2.set_xticks([0.25, 0.5, 0.75, 1.0])
 
-
-dz = abs(specs_all - phots_all)/(1 + specs_all)
+dz = abs(specs_all - phots_all) / (1 + specs_all)
 sf = np.sqrt(np.mean(dz**2))
 nmad = 1.48 * np.median(dz)
-olf = np.where(abs(dz) > 5 * nmad)[0].size/dz.size
+olf = np.where(abs(dz) > 5 * nmad)[0].size / dz.size
 
 print(sf, nmad, olf)
 
-dz = abs(specs_all - ml_all)/(1 + specs_all)
+dz = abs(specs_all - ml_all) / (1 + specs_all)
 sf = np.sqrt(np.mean(dz**2))
 nmad = 1.48 * np.median(dz)
-olf = np.where(abs(dz) > 5 * nmad)[0].size/dz.size
+olf = np.where(abs(dz) > 5 * nmad)[0].size / dz.size
 
 print(sf, nmad, olf)
 
