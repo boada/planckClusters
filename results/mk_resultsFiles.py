@@ -15,21 +15,21 @@ def mk_results(round=1, user='boada'):
 
     '''
 
-    files = glob('{}/{}/**/*.info'.format(round, user), recursive=True)
+    files = glob('round{}/{}/**/*.info'.format(round, user), recursive=True)
 
     t = []
     for f in files:
         d = ascii.read(f)
         if isinstance(d['ID_BCG'][0], int64):
             d['ID_BCG'] = d['ID_BCG'].astype('U23')
-            d['ID_BCG'] = '{}_0'.format(f.split('/')[0])
+            d['ID_BCG'] = '{}_0'.format(f.split('/')[-2])
             d['RA'] = d['RA'].astype('U10')
             d['DEC'] = d['DEC'].astype('U10')
         t.append(d)
 
     table = vstack(t)
 
-    table.write('{}/{}/{}_results.csv'.format(round, user, user),
+    table.write('round{}/{}/{}_results.csv'.format(round, user, user),
                 format='ascii.csv')
 
 
@@ -40,3 +40,5 @@ if __name__ == "__main__":
     except IndexError:
         print('specify the `round` and `user`.')
         print('>>> python3 mk_resultsFiles.py 1 boada')
+
+    mk_results(round, user)

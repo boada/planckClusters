@@ -59,7 +59,7 @@ def main():
     m = c.loc[~c['BCG_boada'].isnull()]
 
     for i, row in m.iterrows():
-        mems = loadMembers('boada', row['Name'])
+        mems = loadMembers('boada', row['Name'], round=2)
         ra = mems.loc[mems['ID'] == row['BCG_boada'], 'RA'].values[0]
         dec = mems.loc[mems['ID'] == row['BCG_boada'], 'DEC'].values[0]
         # convert to sexigesimal

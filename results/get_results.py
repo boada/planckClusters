@@ -1,6 +1,7 @@
 import pandas as pd
 from astropy.io import ascii
 from numpy import nan
+import os
 
 ''' specify which round of cluster finding we want use. This can be changed by
 calling
@@ -15,11 +16,11 @@ def loadClusters(confirmed=False, round=1):
 
     users = ['boada', 'felipe', 'doze']
 
-    results = ['round{}/boada/boada_results.txt'.format(round),
-            'round{}/felipe/felipe_results.txt'.format(round),
-            'round{}/doze/doze_results.txt'.format(round)]
+    results = ['round{}/boada/boada_results.csv'.format(round),
+            'round{}/felipe/felipe_results.csv'.format(round),
+            'round{}/doze/doze_results.csv'.format(round)]
     # read in the files
-    tables = [pd.read_table(r, delim_whitespace=True) for r in results]
+    tables = [pd.read_csv(r) for r in results if os.path.isfile(r)]
 
     # clean off the extra columns
     cols = ['RA', 'DEC', 'z_cl', 'Ngal', 'L_i', 'L_iBCG', 'Mr', 'Mi',
