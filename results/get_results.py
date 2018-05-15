@@ -14,13 +14,13 @@ for example.
 
 def loadClusters(confirmed=False, round=1):
 
-    users = ['boada', 'felipe', 'doze']
+    users = ['boada', 'felipe', 'doze', 'jph']
 
-    results = ['round{}/boada/boada_results.csv'.format(round),
-            'round{}/felipe/felipe_results.csv'.format(round),
-            'round{}/doze/doze_results.csv'.format(round)]
+    results = ['round{}/{}/{}_results.csv'.format(round, u, u) for u in users]
+
     # read in the files
-    tables = [pd.read_csv(r) for r in results if os.path.isfile(r)]
+    tables = [pd.read_csv(r) for r in results]
+    #tables = [pd.read_csv(r) for r in results if os.path.isfile(r)]
 
     # clean off the extra columns
     cols = ['RA', 'DEC', 'z_cl', 'Ngal', 'L_i', 'L_iBCG', 'Mr', 'Mi',
@@ -38,28 +38,35 @@ def loadClusters(confirmed=False, round=1):
     # rename the columns
     for i, u in enumerate(users):
         tables[i] = tables[i].rename(columns={'ID_BCG': 'BCG_{}'.format(u),
-                                             'Confidence':
-                                             'Confidence_{}'.format(u),
-                                             'zBCG':
-                                             'zBCG_{}'.format(u)})
+                                             'Confidence': 'Conf_{}'.format(u),
+                                             'zBCG': 'zBCG_{}'.format(u),
+                                             'z_clerr': 'z_clerr_{}'.format(u),
+                                             'Ngal_c': 'Ngal_c_{}'.format(u)})
 
     # merge the first two together
-    df = pd.merge(tables[0], tables[1], how='outer', on=['Cluster'])
-    df = pd.merge(df, tables[2], how='outer', on=['Cluster'])
+    for i in range(len(users) - 1):
+        if not i:
+            df = pd.merge(tables[i], tables[i + 1], how='outer', on=['Cluster'])
+        else:
+            df = pd.merge(df, tables[i + 1], how='outer', on=['Cluster'])
 
     if confirmed:
-        high_conf = ['PSZ2_G145.25+50.84',
-             'PSZ2_G120.76+44.14',
-             'PSZ2_G305.76+44.79',
-             'PSZ2_G029.66-47.63',
-             'PSZ2_G173.76+22.92',
-             'PSZ1_G224.82+13.62',
-             'PSZ2_G048.47+34.86',
-             'PSZ2_G106.11+24.11',
-             'PSZ1_G084.62-15.86',
-             'PSZ2_G125.55+32.72',
-             'PSZ2_G043.44-41.27',
-             'PSZ2_G096.43-20.89']
+        high_conf = ['PSZ1_G206.45+13.89',
+                    'PSZ1_G224.82+13.62',
+                    'PSZ2_G029.66-47.63',
+                    'PSZ2_G043.44-41.27',
+                    'PSZ2_G096.43-20.89',
+                    'PSZ2_G120.76+44.14',
+                    'PSZ2_G125.55+32.72',
+                    'PSZ2_G137.24+53.93',
+                    'PSZ2_G305.76+44.79',
+                    'PSZ2_G107.83-45.45',
+                    'PSZ2_G098.38+77.22',
+                    # added later
+                    'PSZ1_G084.62-15.86',
+                    'PSZ2_G106.11+24.11',
+                    'PSZ2_G173.76+22.92',
+                    'PSZ2_G191.82-26.64']
 
         df = df.loc[df.Cluster.isin(high_conf)]
 
