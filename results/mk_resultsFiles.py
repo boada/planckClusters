@@ -30,7 +30,7 @@ def mk_results(round=1, user='boada'):
     table = vstack(t)
 
     table.write('round{}/{}/{}_results.csv'.format(round, user, user),
-                format='ascii.csv')
+                format='ascii.csv', overwrite=True)
 
 
 if __name__ == "__main__":
