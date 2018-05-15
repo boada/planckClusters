@@ -13,7 +13,7 @@ def main():
     '''
 
     # the confirmed = True gets the 12 confirmed clusters
-    results = loadClusters(confirmed=True)
+    results = loadClusters(round=2, confirmed=True)
 
     # load the master spreadsheet
     t_ss = Table.read('../catalogs/PSZ2_unconfirmed_catalog - current.csv')
@@ -60,17 +60,22 @@ def main():
 
     for i, row in m.iterrows():
         mems = loadMembers('boada', row['Name'], round=2)
-        ra = mems.loc[mems['ID'] == row['BCG_boada'], 'RA'].values[0]
+        try:
+            ra = mems.loc[mems['ID'] == row['BCG_boada'], 'RA'].values[0]
+        except IndexError:
+            continue
         dec = mems.loc[mems['ID'] == row['BCG_boada'], 'DEC'].values[0]
         # convert to sexigesimal
         ra_sex = astCoords.decimal2hms(ra, ':')
         dec_sex = astCoords.decimal2dms(dec, ':')
 
         # write it back into the main frame
-        c.loc[i, 'RA_SEX'] = ra_sex
-        c.loc[i, 'DEC_SEX'] = dec_sex
+        m.loc[i, 'RA_SEX'] = ra_sex
+        m.loc[i, 'DEC_SEX'] = dec_sex
 
-    c.to_latex('table2.tex', index=False, float_format='%0.2f')
+    return m
+
+    #m.to_latex('results_table.tex', index=False, float_format='%0.2f')
 
 
 if __name__ == "__main__":
