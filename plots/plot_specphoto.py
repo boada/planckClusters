@@ -58,7 +58,7 @@ ax1.legend([zb], ['z_b'], frameon=True, loc='upper left')
 ax1.set_xlim(0, 1.0)
 ax1.set_ylim(0, 1.0)
 ax2.set_xlim(0, 1.0)
-ax2.set_ylim(-1, 1.)
+ax2.set_ylim(-0.5, 0.5)
 
 ax1.plot([0, 1], [0, 1], c='k')
 ax2.axhline(0)
