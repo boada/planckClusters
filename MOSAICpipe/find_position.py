@@ -525,7 +525,11 @@ class finder:
 
         # The fitsfile with the wcs information
         self.fitsfile = os.path.join(self.datapath, self.ctile + 'i.fits')
-        self.jpgfile = os.path.join(self.datapath, self.ctile + 'irg.tiff')
+        if os.path.isfile(self.datapath + self.ctile + 'irg.tiff'):
+            self.jpgfile = os.path.join(self.datapath, self.ctile + 'irg.tiff')
+        else:
+            self.jpgfile = os.path.join(self.datapath, self.ctile + '.tiff')
+            print(self.jpgfile)
         t0 = time.time()
         print("Reading %s" % self.jpgfile, file=sys.stderr)
         self.jpg_array = sci_misc.imread(self.jpgfile)
@@ -1878,6 +1882,7 @@ def main():
         opt.dy = 5.1 * 60 / pixelscale
 
     if not os.path.isfile('{}/{}irg.tiff'.format(opt.path, ctile)):
+        print('{}/{}irg.tiff'.format(opt.path, ctile))
         print('RGB image does not exist -- probably only kband data')
         sys.exit()
 
