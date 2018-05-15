@@ -13,7 +13,7 @@ doesn't save those columns by default.
 '''
 
 # the confirmed = True gets the 12 confirmed clusters
-results = loadClusters(confirmed=True, round=2)
+results = loadClusters(round=2)
 
 # load the master spreadsheet
 t_ss = Table.read('../catalogs/PSZ2_unconfirmed_catalog - current.csv')
