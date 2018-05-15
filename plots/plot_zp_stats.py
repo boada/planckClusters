@@ -6,7 +6,7 @@ zpts.sort()
 ax = pyl.subplot(111)
 
 for i, zpt in enumerate(zpts):
-    if not 'PS' in zpt:
+    if 'PS' not in zpt:
         continue
     if '_g' in zpt:
         c = 'g'
@@ -18,23 +18,25 @@ for i, zpt in enumerate(zpts):
         c = 'b'
     if '_K' in zpt:
         c = 'orange'
-    tmp = pyl.genfromtxt(zpt, names=True, dtype=None)
-    zp = tmp['ZP']
-    zp_err = tmp['ZP_sig']
+    tmp = pyl.genfromtxt(zpt, dtype=None)
+    zp = float(tmp['f11'])
+    zp_err = float(tmp['f12'])
     if zp_err > 0.3:
         print(zpt)
     if not zp == 0.0 or zp_err == 0.0:
-        cat = tmp['6'] # the data file reference by column number
-        if 'sdss' in cat.tostring().decode().lower():
+        # the data file reference by column number
+        cat = tmp['f15'].flatten()[0].decode()
+        if 'sdss' in cat.lower():
             marker = 'o'
-        if 'panstarrs' in cat.tostring().decode().lower():
+        if 'panstarrs' in cat.lower():
             marker = 'v'
-        if 'apass' in cat.tostring().decode().lower():
+        if 'apass' in cat.lower():
             marker = 'P'
-        if '2mass' in cat.tostring().decode().lower():
+        if '2mass' in cat.lower():
             marker = 'D'
-
         ax.scatter(zp_err, zp, c=c, marker=marker)
+    print(zp, zp_err)
+
 pyl.semilogx()
 pyl.xlim(0.02, 4.5)
 pyl.ylim(22, 33)
@@ -47,17 +49,24 @@ g = pyl.Line2D((0, 1), (0, 0), color='g', marker='o', linestyle='', label='g')
 r = pyl.Line2D((0, 1), (0, 0), color='r', marker='o', linestyle='', label='r')
 i = pyl.Line2D((0, 1), (0, 0), color='k', marker='o', linestyle='', label='i')
 z = pyl.Line2D((0, 1), (0, 0), color='b', marker='o', linestyle='', label='z')
-K = pyl.Line2D((0, 1), (0, 0), color='orange', marker='o', linestyle='',
-               label='k')
+K = pyl.Line2D(
+    (0, 1), (0, 0), color='orange', marker='o', linestyle='', label='k')
 # surveys
-sloan = pyl.Line2D((0, 1), (0, 0), color='0.6', marker='o', linestyle='', label='z')
-ps = pyl.Line2D((0, 1), (0, 0), color='0.6', marker='v', linestyle='', label='z')
-apa = pyl.Line2D((0, 1), (0, 0), color='0.6', marker='P', linestyle='', label='z')
-twomass = pyl.Line2D((0, 1), (0, 0), color='0.6', marker='D', linestyle='', label='z')
+sloan = pyl.Line2D(
+    (0, 1), (0, 0), color='0.6', marker='o', linestyle='', label='z')
+ps = pyl.Line2D(
+    (0, 1), (0, 0), color='0.6', marker='v', linestyle='', label='z')
+apa = pyl.Line2D(
+    (0, 1), (0, 0), color='0.6', marker='P', linestyle='', label='z')
+twomass = pyl.Line2D(
+    (0, 1), (0, 0), color='0.6', marker='D', linestyle='', label='z')
 
-pyl.legend([g, r, i, z, K, sloan, ps, apa, twomass], ['g', 'r', 'i', 'z', 'K', 'sdss', 'PS',
-                                          'apass', '2mass'], ncol=2, frameon=True)
+pyl.legend(
+    [g, r, i, z, K, sloan, ps, apa, twomass],
+    ['g', 'r', 'i', 'z', 'K', 'sdss', 'PS', 'apass', '2mass'],
+    ncol=2,
+    frameon=True)
 
-pyl.legend()
+#pyl.legend()
 
 pyl.show()
