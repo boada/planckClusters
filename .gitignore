@@ -23,6 +23,7 @@ results/*
 !results/*.py
 
 sims/plots_gal/
+sims/plots_gal_small/
 sims/plots_PS/
 sims/plots/
 cluster_search_redo/
@@ -34,3 +35,5 @@ login.cl
 spec1d_IRAF/
 pyraf/
 
+
+catalogs/merge_cats_ipy\.py
