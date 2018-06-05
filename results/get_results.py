@@ -1,7 +1,6 @@
 import pandas as pd
 from astropy.io import ascii
 from numpy import nan
-import os
 
 ''' specify which round of cluster finding we want use. This can be changed by
 calling
@@ -23,7 +22,7 @@ def loadClusters(confirmed=False, round=1):
     #tables = [pd.read_csv(r) for r in results if os.path.isfile(r)]
 
     # clean off the extra columns
-    cols = ['RA', 'DEC', 'z_cl', 'Ngal', 'L_i', 'L_iBCG', 'Mr', 'Mi',
+    cols = ['RA', 'DEC', 'Ngal', 'L_i', 'L_iBCG', 'Mr', 'Mi',
             'r', 'i', 'p_BCG', 'R[kpc]', 'area[%]']
 
     tables = [t.drop(cols, axis=1) for t in tables]
@@ -40,6 +39,7 @@ def loadClusters(confirmed=False, round=1):
         tables[i] = tables[i].rename(columns={'ID_BCG': 'BCG_{}'.format(u),
                                              'Confidence': 'Conf_{}'.format(u),
                                              'zBCG': 'zBCG_{}'.format(u),
+                                             'z_cl': 'z_cl_{}'.format(u),
                                              'z_clerr': 'z_clerr_{}'.format(u),
                                              'Ngal_c': 'Ngal_c_{}'.format(u)})
 
