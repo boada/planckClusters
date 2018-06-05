@@ -59,7 +59,7 @@ class simgal(object):
 
         self.pipeline = '/home/boada/Projects/planckClusters/MOSAICpipe'
         # The input datapath
-        self.datapath = '/home/boada/Projects/planckClusters/data/proc2'
+        self.datapath = '/home/boada/Projects/planckClusters/data/proc2_small'
         # The output datapath
         self.outpath = '/home/boada/Projects/planckClusters/data/sims'
 
@@ -130,10 +130,10 @@ class simgal(object):
         artdata.gallist.interactive = "no"  # Interactive mode?
         # Spatial density function (uniform|hubble|file)
         artdata.gallist.spatial = "uniform"
-        artdata.gallist.xmin = 1050  # Minimum x coaordinate value
-        artdata.gallist.xmax = 1950  # Maximum x coordinate value
-        artdata.gallist.ymin = 1050  # Minimum y coordinate value
-        artdata.gallist.ymax = 1950  # Maximum y coordinate value
+        artdata.gallist.xmin = 100  # Minimum x coaordinate value
+        artdata.gallist.xmax = 4700  # Maximum x coordinate value
+        artdata.gallist.ymin = 100  # Minimum y coordinate value
+        artdata.gallist.ymax = 4700  # Maximum y coordinate value
         # Seed for sampling the spatial probability function
         artdata.gallist.sseed = sseed
 
@@ -183,9 +183,10 @@ class simgal(object):
 
         # only get part of the total image
         # this will speed up the sextractor run
-        limit = 1000 # make a 2000x2000 final image
-        image = image[image.shape[1] // 2 - limit: image.shape[1] // 2 + limit,
-                    image.shape[0] // 2 - limit: image.shape[0] // 2 + limit]
+        # this is not needed because we are using the small data
+        # limit = 1000 # make a 2000x2000 final image
+        # image = image[image.shape[1] // 2 - limit: image.shape[1] // 2 + limit,
+        #           image.shape[0] // 2 - limit: image.shape[0] // 2 + limit]
 
         xsize, ysize = image.shape
 
@@ -405,12 +406,12 @@ def main():
     dm = 0.2
     Ngal = 100
     N = 4
-    filters = ['g', 'r', 'i', 'z', 'K']
+    filters = ['g', 'r', 'i', 'z']
 
     for filt in filters:
 
         # The fields to be used
-        data_dir = '/home/boada/Projects/planckClusters/data/proc2/'
+        data_dir = '/home/boada/Projects/planckClusters/data/proc2_small/'
         files = glob('{}PSZ*/PSZ*{}.fits'.format(data_dir, filt), recursive=True)
         fields = [f.split('/')[-2] for f in files]
 

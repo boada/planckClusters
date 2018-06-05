@@ -19,7 +19,7 @@ m2 = 26.0
 dm = 0.2
 Niter = 4
 filter = 'i'
-path = '/home/boada/Projects/planckClusters/data/sims/Catalogs_Gal'
+path = '/home/boada/Projects/planckClusters/data/sims/Catalogs_Gal_big'
 files = glob('{}/PSZ*{}.mch'.format(path, filter))
 fields = [f.split('/')[-1][:-5] for f in files]
 
@@ -76,7 +76,11 @@ for f in fields:
 
         # plot the 80% completeness lines
         func = interpolate.interp1d(frac, mag)
-        axPlot.axvline(func(0.8), lw=1, color=c[ii], zorder=0)
+        try:
+            axPlot.axvline(func(0.8), lw=1, color=c[ii], zorder=0)
+        except ValueError:
+            # there is a problem with the recovery data -- just keep going
+            continue
 
     xmin = m1
     xmax = m2
