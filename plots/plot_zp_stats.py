@@ -5,6 +5,9 @@ zpts = glob('./**/photometry*.dat', recursive=True)
 zpts.sort()
 ax = pyl.subplot(111)
 
+zp_all = []
+zp_err_all = []
+
 for i, zpt in enumerate(zpts):
     if 'PS' not in zpt:
         continue
@@ -24,6 +27,8 @@ for i, zpt in enumerate(zpts):
     if zp_err > 0.3:
         print(zpt)
     if not zp == 0.0 or zp_err == 0.0:
+        zp_all.append(zp)
+        zp_err_all.append(zp_err)
         # the data file reference by column number
         cat = tmp['f15'].flatten()[0].decode()
         if 'sdss' in cat.lower():
