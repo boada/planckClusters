@@ -38,7 +38,9 @@ for i, f in enumerate(files):
 
     lowz = tmp['Z_B'][mask] <= 0.03
 
-    print(tmp['ID'][mask][lowz][:5])
+    badz = zspec[mask] - zphot[mask] > 0.2
+
+    print(tmp['ID'][mask][badz][:5])
 
     # make some big arrays so we can calculate some statistics
     try:
