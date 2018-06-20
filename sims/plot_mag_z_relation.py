@@ -37,7 +37,7 @@ def mag_lim_hist(axes):
     dm = 0.2
     Niter = 4
     filter = 'i'
-    path = '/home/boada/Projects/planckClusters/data/sims/Catalogs_Gal'
+    path = '../data/sims/Catalogs_Gal_small/'
     files = glob('{}/PSZ*{}.mch'.format(path, filter))
     fields = [f.split('/')[-1][:-5] for f in files]
 
