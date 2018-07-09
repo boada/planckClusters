@@ -76,34 +76,30 @@ class counts(object):
     def get_dndz(self, Mlim):
 
         # 1 stdrad = (180/pi)**2 square-deg
-        sterad2degsq = old_div(1, (old_div(180, math.pi))**2)
+        sterad2degsq = 1. / (180. / math.pi)**2
 
-        z = self.zx
-        dNdz = self.zx * 0.0
-        Nsum = self.zx * 0.0
+        dNdz = numpy.zeros_like(self.zx)
+        Nsum = numpy.zeros_like(self.zx)
 
         # Set the distance object
         c = cosmopy.set((self.Om, self.OL, self.h))
-        dV = c.dvol_comov(z)  # Mpc^3/dz/strad
+        dV = c.dvol_comov(self.zx)  # Mpc^3/dz/strad
+
+        if not isinstance(Mlim, (list, numpy.ndarray, tuple)):
+            Mlim = numpy.ones_like(self.zx) * Mlim
 
         cumsum = 0.0
-        for i in range(len(z)):
+        print(Mlim)
+        for i in range(self.zx.size):
 
             # Spline integration
-            nc = spline_integral(self.M, self.dndM[i], x1=Mlim)
-            # Trapezoidal integration -- not very good
-            #x  = self.M[self.M>Mlim]
-            #y  = self.dndM[i][self.M>Mlim]
-            #dx = numpy.gradient(x)
-            #nc = (y*dx).sum()
-            #nc    = scipy.integrate.trapz(y,x)
+            nc = spline_integral(self.M, self.dndM[i], x1=Mlim[i])
             if nc < 0:
                 nc = 0
             dNdz[i] = dV[i] * nc * sterad2degsq
-            cumsum = cumsum + dNdz[i] * self.dz
+            cumsum += dNdz[i] * self.dz
             Nsum[i] = cumsum
-            #print "%8.2f %10.5e %10.5e" %  (z[i],dNdz[i],Nsum[i])
-            #print "%8.2f %10.5e" %  (z[i],dNdz[i])
+            #Nsum[i] = dNdz[i] * self.dz
 
         return dNdz, Nsum
 
@@ -116,10 +112,10 @@ class counts(object):
         self.dz = dz
 
         z = self.zx
-        n = len(z)
+        n = self.zx.size
         dndM = []
         for i in range(n):
-            print("# Doing z:%s" % z[i], file=sys.stderr)
+            print("# Doing z:%.4f" % z[i], file=sys.stderr)
             x, y = self.run_dndM(z[i], delta=delta)
             dndM.append(y)
 
