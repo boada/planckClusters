@@ -35,5 +35,9 @@ login.cl
 spec1d_IRAF/
 pyraf/
 
+# ignore plots/images
+*.pdf
+*.png
+
 
 catalogs/merge_cats_ipy\.py
