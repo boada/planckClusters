@@ -67,15 +67,26 @@ for i, cluster in enumerate(confirmed['Cluster']):
     gc.recenter(results.iloc[i]['RA BCG'], results.iloc[i]['DEC BCG'],
                 window / 3600)
 
+    # add stroke around the line
+    gc.show_circles(confirmed.iloc[i]['RA'], confirmed.iloc[i]['DEC'], 2 / 60,
+                    linestyle='--', edgecolor='white', facecolor='none',
+                    linewidth=1.5)
+    gc.show_circles(confirmed.iloc[i]['RA'], confirmed.iloc[i]['DEC'], 5 / 60,
+                    linestyle='-', edgecolor='white', facecolor='none',
+                    linewidth=1.5)
+
     # add the circles
     gc.show_circles(confirmed.iloc[i]['RA'], confirmed.iloc[i]['DEC'], 2 / 60,
-                    linestyle='--', edgecolor='#188487', facecolor='none')
+                    linestyle='--', edgecolor='#a60628', facecolor='none')
     gc.show_circles(confirmed.iloc[i]['RA'], confirmed.iloc[i]['DEC'], 5 / 60,
-                    linestyle='-', edgecolor='#188487', facecolor='none')
+                    linestyle='-', edgecolor='#a60628', facecolor='none')
 
     # add the source position
     gc.show_markers(confirmed.iloc[i]['RA'], confirmed.iloc[i]['DEC'],
-                    marker='*', s=150, layer='psz', color='#188487')
+                    marker='*', s=150, layer='psz', color='white',
+                    linewidth=1.5)
+    gc.show_markers(confirmed.iloc[i]['RA'], confirmed.iloc[i]['DEC'],
+                    marker='*', s=150, layer='psz', color='#a60628')
 
     # add extra info
     gc.add_scalebar(1 / 60, color='w', label="$1'$")
