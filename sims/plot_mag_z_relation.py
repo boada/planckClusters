@@ -17,9 +17,9 @@ def mag_z(axes):
     mstar_sub = mstar - 2.5 * numpy.log10(0.4)
     BCG = mstar - 2.5 * numpy.log10(LBCG)
 
-    axes.plot(z, mstar, 'k-', linewidth=3, label='$L_\star$ galaxy')
-    axes.plot(z, mstar_sub, 'k--', linewidth=1, label='$0.4L_\star$ galaxy')
-    axes.plot(z, BCG, 'k-', linewidth=1, label='$%dL_\star$ (BCG)' % LBCG)
+    axes.plot(z, mstar_sub, 'k-', linewidth=0.5, label='$0.4L_\star$ galaxy')
+    axes.plot(z, mstar, 'k-', linewidth=1.5, label='$L_\star$ galaxy')
+    axes.plot(z, BCG, 'k-', linewidth=2.5, label='$%dL_\star$ (BCG)' % LBCG)
     axes.set_xlabel('Redshift')
     axes.set_ylabel('i magnitude')
 
@@ -33,9 +33,9 @@ def mag_z(axes):
 def mag_lim_hist(axes):
     Ngal_o = 100
     m1 = 20.0
-    m2 = 26.0
+    m2 = 25.0
     dm = 0.2
-    Niter = 4
+    Niter = 10
     filter = 'i'
     path = '../data/sims/Catalogs_Gal_small/'
     files = glob('{}/PSZ*{}.mch'.format(path, filter))
