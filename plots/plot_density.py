@@ -14,11 +14,12 @@ def calc_completeness():
 
     Ngal_o = 100
     m1 = 20.0
-    m2 = 26.0
+    m2 = 25.0
     dm = 0.2
-    Niter = 4
+    Niter = 10
     filter = 'i'
     path = '../data/sims/Catalogs_Gal_small/'
+    #path = '../data/sims/Catalogs_Gal_big/'
     mag = numpy.arange(m1, m2, dm)
 
     completeness = []

@@ -69,10 +69,12 @@ class simgal(object):
             os.environ['PIPE'] = os.path.join(self.pipeline)
 
         mx = numpy.arange(m1, m2, dm)
+
+        sseed = numpy.random.randint(1000)
         for mag in mx:
             for i in range(N):
                 self.iter = i + 1
-                self.make_gallist(mag, sseed=i + 1)
+                self.make_gallist(mag, sseed=sseed + 1)
 
         return
 
@@ -130,10 +132,10 @@ class simgal(object):
         artdata.gallist.interactive = "no"  # Interactive mode?
         # Spatial density function (uniform|hubble|file)
         artdata.gallist.spatial = "uniform"
-        artdata.gallist.xmin = 100  # Minimum x coaordinate value
-        artdata.gallist.xmax = 4700  # Maximum x coordinate value
-        artdata.gallist.ymin = 100  # Minimum y coordinate value
-        artdata.gallist.ymax = 4700  # Maximum y coordinate value
+        artdata.gallist.xmin = 300  # Minimum x coaordinate value
+        artdata.gallist.xmax = 4500  # Maximum x coordinate value
+        artdata.gallist.ymin = 300  # Minimum y coordinate value
+        artdata.gallist.ymax = 4500  # Maximum y coordinate value
         # Seed for sampling the spatial probability function
         artdata.gallist.sseed = sseed
 
@@ -402,10 +404,10 @@ def main():
 
     # Initialize the function
     m1 = 20
-    m2 = 26
+    m2 = 25
     dm = 0.2
     Ngal = 100
-    N = 4
+    N = 10
     filters = ['g', 'r', 'i', 'z']
 
     for filt in filters:
@@ -415,11 +417,9 @@ def main():
         files = glob('{}PSZ*/PSZ*{}.fits'.format(data_dir, filt), recursive=True)
         fields = [f.split('/')[-2] for f in files]
 
-        #fields = ['PSZ1_G031.91+67.94', ]
-        #fields = ['PSZ2_G125.55+32.72', ]
-        #fields = ['PSZ2_G043.44-41.27', 'PSZ2_G029.66-47.63', ]
-        #fields = ['PSZ2_G189.79-37.25']
-        #fields = ['PSZ1_G183.26+12.25']
+        #fields = ['PSZ2_G189.79-37.25', 'PSZ2_G044.83+10.02',
+        #           'PSZ2_G065.35-08.01', 'PSZ2_G047.53+08.55',
+        #           'PSZ1_G183.26+12.25']
 
         # Initialize the class
         sim = simgal(filter=filt, m1=m1, m2=m2, dm=dm, Ngal=Ngal, N=N)
