@@ -38,13 +38,14 @@ def mag_lim_hist(axes):
     Niter = 10
     filter = 'i'
     path = '../data/sims/Catalogs_Gal_small/'
-    files = glob('{}/PSZ*{}.mch'.format(path, filter))
-    fields = [f.split('/')[-1][:-5] for f in files]
+
+    # find all of the fields we have hunted
+    imgs = glob('../cluster_search/round2/PSZ*/**/*A.png', recursive=True)
+    fields = [i.split('/')[-2] for i in imgs]
 
     mag = numpy.arange(m1, m2, dm)
 
     completeness = []
-    completeness_low = []
     for f in fields:
         frac = numpy.zeros_like(mag)
         Ngal = Ngal_o * Niter
@@ -62,10 +63,10 @@ def mag_lim_hist(axes):
         try:
             completeness.append(func(0.8))
         except ValueError:
-            completeness_low.append(mag[numpy.argmax(frac)])
+            completeness.append(mag[numpy.argmax(frac)])
 
-    axes.hist(completeness, bins=mag)
-    axes.hist(completeness_low, bins=mag)
+    axes.hist(completeness, bins=mag, color='#348abd')
+    #axes.hist(completeness_low, bins=mag, color='#348abd')
     axes.set_ylabel('$N_{fields}$')
     axes.set_xlabel("$i'$ 80% Limit")
 
