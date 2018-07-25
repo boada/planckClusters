@@ -3,9 +3,10 @@ import matplotlib.pyplot as plt
 from get_results import loadClusters, loadMembers
 from astLib import astCalc
 from astropy.table import Table
+import matplotlib.patheffects as pe
 
 
-data_dir = '/home/boada/Projects/planckClusters/data/proc2_small/'
+data_dir = './../data/proc2_small/'
 
 # the confirmed = True gets the 15 confirmed clusters
 results = loadClusters(round=2, confirmed=True)
@@ -23,9 +24,6 @@ for i, row in results.iterrows():
     except IndexError:
         continue
     dec = mems.loc[mems['ID'] == row['BCG_boada'], 'DEC'].values[0]
-    # convert to sexigesimal -- don't need
-#    ra_sex = astCoords.decimal2hms(ra, ':')
-#    dec_sex = astCoords.decimal2dms(dec, ':')
 
     # write it back into the main frame
     results.loc[i, 'RA BCG'] = ra
@@ -39,8 +37,6 @@ confirmed = results.merge(observed, left_on='Cluster', right_on='Name',
 # number of panels per figure
 panels = 4
 no_figures = len(results) // panels + 1
-
-#figures = [plt.figure(i, figsize=(20, 20)) for i in range(no_figures)]
 
 
 for i, cluster in enumerate(confirmed['Cluster']):
@@ -67,26 +63,21 @@ for i, cluster in enumerate(confirmed['Cluster']):
     gc.recenter(results.iloc[i]['RA BCG'], results.iloc[i]['DEC BCG'],
                 window / 3600)
 
-    # add stroke around the line
-    gc.show_circles(confirmed.iloc[i]['RA'], confirmed.iloc[i]['DEC'], 2 / 60,
-                    linestyle='--', edgecolor='white', facecolor='none',
-                    linewidth=1.5)
-    gc.show_circles(confirmed.iloc[i]['RA'], confirmed.iloc[i]['DEC'], 5 / 60,
-                    linestyle='-', edgecolor='white', facecolor='none',
-                    linewidth=1.5)
-
     # add the circles
     gc.show_circles(confirmed.iloc[i]['RA'], confirmed.iloc[i]['DEC'], 2 / 60,
-                    linestyle='--', edgecolor='#a60628', facecolor='none')
+                    linestyle='--', edgecolor='#e24a33', facecolor='none',
+                    path_effects=[pe.Stroke(linewidth=1.2, foreground='white'),
+                                  pe.Normal()])
     gc.show_circles(confirmed.iloc[i]['RA'], confirmed.iloc[i]['DEC'], 5 / 60,
-                    linestyle='-', edgecolor='#a60628', facecolor='none')
+                    linestyle='-', edgecolor='#e24a33', facecolor='none',
+                    path_effects=[pe.Stroke(linewidth=1.2, foreground='white'),
+                                  pe.Normal()])
 
-    # add the source position
+    # add the marker
     gc.show_markers(confirmed.iloc[i]['RA'], confirmed.iloc[i]['DEC'],
-                    marker='*', s=150, layer='psz', color='white',
-                    linewidth=1.5)
-    gc.show_markers(confirmed.iloc[i]['RA'], confirmed.iloc[i]['DEC'],
-                    marker='*', s=150, layer='psz', color='#a60628')
+                    marker='*', s=150, layer='psz', edgecolor='#e24a33',
+                    path_effects=[pe.Stroke(linewidth=1.2,
+                                            foreground='white'), pe.Normal()])
 
     # add extra info
     gc.add_scalebar(1 / 60, color='w', label="$1'$")
