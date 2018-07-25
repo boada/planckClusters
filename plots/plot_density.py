@@ -51,7 +51,7 @@ def calc_completeness_dndm():
     return completeness_dndm
 
 
-def calc_completeness_hist():
+def calc_completeness_hist(fields, figure=True):
     ''' Calculates the completeness using a histogram. '''
 
     from astropy.io import ascii
@@ -120,8 +120,9 @@ def calc_completeness_hist():
         ax.set_title(f)
 
         plt.tight_layout()
-
-        plt.savefig('./completeness_plots/{}_model.png'.format(f), bbox='tight')
+        if figure:
+            plt.savefig('./completeness_plots/{}_model.png'.format(f),
+                        bbox='tight')
 
         plt.close()
 
@@ -223,4 +224,25 @@ n2, bins, patches = axs.hist(conf, bins=bins, orientation='horizontal',
 ax.set_ylabel('Object Density (arcmin$^{-2}$)')
 ax.set_xlabel('Limiting i Magnitude')
 axs.set_xlabel('N$_{fields}$')
+
+# add the scatter portion
+mag_lim = calc_completeness_hist(fields, figure=False)
+
+ax.scatter(mag_lim, numPerArcmin, color='#348abd', label='Observed')
+c = numpy.array(mag_lim)
+c = c.ravel()
+conf_mag = [c[fields.index(hc)] for hc in high_conf]
+ax.scatter(conf_mag, conf, s=150, marker='*', color='#e24a33',
+           label='Confirmed')
+
+# finish the plot
+ax.set_yticks(numpy.arange(-10, 90, 20))
+ax.set_ylim(0, 85)
+axs.set_yticks(numpy.arange(-10, 90, 20))
+axs.set_ylim(0, 85)
+axs.grid()
+axs.set_yticklabels([])
+
+
+
 
