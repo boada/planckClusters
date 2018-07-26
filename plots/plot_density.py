@@ -51,7 +51,7 @@ def calc_completeness_dndm():
     return completeness_dndm
 
 
-def calc_completeness_hist(fields, figure=True):
+def calc_completeness_model(fields, figure=True):
     ''' Calculates the completeness using a histogram. '''
 
     from astropy.io import ascii
@@ -169,7 +169,7 @@ def calc_completeness():
 
 
 # find all of the fields we have hunted
-imgs = glob('../cluster_search/round2/PSZ*/**/*A.png', recursive=True)
+imgs = glob('./../cluster_search/round2/PSZ*/**/*A.png', recursive=True)
 fields = [i.split('/')[-2] for i in imgs]
 
 # make some stuff before we get going
@@ -226,7 +226,7 @@ ax.set_xlabel('Limiting i Magnitude')
 axs.set_xlabel('N$_{fields}$')
 
 # add the scatter portion
-mag_lim = calc_completeness_hist(fields, figure=False)
+mag_lim = calc_completeness_model(fields, figure=False)
 
 ax.scatter(mag_lim, numPerArcmin, color='#348abd', label='Observed')
 c = numpy.array(mag_lim)
