@@ -28,45 +28,53 @@ for i, f in enumerate(fields):
     # remove non-specz's
     cat = cat.loc[cat['Z_S'].notnull()]
 
+    # and really high-z's
+    cat = cat.loc[cat['Z_S'] < 1.1]
+
     # only ellipticals
     cat = cat.loc[cat['T_B'] < 2]
+    cat = cat.loc[cat['T_ML'] < 2]
+
+    # only actually good photo-z's
+    cat = cat.loc[cat['Z_B'] >= 0.03]
 
     # create a new column to store the "final" Redshift
     cat['redshift'] = np.nan
 
-    # put the Z_MLs where T_ML and T_B are both type 1.000. Where they are not
-    # both class 1.000 then we should use the Z_B redshift
-    cat['redshift'] = np.where((cat.T_B == 1) & (cat.T_ML == 1), cat.Z_ML,
+    # put the Z_MLs where T_ML and T_B are similar. When they're not close we
+    # use the Z_B value
+    cat['redshift'] = np.where(np.abs(cat.T_B - cat.T_ML) < 0.7, cat.Z_ML,
                                cat.Z_B)
+
+    # if the redshift > 1 use the Z_B
+    cat['redshift'] = np.where((cat.redshift >= 1), cat.Z_B,
+                               cat.redshift)
+
+    # if the redshift < 0.05 use the Z_ML
+    cat['redshift'] = np.where((cat.Z_B == 0.03), cat.Z_B,
+                               cat.redshift)
 
     # originally just Z_B
     #cat['redshift'] = cat.Z_B
-
-    #zphot = tmp['Z_B']
-    #mask1 = tmp['Z_S'] != -99.
-    #mask2 = tmp['T_B'] < 2
-    #mask3 = tmp['ODDS'] > 0.7
-    #lowz = tmp['Z_B'] <= 0.03
+    #cat['redshift'] = cat.Z_ML
 
     zspec = cat.loc[cat['Z_S'].notnull(), 'Z_S']
     zphot = cat.loc[cat['Z_S'].notnull(), 'redshift']
 
-    #mask = mask1 & mask2 & mask3 & ~lowz
-
-    ax1.scatter(zspec, zphot, c='#e24a33', alpha=0.6,
-                edgecolor='none')
-    ax2.scatter(zspec, zspec - zphot, c='#e24a33', alpha=0.6,
-               edgecolor='none')
-
     print(f, zspec.size)
+    # no specz's?
+    if not zspec.size:
+        continue
+
+    ax1.scatter(zspec, zphot, c='#348abd', alpha=0.6,
+                edgecolor='none')
+    ax2.scatter(zspec, zspec - zphot, c='#348abd', alpha=0.6,
+               edgecolor='none')
 
     gals += zspec.size
 
-    #lowz = tmp['Z_B'][mask] <= 0.03
-
-    #badz = zspec[mask] - zphot[mask] > 0.2
-
-    #print(tmp['ID'][mask][badz][:5])
+    print(cat.loc[(np.abs(cat.Z_S - cat.redshift) > 0.2),
+                  ['ID', 'Z_B', 'Z_ML', 'T_B', 'T_ML', 'Z_S', 'redshift']])
 
     # make some big arrays so we can calculate some statistics
     try:
@@ -78,10 +86,10 @@ for i, f in enumerate(fields):
     except NameError:
         phots_all = zphot
 
-zb = pyl.Line2D((0, 1), (0, 0), color='#e24a33', marker='o', linestyle='',
-                 label='Z_B')
+#zb = pyl.Line2D((0, 1), (0, 0), color='#e24a33', marker='o', linestyle='',
+#                 label='Z_B')
 
-ax1.legend([zb], ['z_b'], frameon=True, loc='upper left')
+#ax1.legend([zb], ['z_b'], frameon=True, loc='upper left')
 
 ax1.set_xlim(0, 1.0)
 ax1.set_ylim(0, 1.0)
