@@ -66,11 +66,6 @@ for i, f in enumerate(fields):
     if not zspec.size:
         continue
 
-    ax1.scatter(zspec, zphot, c='#348abd', alpha=0.6,
-                edgecolor='none')
-    ax2.scatter(zspec, zspec - zphot, c='#348abd', alpha=0.6,
-               edgecolor='none')
-
     gals += zspec.size
 
     print(cat.loc[(np.abs(cat.Z_S - cat.redshift) > 0.2),
@@ -86,10 +81,63 @@ for i, f in enumerate(fields):
     except NameError:
         phots_all = zphot
 
-#zb = pyl.Line2D((0, 1), (0, 0), color='#e24a33', marker='o', linestyle='',
-#                 label='Z_B')
+# here we set up the binned density parts of the plot
+bins = [25, 25]
+extent = [[0.0, 1.0], [0.0, 1.0]]
+thresh = 3
 
-#ax1.legend([zb], ['z_b'], frameon=True, loc='upper left')
+# do all of the plotting
+xdat = specs_all
+ydat = phots_all
+
+hh, locx, locy = np.histogram2d(xdat, ydat, range=extent, bins=bins)
+posx = np.digitize(xdat, locx)
+posy = np.digitize(ydat, locy)
+
+# finds the bins which contain points. posx = 0 for points outside "range"
+ind = (posx > 0) & (posx <= bins[0]) & (posy > 0) & (posy <= bins[1])
+# values of histogram with points in the bins.
+hhsub = hh[posx[ind] - 1, posy[ind] - 1]
+
+xdat1 = xdat[ind][hhsub < thresh]  # low density points
+ydat1 = ydat[ind][hhsub < thresh]
+hh[hh < thresh] = np.nan  # fill the areas with low density by NaNs
+
+ax1.imshow(hh.T, cmap='Blues', extent=np.array(extent).flatten(),
+    interpolation=None)
+
+ax1.scatter(xdat1, ydat1, c='#348abd', alpha=0.6, edgecolor='none', s=12)
+
+# set the scale for bottom figure
+vmin = 0
+vmax = np.nanmax(hh)
+
+### Now for the bottom
+bins = [25, 25]
+extent = [[0.0, 1.0], [-0.5, 0.5]]
+thresh = 3
+
+# do all of the plotting
+xdat = specs_all
+ydat = specs_all - phots_all
+
+hh, locx, locy = np.histogram2d(xdat, ydat, range=extent, bins=bins)
+posx = np.digitize(xdat, locx)
+posy = np.digitize(ydat, locy)
+
+# finds the bins which contain points. posx = 0 for points outside "range"
+ind = (posx > 0) & (posx <= bins[0]) & (posy > 0) & (posy <= bins[1])
+# values of histogram with points in the bins.
+hhsub = hh[posx[ind] - 1, posy[ind] - 1]
+
+xdat1 = xdat[ind][hhsub < thresh]  # low density points
+ydat1 = ydat[ind][hhsub < thresh]
+hh[hh < thresh] = np.nan  # fill the areas with low density by NaNs
+
+ax2.imshow(hh.T, cmap='Blues', extent=pyl.array(extent).flatten(),
+    interpolation=None, vmin=vmin, vmax=vmax)
+
+ax2.scatter(xdat1, ydat1, c='#348abd', alpha=0.6, edgecolor='none', s=12)
 
 ax1.set_xlim(0, 1.0)
 ax1.set_ylim(0, 1.0)
