@@ -22,12 +22,11 @@ def mag_z(axes):
     axes.plot(z, mstar, 'k-', linewidth=1.5, label='$L_\star$ galaxy')
     axes.plot(z, BCG, 'k-', linewidth=2.5, label='$%dL_\star$ (BCG)' % LBCG)
     axes.set_xlabel('Redshift')
-    axes.set_ylabel('i magnitude')
 
     axes.legend(loc='lower right', fancybox=True, shadow=True)
 
     axes.set_xlim(0.05, 1.5)
-    axes.set_ylim(16.5, 26)
+    axes.set_ylim(20, 26)
 
     return
 
@@ -121,10 +120,12 @@ def mag_lim_hist(axes):
         except ValueError:
             completeness.append(mag[numpy.argmax(frac)])
 
-    axes.hist(completeness, bins=mag, color='#348abd')
+    axes.hist(completeness, bins=mag, color='#348abd', orientation='horizontal')
     #axes.hist(completeness_low, bins=mag, color='#348abd')
-    axes.set_ylabel('$N_{fields}$')
-    axes.set_xlabel("$i'$ 80% Limit")
+    #axes.set_ylabel('$N_{fields}$')
+    axes.set_xlabel('$N_{fields}$')
+
+    return axes
 
 def mag_lim_hist_model(axes):
     m1 = 20.0
@@ -138,9 +139,15 @@ def mag_lim_hist_model(axes):
 
     completeness = calc_completeness_model(fields)
 
-    axes.hist(completeness, bins=mag, color='#348abd')
-    axes.set_ylabel('$N_{fields}$')
-    axes.set_xlabel("$i'$ 80% Limit")
+    axes.hist(completeness, bins=mag, color='#348abd',
+              orientation='horizontal', histtype='stepfilled', zorder=3)
+    # flip the axis
+    axes.invert_xaxis()
+    axes.set_ylim(20, 26)
+    axes.set_xlabel('$N_{fields}$')
+    axes.set_ylabel('Limiting i Magnitude')
+
+    return axes
 
 # observed mi_star as a function of redshift
 def mi_star_evol(z, h=0.7, cosmo=(0.3, 0.7, 0.7)):
@@ -200,11 +207,15 @@ def KEfit(modelfile):
 
 if __name__ == "__main__":
 
-    fig, axes = plt.subplots(ncols=2,
-                             squeeze=True,
-                             figsize=(7, 7 * (numpy.sqrt(5.) - 1.0) / 2.0))
-    mag_lim_hist_model(axes[0])
-    mag_z(axes[1])
+    f = plt.figure(figsize=(7, 7 * (numpy.sqrt(5.) - 1.0) / 2.0))
+    ax = plt.subplot2grid((1, 4), (0, 0), colspan=2)
+    axs = plt.subplot2grid((1, 4), (0, 2), colspan=2)
+
+#    fig, axes = plt.subplots(ncols=2,
+#                             squeeze=True,
+#                             figsize=(7, 7 * (numpy.sqrt(5.) - 1.0) / 2.0))
+    ax = mag_lim_hist_model(ax)
+    mag_z(axs)
 
     plt.tight_layout()
     plt.show()
