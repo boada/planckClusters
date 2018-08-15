@@ -38,6 +38,9 @@ confirmed = results.merge(observed, left_on='Cluster', right_on='Name',
 panels = 4
 no_figures = len(results) // panels + 1
 
+# hack to fix PSZ1 names
+confirmed['Cluster_fixed'] = confirmed['Cluster'].str.replace('PSZ1', 'PSZ2')
+confirmed = confirmed.sort_values('Cluster_fixed')
 
 for i, cluster in enumerate(confirmed['Cluster']):
 
@@ -59,8 +62,8 @@ for i, cluster in enumerate(confirmed['Cluster']):
     ###
 
     # recenter
-    window = 206265. / astCalc.da(results.iloc[i]['zBCG_boada'])
-    gc.recenter(results.iloc[i]['RA BCG'], results.iloc[i]['DEC BCG'],
+    window = 206265. / astCalc.da(confirmed.iloc[i]['zBCG_boada'])
+    gc.recenter(confirmed.iloc[i]['RA BCG'], confirmed.iloc[i]['DEC BCG'],
                 window / 3600)
 
     # add the circles
@@ -79,10 +82,14 @@ for i, cluster in enumerate(confirmed['Cluster']):
                     path_effects=[pe.Stroke(linewidth=1.2,
                                             foreground='white'), pe.Normal()])
 
+    # remove underscore.
+    cluster_fixed = cluster.replace('PSZ1', 'PSZ2').replace('_', ' ')
+
     # add extra info
     gc.add_scalebar(1 / 60, color='w', label="$1'$")
     text = ("%s\n"
-            "z$_{phot}$ = %.3f\n" % (cluster, confirmed.iloc[i]['z_cl_boada']))
+            "z$_{phot}$ = %.3f\n" % (cluster_fixed,
+                                     confirmed.iloc[i]['z_cl_boada']))
 
     ax = plt.gca()
     txt_front = plt.text(0.1, 0.97, text, ha='left', va='top',
@@ -96,6 +103,8 @@ for i, cluster in enumerate(confirmed['Cluster']):
         gc.axis_labels.hide_x()
     if i % 4 == 1 or i % 4 == 3:
         gc.axis_labels.hide_y()
+
+    cluster = cluster.replace('PSZ1', 'PSZ2')
 
     plt.tight_layout()
     plt.savefig(r'{}.pdf'.format(cluster), bbox='tight')
