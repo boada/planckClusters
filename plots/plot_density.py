@@ -216,10 +216,12 @@ conf = [numPerArcmin[fields.index(hc)] for hc in high_conf]
 
 # all
 n, bins, patches = axs.hist(numPerArcmin, bins=20, orientation='horizontal',
-                           color='#348abd')
+                           facecolor='#348abd', alpha=0.5,
+                            histtype='stepfilled')
 # confirmed
 n2, bins, patches = axs.hist(conf, bins=bins, orientation='horizontal',
-                            color='#e24a33')
+                            facecolor='#e24a33', alpha=0.7,
+                             histtype='stepfilled')
 
 ax.set_ylabel('Object Density (arcmin$^{-2}$)')
 ax.set_xlabel('Limiting i Magnitude')
@@ -242,7 +244,3 @@ axs.set_yticks(numpy.arange(-10, 90, 20))
 axs.set_ylim(0, 85)
 axs.grid()
 axs.set_yticklabels([])
-
-
-
-
