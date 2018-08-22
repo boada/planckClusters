@@ -72,9 +72,9 @@ if __name__ == "__main__":
     # Plot the cumulative distributions
     #f, ax = plt.subplots(1)
 
-    f = plt.figure(figsize=(7, 7 * (numpy.sqrt(5.) - 1.0) / 2.0))
+    f = plt.figure(figsize=(7 * (numpy.sqrt(5.) - 1.0) / 2.0, 7))
     ax = plt.subplot2grid((3, 1), (0, 0), rowspan=2)
-    axs = plt.subplot2grid((3, 1), (0, 2))
+    axs = plt.subplot2grid((3, 1), (2, 0))
 
     lws = [0.5, 1.5, 2.5]
 
@@ -137,9 +137,11 @@ if __name__ == "__main__":
     med = plt.Line2D((0, 0), (0, 1), color='#e24a33', lw=lws[1])
     quartile = plt.Line2D((0, 0), (0, 1), color='#e24a33', ls='--', lw=lws[1])
     psz_hist = plt.Line2D((0, 0), (0, 1), color='#348abd', lw=lws[-1])
-    ax.legend([indv_runs, med, quartile, psz_hist], ['M(z)', 'Median',
-                                                     '68%',
-                                                    'PSZ Confirmed (<z)'])
+
+    ax.legend([med, quartile, psz_hist], ['Median', '68%',
+                                          'PSZ Confirmed (<z)'])
+    axs.legend([indv_runs], ['M(z)'], loc='lower right')
+
     plt.show()
 
 

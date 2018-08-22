@@ -214,6 +214,13 @@ high_conf = ['PSZ1_G206.45+13.89',
 # get the density for the confirmed fields.
 conf = [numPerArcmin[fields.index(hc)] for hc in high_conf]
 
+# get magnitudes
+mag_lim = calc_completeness_model(fields, figure=False)
+c = numpy.array(mag_lim)
+c = c.ravel()
+conf_mag = [c[fields.index(hc)] for hc in high_conf]
+
+
 # all
 n, bins, patches = axs.hist(numPerArcmin, bins=20, orientation='horizontal',
                            facecolor='#348abd', alpha=0.5,
@@ -228,12 +235,15 @@ ax.set_xlabel('Limiting i Magnitude')
 axs.set_xlabel('N$_{fields}$')
 
 # add the scatter portion
-mag_lim = calc_completeness_model(fields, figure=False)
 
-ax.scatter(mag_lim, numPerArcmin, color='#348abd', label='Observed')
-c = numpy.array(mag_lim)
-c = c.ravel()
-conf_mag = [c[fields.index(hc)] for hc in high_conf]
+#remove the confirmed stuff
+sub_mag_lim = numpy.delete(mag_lim, [fields.index(hc) for hc in high_conf])
+sub_numPerArcmin = numpy.delete(numPerArcmin, [fields.index(hc) for hc in
+                                               high_conf])
+
+ax.scatter(sub_mag_lim, sub_numPerArcmin, marker='o', edgecolor='#348abd',
+           facecolor='none', label='Observed')
+
 ax.scatter(conf_mag, conf, s=150, marker='*', color='#e24a33',
            label='Confirmed')
 
