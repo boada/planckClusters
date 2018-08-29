@@ -248,6 +248,8 @@ ax.scatter(conf_mag, conf, s=150, marker='*', color='#e24a33',
            label='Confirmed')
 
 # finish the plot
+ax.legend(loc='upper right')
+
 ax.set_yticks(numpy.arange(-10, 90, 20))
 ax.set_ylim(0, 85)
 axs.set_yticks(numpy.arange(-10, 90, 20))
