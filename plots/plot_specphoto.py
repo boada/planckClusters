@@ -2,14 +2,16 @@ from glob import glob
 import pylab as pyl
 from astropy.io import ascii
 import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 # find all of the fields we have hunted
 imgs = glob('./../cluster_search/round2/PSZ*/**/*A.png', recursive=True)
 fields = [i.split('/')[-2] for i in imgs]
 
-f = pyl.figure(figsize=(7 * (pyl.sqrt(5.) - 1.0) / 2.0, 7))
-ax2 = pyl.subplot2grid((3, 1), (2, 0))
-ax1 = pyl.subplot2grid((3, 1), (0, 0), rowspan=2)
+f = plt.figure(figsize=(7 * (pyl.sqrt(5.) - 1.0) / 2.0, 7))
+ax2 = plt.subplot2grid((3, 1), (2, 0))
+ax1 = plt.subplot2grid((3, 1), (0, 0), rowspan=2)
 
 gals = 0
 
@@ -103,10 +105,15 @@ xdat1 = xdat[ind][hhsub < thresh]  # low density points
 ydat1 = ydat[ind][hhsub < thresh]
 hh[hh < thresh] = np.nan  # fill the areas with low density by NaNs
 
-ax1.imshow(hh.T, cmap='Blues', extent=np.array(extent).flatten(),
+im1 = ax1.imshow(hh.T, cmap='Blues', extent=np.array(extent).flatten(),
     interpolation=None)
 
 ax1.scatter(xdat1, ydat1, c='#348abd', alpha=0.6, edgecolor='none', s=12)
+
+# put an inset colorbar
+axin1 = inset_axes(ax1, width='5%', height='40%', loc='lower right')
+plt.colorbar(im1, cax=axin1, orientation='vertical', ticks=[10,30,50,70])
+axin1.yaxis.set_ticks_position('left')
 
 # set the scale for bottom figure
 vmin = 0
@@ -162,4 +169,4 @@ olf = np.where(abs(dz) > 5 * nmad)[0].size / dz.size
 
 print(sf, nmad, olf)
 
-pyl.show()
+plt.show()
