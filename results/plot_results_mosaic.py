@@ -55,7 +55,7 @@ for i, cluster in enumerate(confirmed['Cluster']):
         gc.set_theme('publication')
 
     gc.set_tick_labels_format(xformat='hh:mm:ss', yformat='dd:mm')
-    #gc.set_tick_labels_size('small')
+    gc.set_tick_labels_size('small')
 
     ###
     # move things around and draw the labels
@@ -93,7 +93,7 @@ for i, cluster in enumerate(confirmed['Cluster']):
 
     ax = plt.gca()
     txt_front = plt.text(0.1, 0.97, text, ha='left', va='top',
-                     transform=ax.transAxes, color='white', fontsize=20)
+                     transform=ax.transAxes, color='white', fontsize=16)
 
     gc.axis_labels.set_xtext('Right Ascension (J2000)')
     gc.axis_labels.set_ytext('Declination (J2000)')
@@ -106,8 +106,11 @@ for i, cluster in enumerate(confirmed['Cluster']):
 
     cluster = cluster.replace('PSZ1', 'PSZ2')
 
+    fig = plt.gcf()
+    fig.set_size_inches(fig.get_size_inches()/1.5, forward=True)
+
     plt.tight_layout()
-    plt.savefig(r'{}.pdf'.format(cluster), bbox='tight')
-    plt.savefig(r'{}.png'.format(cluster), bbox='tight')
+    plt.savefig(r'{}.pdf'.format(cluster), bbox='tight', dpi=150)
+    plt.savefig(r'{}.png'.format(cluster), bbox='tight', dpi=150)
 
 
