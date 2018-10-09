@@ -2,8 +2,8 @@
 
 import os
 import sys
-import tableio
-import deredden
+from pipe_utils import tableio
+from pipe_utils import deredden
 import numpy as np
 from math import log10
 import time

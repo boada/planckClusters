@@ -18,10 +18,10 @@ try:
 except ImportError:
     sys.path.append('/home/boada/Projects/MOSAICpipe')
     import cosmology
-import aux
-import tableio
-import extras
-import astrometry
+from pipe_utils import aux
+from pipe_utils import tableio
+from pipe_utils import extras
+from pipe_utils import astrometry
 # fix large image error
 import PIL
 PIL.Image.MAX_IMAGE_PIXELS = None
