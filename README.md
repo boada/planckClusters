@@ -1,6 +1,8 @@
-## On the Trail of the Most Massive Galaxy Clusters in the Universe
+# On the Trail of the Most Massive Galaxy Clusters in the Universe
 
-This is all of the source code for an upcoming paper. I'll update with links to the paper when it appears.
+This is all of the source code for the papers associated with the Planck cluster follow up project. Papers include:
+
+- [High Confidence Optical Confirmation of High Signal-to-Noise Planck Cluster                       Candidates](https://arxiv.org/abs/1809.06378)
 
 Here is the basic structure of the repo.
 
@@ -30,4 +32,3 @@ Copyright 2017 Steven Boada (Rutgers University).
 **All rights reserved.**
 
 *Any use of the content of this project or repository requires citation and acknowledgement.*
-
