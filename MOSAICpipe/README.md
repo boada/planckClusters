@@ -15,8 +15,8 @@ Here are the main working parts of the pipeline.
 - scripts -- these are utility scripts that are designed to be run on their own. They do big tasks like merge all the outputs together or move data around on the disks. Most of these will only need to be run once. There are some convinence scripts that I built to make things faster. The reduce_ALL_async script runs the reduction pipeline in parallel to speed everything up.
 
 
-# The main pipeline file is combcat_PROJECTED.
+## The main pipeline file is combcat_PROJECTED.
 This calls/imports all of the functions it needs from the folders above. It controls the setup and general handling of the pipeline, but it doesn't actually do any of the work. That is all handled in the other files.
 
 - add_catalogs -- This file adds extra information to the calibrated sextractor catalogs before it goes into BPZ. Things like PS1/SDSS mags and spec-z's if they are around.
-- utils -- Utility scripts that handle I/O for the pipeline or changing of data here and there. In general, there aren't any science scripts in there. The functions just do little things. 
+- utils -- Utility scripts that handle I/O for the pipeline or changing of data here and there. In general, there aren't any science scripts in there. The functions just do little things.
