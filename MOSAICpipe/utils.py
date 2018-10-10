@@ -1,3 +1,8 @@
+import os
+import sys
+from astropy.io import fits
+import numpy as np
+
 def replace_vals_image(infits, outfits, repval=1):
     # Replace all values in MOSAIC multi-extension fits file by
     # repvalue

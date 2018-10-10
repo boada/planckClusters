@@ -1,3 +1,11 @@
+import os
+import sys
+from astropy.io.fits import getheader
+
+# get the utils from the parent directory
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils import check_exe
+
 # run sextractor
 def SEx(self, det_filter='Detec', deblend=False):
     ''' Runs SEXTRACTOR on the mosaicked images created by swarp. It should

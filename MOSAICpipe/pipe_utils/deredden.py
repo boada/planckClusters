@@ -9,7 +9,7 @@ import sys
 from astropy.coordinates import SkyCoord
 import numpy as np
 from math import log10
-import tableio
+from . import tableio
 
 
 def compute_AEBV(filter='r_SDSS', sed='flat'):
@@ -178,8 +178,7 @@ def get_EBV(ra, dec):
     #_calc_ebv(cmd)
     os.system(cmd)
     # dust_getval returns the original coords and the extinction correction in
-    # mags
-    # [' 227.543  46.191      0.03452\n']
+    # mags eg. ['227.543 46.191 0.03452\n']
     # Get the array of eBV values for each coordinate position
     eBV = tableio.get_data(eBVdata, cols=(2, ))
     # Remove the temporary files

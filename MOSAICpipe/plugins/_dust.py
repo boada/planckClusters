@@ -1,3 +1,12 @@
+import os
+import sys
+import time
+
+# get the utils from the parent directory
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils import SEx_head
+from pipe_utils import tableio, deredden
+
 # Find the eBV dust correction for each source in the catalogs
 def DustCorrection(self):
     ''' This figures out the dust extinction and corrects the sextractor

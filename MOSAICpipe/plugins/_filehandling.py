@@ -1,3 +1,8 @@
+import os
+from astropy.io import fits
+import subprocess
+import shlex
+
 def read_assoc(self):
     ''' Read the association files for a given tile'''
 

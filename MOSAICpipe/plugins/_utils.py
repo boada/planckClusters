@@ -1,3 +1,13 @@
+import os
+import sys
+from astropy.io.fits import getheader
+import numpy as np
+
+# get the utils from the parent directory
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils import check_exe
+
+
 def calc_airmass(self, filter, combtype='median'):
     ''' Calculates the mean airmass for a set of observations. '''
 

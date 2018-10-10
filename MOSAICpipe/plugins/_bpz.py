@@ -1,3 +1,17 @@
+import os
+import sys
+import time
+import numpy as np
+from astropy.io.fits import getheader
+import subprocess
+import shlex
+
+# get the utils from the parent directory
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils import SEx_head, deNAN
+from pipe_utils import tableio
+from add_catalogs import match_SEx, add_Speczs
+
 # Build th color catalog to use when computing the photo-z
 # Adapted from JHU APSIS pipeline
 def BuildColorCat(self, newfirm=False):

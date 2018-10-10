@@ -1,9 +1,13 @@
+import os
+import time
+import numpy as np
+from astropy.io import ascii
+from astropy import wcs
+from astropy.table import Column
+from astropy.coordinates import SkyCoord
+from astropy import units as u
+
 def match_SEx(tilename, filters, newfirm=False):
-    from astropy.io import ascii
-    from astropy import wcs
-    from astropy.table import Column
-    from astropy.coordinates import SkyCoord
-    from astropy import units as u
 
     # get the wcs info from the i-band because it is the dectection image
     if os.path.isfile('{}i.fits'.format(tilename)):
@@ -222,12 +226,6 @@ def add_Speczs(tilename, dust=False, newfirm=False):
 
     '''
 
-    from astropy.io import ascii
-    from astropy import wcs
-    from astropy.table import Column
-    from astropy.coordinates import SkyCoord
-    from astropy import units as u
-
     w = wcs.WCS('{}i.fits'.format(tilename))
     cat = ascii.read('{}.color'.format(tilename))
     ra, dec = w.all_pix2world(cat['X_IMAGE'], cat['Y_IMAGE'], 0)
@@ -304,11 +302,6 @@ def add_extra_photometry(tilename, filters=['u']):
     though it looks like it.
 
     '''
-
-    from astropy.io import ascii
-    from astropy.table import Column
-    from astropy.coordinates import SkyCoord
-    from astropy import units as u
 
     # read in the sdss catalog. We are doing this first because we only need to
     # do it once

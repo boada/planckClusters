@@ -1,3 +1,14 @@
+import os
+import sys
+from astropy.io import fits
+from astropy.io.fits import getheader
+
+# get the utils from the parent directory
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils import (check_exe, dec2sex, weight_from_dqfile, put_airmass,
+                    put_exptime, put_headerKeywords)
+
+
 def center_dither(self, conf="SWarp-center.conf", filter='i', dryrun=False):
     ''' Center the dither pattern for SWARP '''
 

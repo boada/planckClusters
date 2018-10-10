@@ -2,17 +2,18 @@
 
 import os
 import sys
-from pipe_utils import tableio
-from pipe_utils import deredden
 import numpy as np
 from math import log10
 import time
 import string
-import subprocess
-import shlex
-from astropy.io import fits
-from astropy.io.fits import getheader
 
+
+import types
+import imp
+# pipeline specific imports
+from pipe_utils import tableio
+from pipe_utils import deredden
+from utils import elapsed_time
 
 class PluginMeta(type):
     def __new__(cls, name, bases, dct):
@@ -32,7 +33,7 @@ class PluginMeta(type):
 class combcat(metaclass=PluginMeta):
     ''' Combine, swarp and get catalogs '''
 
-    plugindir = './plugins'
+    plugindir = '/home/boada/Projects/planckClusters/MOSAICpipe/plugins'
 
     def __init__(self,
                  assocfile,

@@ -1,3 +1,16 @@
+import os
+import sys
+from astropy.io.fits import getheader
+from astropy.io import fits
+import numpy as np
+import subprocess
+import shlex
+
+# get the utils from the parent directory
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils import check_exe
+
+
 def get_astrometry(self, newfirm=False):
     ''' This calls the pp script to astrometrically correct the images. I'm
     breaking it appart from the rest of the script so I can control when
