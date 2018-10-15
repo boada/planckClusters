@@ -12,7 +12,7 @@ need to do both mosaic and mosaic3 but it doesn't matter which you do first.
 
 '''
 
-script_dir = '/home/boada/Projects/planckClusters/MOSAICpipe'
+script_dir = '/home/boada/Projects/planckClusters/MOSAICpipe/scripts'
 
 def main():
     dirs = [dirs for _, dirs, _ in os.walk('./')][0] # only want top level
