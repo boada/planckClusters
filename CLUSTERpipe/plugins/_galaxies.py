@@ -18,7 +18,7 @@ except ImportError:
 
 # get the utils from the parent directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils import (p_BCG, mklogarray, histo, bin_data)
+from utils import (p_BCG, mklogarray, histo, bin_data, color)
 
 sout = sys.stderr
 land = numpy.logical_and
@@ -30,7 +30,7 @@ lor = numpy.logical_or
 def get_BCG_candidates(self, Mr_limit=-22.71, p_lim=1e-4):
 
     t0 = time.time()
-    sout.write("# Computing p_BCG probabilities... ")
+    sout.write("# Computing p_BCG probabilities...\n")
 
     # The Abs mag limit @ z=0.1 in the i-band
     Mi_limit = cosmology.reobs(
@@ -57,7 +57,7 @@ def get_BCG_candidates(self, Mr_limit=-22.71, p_lim=1e-4):
         i_lim = 25.0
         star_lim = self.starlim
         p_lim = max(self.p) * 0.8
-        sout.write("# Avoiding BCG_prob < %.3f in BGCs\n" % p_lim)
+        sout.write("\tAvoiding BCG_prob < %.3f in BGCs\n" % p_lim)
         mask_p = numpy.where(self.p >= p_lim, 1, 0)
         mask_g = numpy.where(self.g < i_lim + 5, 1, 0)
         mask_r = numpy.where(self.r < i_lim + 2, 1, 0)
@@ -71,7 +71,7 @@ def get_BCG_candidates(self, Mr_limit=-22.71, p_lim=1e-4):
         mask_bi = numpy.where(self.Mi > Mi_BCG_limit - 2.5, 1, 0)
 
         # Put a more strict cut in class_star for bcg candidates
-        sout.write("# Avoiding CLASS_STAR > %s in BGCs\n" % star_lim)
+        sout.write("\tAvoiding CLASS_STAR > %s in BGCs\n" % star_lim)
         mask_star = numpy.where(self.class_star <= star_lim, 1, 0)
 
         # Construct the final mask now
@@ -101,7 +101,7 @@ def get_BCG_candidates(self, Mr_limit=-22.71, p_lim=1e-4):
             z=self.zx,
             calibration='AB')
 
-        sout.write(" \t Done: %s\n" % extras.elapsed_time_str(t0))
+        sout.write(" \tDone: %s\n" % extras.elapsed_time_str(t0))
 
     # Select the candidates now
     idx = numpy.where(self.mask_BCG == 1)
@@ -141,8 +141,10 @@ def get_BCG_candidates(self, Mr_limit=-22.71, p_lim=1e-4):
     self.LBCG = self.Lr[idx]
 
     # The distance to the candidate's position for each BCG, in arcmin
-    sout.write("# Found %s BCG candidates\n" % self.N_BCG)
-
+    if self.N_BCG:
+        sout.write(color("\tFound %s BCG candidates\n" % self.N_BCG, 36, 1))
+    else:
+        sout.write(color("\tFound %s BCG candidates\n" % self.N_BCG, 31, 5))
     return
 
 ########################################################
@@ -163,10 +165,10 @@ def select_members_radius(self, i, Mi_lim=-20.25, radius=500.0, zo=None):
     #DM = self.DM[i]
     ID_BCG = self.id[i]
     if zo:
-        print("Will use z:%.3f for cluster" % zo)
+        print("# Will use z:%.3f for cluster -- from user!" % zo)
     else:
         zo = self.z_ph[i]
-        print("Will use z:%.3f for cluster" % zo)
+        print("# Will use z:%.3f for cluster -- from data!" % zo)
     # 1 - Select in position around ra0,dec0
     # Define radius in degress @ zo
     R = radius  # in kpc
@@ -243,8 +245,8 @@ def select_members_radius(self, i, Mi_lim=-20.25, radius=500.0, zo=None):
         mask_R * mask_L1 * mask_L2 * mask_z * mask_cm == 1)
     iRadius_all = numpy.where(mask_L1 * mask_L2 * mask_z * mask_cm == 1)
     Ngal = len(iRadius[0])
-    sout.write("# Total: %s objects selected in %s [kpc] around %s\n" %
-               (Ngal, radius, self.ID))
+    sout.write(color("# Total: %s objects selected in %s [kpc] around %s\n" %
+               (Ngal, radius, self.ID), 36, 1))
 
     # Pass up
     self.iRadius = iRadius
@@ -274,7 +276,7 @@ def background(self, k=0):
     # No back substraction
     if self.Ngal <= 2:
         self.Ngal_c = self.Ngal
-        print('Background -- Not enough galaxies found in cluster')
+        print(color('Background -- Not enough galaxies found in cluster', 31, 5))
         return
 
     # Store radially ordered
@@ -293,6 +295,7 @@ def background(self, k=0):
     ir2 = ir[1:]
     r1 = rbin[ir1]
     r2 = rbin[ir2]
+    print(r1, r2)
     abin = math.pi * (r2**2 - r1**2)
     PN = old_div(Nbin, abin)  # Number Surface density
 
@@ -304,6 +307,7 @@ def background(self, k=0):
           (R1, R2))
 
     if R2 >= r.max():
+        print(color('\tBackground R2 > image limits! -- recomputing', 31, 0))
         R2 = r2.max()
         R1 = R2 - 2.0 * self.r1Mpc * 60.0
     print("# Estimating Background between R1,R2 %.2f--%2.f[arcmin]" %

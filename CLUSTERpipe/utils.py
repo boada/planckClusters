@@ -281,3 +281,6 @@ def Mass_calib(N200, L200, LBCG, z, h=1.0):
     M_LBCG = (old_div(1.e14, h)) * 1.07 * (old_div(LBCG, 5.0))**1.10
 
     return M_N200, M_L200, M_LBCG
+
+def color(s, ncolor, nfont):
+    return "\033[{};{}m{}\033[0m".format(nfont, ncolor, s)

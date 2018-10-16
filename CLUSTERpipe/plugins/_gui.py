@@ -9,7 +9,7 @@ PIL.Image.MAX_IMAGE_PIXELS = None
 
 # get the utils from the parent directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils import (PCircle, PEllipse)
+from utils import (PCircle, PEllipse, color)
 
 
 #######################################
@@ -40,8 +40,12 @@ def get_object(self, event):
     #ximage = event.xdata
     #yimage = self.ny - event.ydata
     # Remap to original coordinate system
-    ximage = event.xdata + (self.xo - self.dx)
-    yimage = (self.ny - event.ydata) + (self.yo - self.dy)
+    try:
+        # handle clicking outside the image
+        ximage = event.xdata + (self.xo - self.dx)
+        yimage = (self.ny - event.ydata) + (self.yo - self.dy)
+    except TypeError:
+        return
 
     #print('clicked location: %s, %s' % (event.xdata, self.ny - event.ydata))
     #print('interp. location: %s, %s' % (ximage, yimage))
@@ -199,7 +203,7 @@ def jpg_display(self):
     # Measure time
     pylab.close('all')
     t0 = time.time()
-    print("Displaying... be patient", file=sys.stderr)
+    print("# Displaying... be patient", file=sys.stderr)
     # Display
     self.ax = pylab.figure(1, figsize=(10, 10))
     pylab.imshow(self.jpg_region, origin='upper', interpolation='bicubic')
@@ -214,8 +218,8 @@ def jpg_display(self):
     self.figBname = os.path.join(self.datapath, self.ctile, nameB)
     pylab.savefig(
         self.figAname, transparent=True, dpi=100, bbox_inches='tight')
-    print("Done in %s sec." % (time.time() - t0), file=sys.stderr)
-    print("Wrote Fig A, %s " % (self.figAname), file=sys.stderr)
+    print("\tDone in %s sec." % (time.time() - t0), file=sys.stderr)
+    print("# Wrote Fig A, %s " % (self.figAname), file=sys.stderr)
 
     # save blank info.
     self.write_info(blank=True)

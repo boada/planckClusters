@@ -176,7 +176,7 @@ def read_cat(self):
 
     self.idx_cat = idx
 
-    sout.write(" \t Done: %s\n" % extras.elapsed_time_str(t1))
+    sout.write(" \tDone: %s\n" % extras.elapsed_time_str(t1))
     return
 
 ####################################
@@ -214,7 +214,7 @@ def read_probs(self):
     # select same galaxies as in catalogs we just read
     self.p_z = p_z[self.idx_cat][:]
     self.zx = zx
-    sout.write(" \t Done: %s\n" % extras.elapsed_time_str(t0))
+    sout.write(" \tDone: %s\n" % extras.elapsed_time_str(t0))
 
     t1 = time.time()
     # Get the 1-sigma z1, z2 limits for each galaxy
@@ -231,7 +231,7 @@ def read_probs(self):
         self.z1[i] = self.zx[i1]
         self.z2[i] = self.zx[i2]
 
-    sout.write(" \t Done: %s\n" % extras.elapsed_time_str(t1))
+    sout.write(" \tDone: %s\n" % extras.elapsed_time_str(t1))
     return
 
 ##################################################
@@ -245,14 +245,13 @@ def jpg_read(self, dx=1200, dy=1200, RA=None, DEC=None):
         self.jpgfile = os.path.join(self.datapath, self.ctile + 'irg.tiff')
     else:
         self.jpgfile = os.path.join(self.datapath, self.ctile + '.tiff')
-        print(self.jpgfile)
     t0 = time.time()
-    print("Reading %s" % self.jpgfile, file=sys.stderr)
+    print("# Reading %s" % self.jpgfile, file=sys.stderr)
     self.jpg_array = sci_misc.imread(self.jpgfile)
-    print("Done in %.3f sec." % (time.time() - t0), file=sys.stderr)
+    print("\tDone in %.3f sec." % (time.time() - t0), file=sys.stderr)
 
     # Get the shape of the array
-    print('Orig. Image Size: %s, %s, %s' % self.jpg_array.shape)
+    print('# Orig. Image Size: %s, %s, %s' % self.jpg_array.shape)
     (self.ny, self.nx, self.nz) = self.jpg_array.shape
 
     # pass up to class
@@ -289,7 +288,7 @@ def jpg_read(self, dx=1200, dy=1200, RA=None, DEC=None):
         print('Center not understood')
         sys.exit()
 
-    print(self.xo, self.yo)
+    #print(self.xo, self.yo)
 
     # a little fix when not centered -- it has something to do with the way
     # the image is being displayed. Without this fix, the the catalog is in
@@ -311,11 +310,11 @@ def jpg_read(self, dx=1200, dy=1200, RA=None, DEC=None):
     (self.ny, self.nx, self.nz) = self.jpg_region.shape
 
     # print the cropped region's size
-    print('New Image Size: %s, %s, %s' % self.jpg_region.shape)
-    print('xo : %s' % self.xo)
-    print('yo : %s' % self.yo)
-    print('dx : %s' % self.dx)
-    print('dy : %s' % self.dy)
+    print('# New Image Size: %s, %s, %s' % self.jpg_region.shape)
+    print('\txo : %s' % self.xo)
+    print('\tyo : %s' % self.yo)
+    print('\tdx : %s' % self.dx)
+    print('\tdy : %s' % self.dy)
 
     return
 
@@ -331,7 +330,7 @@ def write_info(self, blank=False):
         filename = os.path.join(self.datapath, self.ctile,
                                 self.ctile + ".info")
 
-        print("Will write info to %s" % filename)
+        print("# Will write info to %s" % filename)
         s = open(filename, "w")
         head = ("# %-18s %12s %12s %7s %7s %7s %5s %5s %10s %10s %8s %8s "
                 "%8s %8s %8s %8s %8s %11s\n" %
@@ -349,7 +348,7 @@ def write_info(self, blank=False):
 
     filename = os.path.join(self.datapath, self.ctile,
                             self.ctile + ".info")
-    print("Will write info to %s" % filename)
+    print(" Will write info to %s" % filename)
 
     i = self.iBCG
 
