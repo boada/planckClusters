@@ -270,7 +270,7 @@ def select_members_radius(self, i, Mi_lim=-20.25, radius=500.0, zo=None):
 ##########################################
 # Compute the Background for the clusters
 ##########################################
-def background(self, k=0):
+def background(self):
     ixr = self.ix_radial
 
     # No back substraction
@@ -295,7 +295,6 @@ def background(self, k=0):
     ir2 = ir[1:]
     r1 = rbin[ir1]
     r2 = rbin[ir2]
-    print(r1, r2)
     abin = math.pi * (r2**2 - r1**2)
     PN = old_div(Nbin, abin)  # Number Surface density
 
@@ -318,7 +317,7 @@ def background(self, k=0):
     # Get the mean values for the Ngal and Lr profiles, which will
     # be the correction per arcmin^2
     PN_mean = numpy.mean(PN_bgr)
-    print('mean number of BG galaxies -- {}'.format(PN_mean))
+    print('\tmean number of BG galaxies -- {}'.format(PN_mean))
 
     # Total number in area
     N_bgr = PN_bgr.sum()
@@ -332,19 +331,122 @@ def background(self, k=0):
     if self.Ngal_c < 0:
         self.Ngal_c = 0.0
 
-    # print self.Ngal
-    # print PN
-    # print r1
-    # print rcenter
-    # print R1,R2
-    # print r.min(),r.max()
-    # print "PN_mean",PN_mean
-    # print PN_bgr
-    # print area_r1Mpc
-    print("Ngal ", self.Ngal)
-    print("Ngal_c", self.Ngal_c)
-    # print "r200_c",self.r200_c
-    # print "R200_c",self.R200_c
+    print('---- test stuff -----')
+
+    print(self.iclose)
+    print(self.x_image[self.iclose], self.y_image[self.iclose])
+
+
+    # print(self.Ngal)
+    # print(PN)
+    # print(r1)
+    # print(rcenter)
+    # print(R1,R2)
+    # print(r.min(),r.max())
+    # print("PN_mean",PN_mean)
+    # print(PN_bgr)
+    # print(area_r1Mpc)
+    # print("Ngal ", self.Ngal)
+    # print("Ngal_c", self.Ngal_c)
+    #print("r200_c",self.r200_c)
+    #print("R200_c",self.R200_c)
+
+    self.d_Ngal_c2 = self.Ngal_c + (
+        (old_div(area_r1Mpc, area_bgr))**2) * N_bgr
+
+    # Avoid sqrt of negative number
+    if self.d_Ngal_c2 < 0:
+        self.d_Ngal_c = 0
+    else:
+        self.d_Ngal_c = math.sqrt(self.Ngal_c + (
+            (old_div(area_r1Mpc, area_bgr))**2) * N_bgr)
+
+    return
+
+##########################################
+# Compute the Background for the clusters
+##########################################
+def background_map(self):
+    ixr = self.ix_radial
+
+    # bcg index
+    i = self.iclose
+
+    # No back substraction
+    if self.Ngal <= 2:
+        self.Ngal_c = self.Ngal
+        print(color('Background -- Not enough galaxies found in cluster', 31, 5))
+        return
+
+    # Store radially ordered
+    r = self.dist2BCG[ixr] * 60.0  # in arcmin
+    Lr = self.Lr[ixr]  # We do in the r-band as Reyes et al
+
+    # Bin the Ngal/Lum data in log spacing
+    n = 10
+    rbin = mklogarray(0.0, r.max(), n)
+    Nbin, rcenter = histo(r, rbin, center='yes')
+    Lbin, rcenter = bin_data(r, Lr, rbin, center='yes')
+
+    # Compute the area in each shell
+    ir = numpy.indices(rbin.shape)[0]
+    ir1 = ir[:-1]
+    ir2 = ir[1:]
+    r1 = rbin[ir1]
+    r2 = rbin[ir2]
+    abin = math.pi * (r2**2 - r1**2)
+    PN = old_div(Nbin, abin)  # Number Surface density
+
+    # Compute the background median density both in Lum and Ngal
+    # Here's is where we are going to make a couple of maps to compute the areas
+    # for the background
+    R1 = 3.0 * self.r1Mpc * 60.0
+    R2 = r.max() # go all the way out
+    print("# Estimating Background @ r > 3mpc -- %.2f - %.2f [arcmin]" % (R1, R2))
+
+    PN_bgr = PN[rcenter > R1]
+
+    # Get the mean values for the Ngal and Lr profiles, which will
+    # be the correction per arcmin^2
+    PN_mean = numpy.mean(PN_bgr)
+    print('\tmean number of BG galaxies -- {}'.format(PN_mean))
+
+    # Total number in background area
+    N_bgr = PN_bgr.sum()
+
+    # get the area of the background. We'll make a 'blank' image the same size as
+    # our input image and then sum over the pixels that are either in or out of
+    # the cluster region.
+    # cluster location
+    a, b = round(self.x_image[self.iclose]), round(self.y_image[self.iclose])
+    # size of the image
+    n = self.jpg_array.shape[0]
+    # cluster radius in arcseconds converted to pixels.
+    r = R1 * 60 / self.pixscale
+
+    # create pixel grid
+    y,x = numpy.ogrid[-a:n-a, -b:n-b]
+    # mask the cluster region
+    mask = x*x + y*y <= r*r
+    # create new 'bool' image
+    img_array = numpy.ones((n, n), dtype='bool')
+    # the cluster region becomes 'false' or zero
+    img_array[mask] = False
+
+    # sum the background region gives the number of pixels. Multiply by the pixel
+    # scale to get the total area. Convert to arcminutes.
+    area_bgr = img_array.sum() * self.pixscale / 60
+
+    # Get the correction for Number of galaxies and Luminosoty
+    # For R200 we need to recompute R200 and N200 based on new
+    # R200 value.
+    area_r1Mpc = math.pi * (self.r1Mpc * 60.)**2  # in arcmin2
+    # use the inverse of the cluster mask to find the cluster area
+    area_r1mpc = (n**2 - img_array.sum()) * self.pixscale / 60
+
+    self.Ngal_c = self.Ngal - PN_mean * area_r1Mpc
+    if self.Ngal_c < 0:
+        self.Ngal_c = 0.0
 
     self.d_Ngal_c2 = self.Ngal_c + (
         (old_div(area_r1Mpc, area_bgr))**2) * N_bgr
