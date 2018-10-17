@@ -72,13 +72,14 @@ def get_object(self, event):
                                                  zo=z_cl)
         self.iBCG = self.iclose
         self.ellipse_members()
-        self.background()
-        print("\t Ngal: %d" % self.Ngal)
-        print("\t Ngal_c: %d" % self.Ngal_c)
-        print("\t z_cl: %.3f +/- %.3f" % (self.z_cl, self.z_clerr))
-        print("\t L   : %.3e [Lsun]" % self.Lsum)
-        print("\t Mi  : %6.2f " % self.Mi[iclose])
-        print("\t Mr  : %6.2f " % self.Mr[iclose])
+        self.background_map()
+        print("")
+        print("\tNgal: %d" % self.Ngal)
+        print("\tNgal_c: %d" % self.Ngal_c)
+        print("\tz_cl: %.3f +/- %.3f" % (self.z_cl, self.z_clerr))
+        print("\tL   : %.3e [Lsun]" % self.Lsum)
+        print("\tMi  : %6.2f " % self.Mi[iclose])
+        print("\tMr  : %6.2f " % self.Mr[iclose])
 
         return
 
@@ -334,6 +335,17 @@ def ellipse_members(self, k=0):
         resolution=80,
         fill=0,
         edgecolor="white",
+        linestyle='solid',
+        linewidth=0.5)
+    ax.add_patch(C)
+
+    r_pixels = 2 *self.rdeg * 3600.0 / self.pixscale
+    C = PCircle(
+        (Xo, Yo),
+        r_pixels,
+        resolution=80,
+        fill=0,
+        edgecolor="yellow",
         linestyle='solid',
         linewidth=0.5)
     ax.add_patch(C)
