@@ -261,7 +261,9 @@ def jpg_read(self, dx=1200, dy=1200, RA=None, DEC=None):
     if float(dx) < 0 or float(dy) < 0:
         self.dx = self.nx / 2.0
         self.dy = self.ny / 2.0
-
+    elif dx == 0 or dy == 0:
+        self.dx = float(self.nx)
+        self.dy = float(self.ny)
     else:
         self.dx = float(dx)
         self.dy = float(dy)
