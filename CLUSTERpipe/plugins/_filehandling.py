@@ -3,14 +3,17 @@ import sys
 import numpy
 import re
 import os
+import scipy
 import scipy.misc as sci_misc
 try:
     import tableio
     import extras
+    import astrometry
 except ImportError:
     sys.path.append('/home/boada/Projects/planckClusters/MOSAICpipe/pipe_utils')
     import tableio
     import extras
+    import astrometry
 
 sout = sys.stderr
 lor = numpy.logical_or
