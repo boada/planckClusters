@@ -6,8 +6,6 @@ import numpy as np
 from math import log10
 import time
 import string
-
-
 import types
 import imp
 # pipeline specific imports

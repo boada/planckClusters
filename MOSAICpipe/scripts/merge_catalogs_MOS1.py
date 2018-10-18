@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 
-from bcs_catalogs import *
+
 import os
 import sys
+# get the utils from the parent directory
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from bcs_catalogs import *
 
 
 def main(tile, path, filters):
