@@ -1,7 +1,7 @@
 from glob import glob
 import os
 import time
-from numpy import genfromtxt, where
+from numpy import genfromtxt, where, sort
 
 def mkCommands(dirs, radec=False):
     cmds = []
@@ -32,6 +32,8 @@ def mkCommands(dirs, radec=False):
             cmd += ' --DEC {}'.format(data['DEC_SEX'][indx].decode())
 
         cmds.append(cmd)
+
+    cmds = sort(cmds)
 
     return cmds
 
@@ -81,29 +83,31 @@ def doWork():
             cmds.append(cmd)
 
     fields = len(cmds)
-    with open('tracker', 'w') as tracker:
-        for i, (done, cmd) in enumerate(zip(status, cmds)):
-            if done == 'True':
-                print()
-                print()
-                print('{}/{} Fields completed.'.format(i + 1, fields))
-                print('Sleeping for 5 seconds. Press ctrl-c to exit')
-                continue
-            if done == 'False':
-                print(cmd)
-                os.system(cmd)
-                status[i] = 'True'
+    for i, (done, cmd) in enumerate(zip(status, cmds)):
+        if done == 'True':
             print()
             print()
             print('{}/{} Fields completed.'.format(i + 1, fields))
             print('Sleeping for 5 seconds. Press ctrl-c to exit')
-            try:
-                time.sleep(5)
-            except KeyboardInterrupt:
-                print('updating tracker...')
+            continue
+        if done == 'False':
+            print(cmd)
+            os.system(cmd)
+            status[i] = 'True'
+        print()
+        print()
+        print('{}/{} Fields completed.'.format(i + 1, fields))
+        if i + 1 == fields:
+            return
+        print('Sleeping for 5 seconds. Press ctrl-c to exit')
+        try:
+            time.sleep(5)
+        except KeyboardInterrupt:
+            print('updating tracker...')
+            with open('tracker', 'w') as tracker:
                 for done, cmd in zip(status, cmds):
                     tracker.write('{} {}\n'.format(done, cmd))
-                return
+            return
 
 def cmdline():
     from optparse import OptionParser
