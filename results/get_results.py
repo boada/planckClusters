@@ -1,6 +1,7 @@
 import pandas as pd
 from astropy.io import ascii
 from numpy import nan
+import os
 
 ''' specify which round of cluster finding we want use. This can be changed by
 calling
@@ -15,27 +16,30 @@ def loadClusters(confirmed=False, round=1):
 
     users = ['boada', 'felipe', 'doze', 'jph']
 
-    results = ['round{}/{}/{}_results.csv'.format(round, u, u) for u in users]
+    tables = []
+    i = -1
+    for u in users:
+        if not os.path.isfile('round{}/{}/{}_results.csv'.format(round, u, u)):
+            continue
 
-    # read in the files
-    tables = [pd.read_csv(r) for r in results]
-    #tables = [pd.read_csv(r) for r in results if os.path.isfile(r)]
+        i += 1
+        results = 'round{}/{}/{}_results.csv'.format(round, u, u)
 
-    # clean off the extra columns
-    cols = ['RA', 'DEC', 'Ngal', 'L_i', 'L_iBCG', 'Mr', 'Mi',
-            'r', 'i', 'p_BCG', 'R[kpc]', 'area[%]']
+        table = pd.read_csv(results)
 
-    tables = [t.drop(cols, axis=1) for t in tables]
+        # clean off the extra columns
+        cols = ['RA', 'DEC', 'Ngal', 'L_i', 'L_iBCG', 'Mr', 'Mi',
+                'r', 'i', 'p_BCG', 'R[kpc]', 'area[%]']
 
-    # add the top level cluster names
-    for t in tables:
-        clusters = [c.rsplit('_', maxsplit=1)[:-1][0] for c in t['ID_BCG']]
-        bcgs = [c.rsplit('_', maxsplit=1)[-1] for c in t['ID_BCG']]
-        t['Cluster'] = clusters
-        t['ID_BCG'] = bcgs
+        table = table.drop(cols, axis=1)
 
-    # rename the columns
-    for i, u in enumerate(users):
+        clusters = [c.rsplit('_', maxsplit=1)[:-1][0] for c in table['ID_BCG']]
+        bcgs = [c.rsplit('_', maxsplit=1)[-1] for c in table['ID_BCG']]
+        table['Cluster'] = clusters
+        table['ID_BCG'] = bcgs
+
+        tables.append(table)
+
         tables[i] = tables[i].rename(columns={'ID_BCG': 'BCG_{}'.format(u),
                                              'Confidence': 'Conf_{}'.format(u),
                                              'zBCG': 'zBCG_{}'.format(u),
@@ -43,12 +47,22 @@ def loadClusters(confirmed=False, round=1):
                                              'z_clerr': 'z_clerr_{}'.format(u),
                                              'Ngal_c': 'Ngal_c_{}'.format(u)})
 
-    # merge the first two together
-    for i in range(len(users) - 1):
-        if not i:
-            df = pd.merge(tables[i], tables[i + 1], how='outer', on=['Cluster'])
-        else:
-            df = pd.merge(df, tables[i + 1], how='outer', on=['Cluster'])
+    # start counting from 1
+    i += 1
+
+    # merge the tables together -- if there are at least two tables
+    if i >= 2:
+        for j in range(i):
+            if not j:
+                df = pd.merge(tables[i], tables[j + 1], how='outer',
+                              on=['Cluster'])
+            elif j + 2 <= i:
+                df = pd.merge(df, tables[j + 2], how='outer', on=['Cluster'])
+            else:
+                break
+
+    else:
+        df = pd.DataFrame(tables[0])
 
     if confirmed:
         high_conf = ['PSZ1_G206.45+13.89',
