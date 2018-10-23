@@ -15,15 +15,17 @@ for example.
 def loadClusters(confirmed=False, round=1):
 
     users = ['boada', 'felipe', 'doze', 'jph']
+    data_dir = os.path.dirname(os.path.abspath(__file__))
 
     tables = []
     i = -1
     for u in users:
-        if not os.path.isfile('round{}/{}/{}_results.csv'.format(round, u, u)):
+        if not os.path.isfile('{}/round{}/{}/{}_results.csv'.format(
+                                                    data_dir, round, u, u)):
             continue
 
         i += 1
-        results = 'round{}/{}/{}_results.csv'.format(round, u, u)
+        results = '{}/round{}/{}/{}_results.csv'.format(data_dir, round, u, u)
 
         table = pd.read_csv(results)
 
