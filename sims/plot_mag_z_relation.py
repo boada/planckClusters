@@ -140,14 +140,14 @@ def mag_lim_hist_model(axes):
     completeness = calc_completeness_model(fields)
 
     axes.hist(completeness, bins=mag, color='#348abd',
-              orientation='horizontal', histtype='stepfilled', zorder=3)
+              orientation='horizontal', histtype='stepfilled')
     # flip the axis
     axes.invert_xaxis()
     axes.set_ylim(20, 26)
     axes.set_xlabel('$N_{fields}$')
     axes.set_ylabel('Limiting i Magnitude')
 
-    return axes
+    return axes, fields, completeness
 
 # observed mi_star as a function of redshift
 def mi_star_evol(z, h=0.7, cosmo=(0.3, 0.7, 0.7)):
@@ -204,6 +204,41 @@ def KEfit(modelfile):
 
     return k, e, c
 
+def add_z_cl(ax, fields, completeness):
+    # fix the path to get the results
+    import sys
+    sys.path.append('../results/')
+    from get_results import loadClusters
+
+    # confirmed clusters
+    high_conf = ['PSZ1_G206.45+13.89',
+            'PSZ1_G224.82+13.62',
+            'PSZ2_G029.66-47.63',
+            'PSZ2_G043.44-41.27',
+            'PSZ2_G096.43-20.89',
+            'PSZ2_G120.76+44.14',
+            'PSZ2_G125.55+32.72',
+            'PSZ2_G137.24+53.93',
+            'PSZ2_G305.76+44.79',
+            'PSZ2_G107.83-45.45',
+            'PSZ2_G098.38+77.22',
+            'PSZ1_G084.62-15.86',
+            'PSZ2_G106.11+24.11',
+            'PSZ2_G173.76+22.92',
+            'PSZ2_G191.82-26.64']
+
+    # get the density for the confirmed fields.
+    depth = [completeness[fields.index(hc)] for hc in numpy.sort(high_conf)]
+
+    # the confirmed = True gets the 15 confirmed clusters
+    results = loadClusters(round=3, confirmed=True)
+
+    # sort the results
+    results.sort_values('Cluster', inplace=True)
+
+    ax.scatter(results['z_cl_boada'], depth, s=150, marker='*', color='#e24a33')
+
+    return ax
 
 if __name__ == "__main__":
 
@@ -211,11 +246,10 @@ if __name__ == "__main__":
     ax = plt.subplot2grid((1, 4), (0, 0), colspan=2)
     axs = plt.subplot2grid((1, 4), (0, 2), colspan=2)
 
-#    fig, axes = plt.subplots(ncols=2,
-#                             squeeze=True,
-#                             figsize=(7, 7 * (numpy.sqrt(5.) - 1.0) / 2.0))
-    ax = mag_lim_hist_model(ax)
+    ax, fields, completeness = mag_lim_hist_model(ax)
     mag_z(axs)
+
+    add_z_cl(axs, fields, completeness)
 
     plt.tight_layout()
     plt.show()
