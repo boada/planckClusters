@@ -9,7 +9,7 @@ import matplotlib.patheffects as pe
 data_dir = './../data/proc2_small/'
 
 # the confirmed = True gets the 15 confirmed clusters
-results = loadClusters(round=2, confirmed=True)
+results = loadClusters(round=3, confirmed=True)
 
 # load the master spreadsheet
 t_ss = Table.read('../catalogs/PSZ2_unconfirmed_catalog - current.csv')
@@ -18,7 +18,7 @@ df_ss = t_ss.to_pandas()
 observed = df_ss.loc[df_ss['MOSAIC Imaging'].notnull()]
 
 for i, row in results.iterrows():
-    mems = loadMembers('boada', row['Cluster'], round=2)
+    mems = loadMembers('boada', row['Cluster'], round=3)
     try:
         ra = mems.loc[mems['ID'] == row['BCG_boada'], 'RA'].values[0]
     except IndexError:
