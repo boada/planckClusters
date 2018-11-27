@@ -6,7 +6,7 @@ from astropy.table import Table
 import matplotlib.patheffects as pe
 
 
-data_dir = './../data/proc2_small/'
+data_dir = './../data/proc2/'
 
 # the confirmed = True gets the 15 confirmed clusters
 results = loadClusters(round=3, confirmed=True)
@@ -62,7 +62,7 @@ for i, cluster in enumerate(confirmed['Cluster']):
     ###
 
     # recenter
-    window = 206265. / astCalc.da(confirmed.iloc[i]['zBCG_boada'])
+    window = 206265. / astCalc.da(confirmed.iloc[i]['z_cl_boada'])
     gc.recenter(confirmed.iloc[i]['RA BCG'], confirmed.iloc[i]['DEC BCG'],
                 window / 3600)
 
