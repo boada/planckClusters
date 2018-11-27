@@ -15,6 +15,8 @@ def mkCommands(dirs, radec=False):
         # build the rest
         cmd += ' {} --path {} '.format(cluster, d)
         cmd += ' --pixelscale 0.25'
+        cmd += ' --dx 1900 --dy 1900'
+
 
         if radec:
             # patch for a silly situation
@@ -101,7 +103,7 @@ def doWork():
             return
         print('Sleeping for 5 seconds. Press ctrl-c to exit')
         try:
-            time.sleep(5)
+            time.sleep(1)
         except KeyboardInterrupt:
             print('updating tracker...')
             with open('tracker', 'w') as tracker:

@@ -275,6 +275,9 @@ def jpg_read(self, dx=1200, dy=1200, RA=None, DEC=None):
         if ':' in RA and ':' in DEC:
             RA = astrometry.hms2dec(RA)
             DEC = astrometry.deg2dec(DEC)
+            # pass up
+            self.RA = RA
+            self.DEC = DEC
             self.xo, self.yo = astrometry.rd2xy(RA, DEC, self.fitsfile)
             print(self.xo, self.yo)
             yo_tmp = self.yo

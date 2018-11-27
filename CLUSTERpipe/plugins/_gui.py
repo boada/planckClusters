@@ -73,6 +73,7 @@ def get_object(self, event):
         self.iBCG = self.iclose
         self.ellipse_members()
         self.background_map()
+        #self.background()
         print("")
         print("\tNgal: %d" % self.Ngal)
         print("\tNgal_c: %d" % self.Ngal_c)
@@ -217,8 +218,6 @@ def jpg_display(self):
     nameB = self.ctile + "_figB.png"
     self.figAname = os.path.join(self.datapath, self.ctile, nameA)
     self.figBname = os.path.join(self.datapath, self.ctile, nameB)
-    pylab.savefig(
-        self.figAname, transparent=True, dpi=100, bbox_inches='tight')
     print("\tDone in %s sec." % (time.time() - t0), file=sys.stderr)
     print("# Wrote Fig A, %s " % (self.figAname), file=sys.stderr)
 
@@ -226,7 +225,10 @@ def jpg_display(self):
     self.write_info(blank=True)
     # Draw the search zone
     #self.draw_zone(n=8)
+    self.mark_PSZ()
     self.draw_zone2()
+    pylab.savefig(
+        self.figAname, transparent=True, dpi=100, bbox_inches='tight')
     # register this function with the event handler
     pylab.connect('button_press_event', self.get_object)
     pylab.show()
@@ -235,6 +237,15 @@ def jpg_display(self):
 #####################################
 # Draw the zone where to select
 ######################################
+
+def mark_PSZ(self):
+    ax = pylab.gca()
+    (nx, ny, nz) = self.jpg_region.shape
+    ax.scatter(nx / 2, ny / 2, s=100, marker='*',
+                  facecolor='None', edgecolor='yellow')
+
+    return
+
 
 def draw_zone2(self):
     ''' This draws a 5' and 2' circle where we think the clusters will be. This
