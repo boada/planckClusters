@@ -5,11 +5,11 @@ from glob import glob
 from astLib import astWCS
 from scipy import interpolate
 from scipy.stats import linregress
+from astropy.io import ascii
 
 def calc_completeness_dndm():
     ''' Calculates the completeness using a histogram. '''
 
-    from astropy.io import ascii
 
     bins = numpy.arange(15, 30, 0.5)
     centers = (bins[:-1] + bins[1:]) / 2
@@ -54,7 +54,6 @@ def calc_completeness_dndm():
 def calc_completeness_model(fields, figure=True):
     ''' Calculates the completeness using a histogram. '''
 
-    from astropy.io import ascii
 
     bins = numpy.arange(15, 30, 0.5)
     centers = (bins[:-1] + bins[1:]) / 2
