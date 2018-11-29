@@ -1,48 +1,116 @@
 import aplpy
 import matplotlib.pyplot as plt
-from numpy import sort, sqrt
-from astropy.io import ascii
+from get_results import loadClusters, loadMembers
+from astLib import astCalc
+from astropy.table import Table
+import matplotlib.patheffects as pe
 
-high_conf = ['PSZ2_G145.25+50.84',
-             'PSZ2_G120.76+44.14',
-             'PSZ2_G305.76+44.79',
-             'PSZ2_G029.66-47.63',
-             'PSZ2_G173.76+22.92',
-             'PSZ1_G224.82+13.62',
-             'PSZ2_G048.47+34.86',
-             'PSZ2_G106.11+24.11',
-             'PSZ1_G084.62-15.86',
-             'PSZ2_G125.55+32.72',
-             'PSZ2_G043.44-41.27',
-             'PSZ2_G096.43-20.89']
 
-data_dir = '/home/boada/Projects/planckClusters/data/proc2'
-results_dir = '/home/boada/Projects/planckClusters/results/boada'
+data_dir = './../data/proc2/'
 
-fig = plt.figure(1, figsize=(10 * (sqrt(5.) - 1.0) / 2.0, 10))
+# the confirmed = True gets the 15 confirmed clusters
+results = loadClusters(round=3, confirmed=True)
 
-for i, c in enumerate(sort(high_conf)):
+# load the master spreadsheet
+t_ss = Table.read('../catalogs/PSZ2_unconfirmed_catalog - current.csv')
+df_ss = t_ss.to_pandas()
 
-    fits = '{}/{}/{}Blue_cutout.fits'.format(data_dir, c, c)
-    png = '{}/pngs_cutout/{}_cutout.tiff'.format(data_dir, c)
-    mems = '{}/{}/{}/{}.members'.format(results_dir, c, c, c)
+observed = df_ss.loc[df_ss['MOSAIC Imaging'].notnull()]
 
-    mems = ascii.read(mems)
-    gc = aplpy.FITSFigure(fits, figure=fig, subplot=(4, 3, i + 1))
+for i, row in results.iterrows():
+    mems = loadMembers('boada', row['Cluster'], round=3)
+    try:
+        ra = mems.loc[mems['ID'] == row['BCG_boada'], 'RA'].values[0]
+    except IndexError:
+        continue
+    dec = mems.loc[mems['ID'] == row['BCG_boada'], 'DEC'].values[0]
+
+    # write it back into the main frame
+    results.loc[i, 'RA BCG'] = ra
+    results.loc[i, 'DEC BCG'] = dec
+
+results = results.sort_values('Cluster')
+# tack on all of the original SS info.
+confirmed = results.merge(observed, left_on='Cluster', right_on='Name',
+                            how='left')
+
+# number of panels per figure
+panels = 4
+no_figures = len(results) // panels + 1
+
+# hack to fix PSZ1 names
+confirmed['Cluster_fixed'] = confirmed['Cluster'].str.replace('PSZ1', 'PSZ2')
+confirmed = confirmed.sort_values('Cluster_fixed')
+
+for i, cluster in enumerate(confirmed['Cluster']):
+
+    fits = '{}/{}/{}i.fits'.format(data_dir, cluster, cluster)
+    png = '{}/{}/{}irg.tiff'.format(data_dir, cluster, cluster)
+
+    gc = aplpy.FITSFigure(fits)
     try:
         gc.show_rgb(png)
     except FileNotFoundError:
-        gc.show_grayscale(stretch='arcsinh', pmin=1, pmax=99.9)
+        gc.show_grayscale(stretch='arcsinh', pmin=1, pmax=98)
         gc.set_theme('publication')
 
-    gc.set_tick_labels_format(xformat='hh:mm:ss', yformat='dd:mm:ss')
+    gc.set_tick_labels_format(xformat='hh:mm:ss', yformat='dd:mm')
     gc.set_tick_labels_size('small')
 
-    # now for the axis lables
-    if not i % 3 == 0:
-        gc.axis_labels.hide_y()
-    if i < 9:
-        gc.axis_labels.hide_x()
+    ###
+    # move things around and draw the labels
+    ###
 
-    ax = fig.axes[-1]
-    ax.set_title(c, fontsize='small')
+    # recenter
+    window = 206265. / astCalc.da(confirmed.iloc[i]['z_cl_boada'])
+    gc.recenter(confirmed.iloc[i]['RA BCG'], confirmed.iloc[i]['DEC BCG'],
+                window / 3600)
+
+    # add the circles
+    gc.show_circles(confirmed.iloc[i]['RA'], confirmed.iloc[i]['DEC'], 2 / 60,
+                    linestyle='--', edgecolor='#e24a33', facecolor='none',
+                    path_effects=[pe.Stroke(linewidth=1.2, foreground='white'),
+                                  pe.Normal()])
+    gc.show_circles(confirmed.iloc[i]['RA'], confirmed.iloc[i]['DEC'], 5 / 60,
+                    linestyle='-', edgecolor='#e24a33', facecolor='none',
+                    path_effects=[pe.Stroke(linewidth=1.2, foreground='white'),
+                                  pe.Normal()])
+
+    # add the marker
+    gc.show_markers(confirmed.iloc[i]['RA'], confirmed.iloc[i]['DEC'],
+                    marker='*', s=150, layer='psz', edgecolor='#e24a33',
+                    path_effects=[pe.Stroke(linewidth=1.2,
+                                            foreground='white'), pe.Normal()])
+
+    # remove underscore.
+    cluster_fixed = cluster.replace('PSZ1', 'PSZ2').replace('_', ' ')
+
+    # add extra info
+    gc.add_scalebar(1 / 60, color='w', label="$1'$")
+    text = ("%s\n"
+            "z$_{phot}$ = %.3f\n" % (cluster_fixed,
+                                     confirmed.iloc[i]['z_cl_boada']))
+
+    ax = plt.gca()
+    txt_front = plt.text(0.1, 0.97, text, ha='left', va='top',
+                     transform=ax.transAxes, color='white', fontsize=16)
+
+    gc.axis_labels.set_xtext('Right Ascension (J2000)')
+    gc.axis_labels.set_ytext('Declination (J2000)')
+
+    # now for the axis lables
+    if i % 4 < 2:
+        gc.axis_labels.hide_x()
+    if i % 4 == 1 or i % 4 == 3:
+        gc.axis_labels.hide_y()
+
+    cluster = cluster.replace('PSZ1', 'PSZ2')
+
+    fig = plt.gcf()
+    fig.set_size_inches(fig.get_size_inches()/1.5, forward=True)
+
+    plt.tight_layout()
+    plt.savefig(r'{}.pdf'.format(cluster), bbox='tight', dpi=150)
+    plt.savefig(r'{}.png'.format(cluster), bbox='tight', dpi=150)
+
+

@@ -7,11 +7,11 @@ from builtins import object
 import os
 import sys
 import glob
-from SEx_reader import SEx_reader, SEx_reader_multi
-import tableio
 import re
-import astrometry
 import numpy as np
+from pipe_utils.SEx_reader import SEx_reader, SEx_reader_multi
+from pipe_utils import tableio
+from pipe_utils import astrometry
 
 
 class bcs_catalogs(object):

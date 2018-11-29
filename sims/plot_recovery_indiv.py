@@ -15,17 +15,19 @@ import matplotlib.pyplot as plt
 nfields = 1
 Ngal_o = 100
 m1 = 20.0
-m2 = 26.0
+m2 = 25.0
 dm = 0.2
-Niter = 4
+Niter = 10
 filter = 'i'
-path = '/home/boada/Projects/planckClusters/data/sims/Catalogs_Gal'
+path = '/home/boada/Projects/planckClusters/data/sims/Catalogs_Gal_small/'
+#path = '/home/boada/Projects/planckClusters/data/sims/Catalogs/'
 files = glob('{}/PSZ*{}.mch'.format(path, filter))
 fields = [f.split('/')[-1][:-5] for f in files]
 
 c = ['#348abd', '#7a68a6', '#467821', '#cf4451', '#a60628']
 
 for f in fields:
+    print(f)
     mag = numpy.arange(m1, m2, dm)
 
     fig, axPlot = plt.subplots(figsize=(5.5, 5.5))
@@ -37,7 +39,7 @@ for f in fields:
     # set the top xlabel to invisible
     plt.setp(axHistx.get_xticklabels(), visible=False)
 
-    for ii, filter in enumerate(['g', 'r', 'i', 'z', 'K']):
+    for ii, filter in enumerate(['g', 'r', 'i', 'z']):
         frac = numpy.zeros_like(mag)
         d_mag = numpy.zeros_like(mag)
         Ngal = Ngal_o * Niter
@@ -76,7 +78,11 @@ for f in fields:
 
         # plot the 80% completeness lines
         func = interpolate.interp1d(frac, mag)
-        axPlot.axvline(func(0.8), lw=1, color=c[ii], zorder=0)
+        try:
+            axPlot.axvline(func(0.8), lw=1, color=c[ii], zorder=0)
+        except ValueError:
+            # there is a problem with the recovery data -- just keep going
+            continue
 
     xmin = m1
     xmax = m2
@@ -100,9 +106,10 @@ for f in fields:
     #pylab.xlabel('$r$-band apparent magnitude')
     axPlot.set_xlabel('magnitude')
     axHistx.set_ylabel('m - <$m_{rec}$>', fontsize=18)
+    axHistx.set_title(f)
 
     plt.tight_layout()
     #pylab.savefig('recovery_i.pdf')
-    plt.savefig('plots_gal/{}_recovery.png'.format(f), bbox='tight')
-    plt.close()
+    plt.savefig('./plots_gal_small/{}_recovery.png'.format(f), bbox='tight')
     #plt.show()
+    plt.close()

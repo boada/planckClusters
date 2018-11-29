@@ -102,8 +102,8 @@ if __name__ == "__main__":
 
     for i, (ra, dec, name) in enumerate(zip(data['RA'], data['DEC'],
                                             data['Name'])):
-    #for i, (ra, dec, name, z) in enumerate(zip(data['RA_EX'], data['DEC_EX'],
-    #                                        data['Name'], data['z_EX'])):
+        #for i, (ra, dec, name, z) in enumerate(zip(data['RA_EX'], data['DEC_EX'],
+        #                                        data['Name'], data['z_EX'])):
         print(name, ra, dec, end='...')
 
         if os.path.isdir('{}/{}'.format(data_dir, name.decode())):
