@@ -72,22 +72,31 @@ def make_RGB(self, newfirm=False, conf='stiff-common.conf'):
         green = './{}{}.fits'.format(self.tilename, 'Green')
         blue = './{}{}.fits'.format(self.tilename, 'Blue')
         bands = 'rgb'
+
+        # set the scale options
+        minscales = '0.005'
+        maxscales = '0.997,0.994,0.992'
+
     else:
         red = './{}{}.fits'.format(self.tilename, 'i')
         green = './{}{}.fits'.format(self.tilename, 'r')
         blue = './{}{}.fits'.format(self.tilename, 'g')
         bands = 'irg'
 
+        minscales = '0.01,0.01,0.01'
+        maxscales = '0.993,0.993,0.993'
+
     # output file
     output = '{}{}.tiff'.format(self.tilename, bands)
 
     # options
-    opts = ['-MIN_LEVEL', '0.01',
-            '-MAX_LEVEL', '0.993',
+    opts = ['-MIN_LEVEL', '{}'.format(minscales),
+            '-MAX_LEVEL', '{}'.format(maxscales),
             '-MIN_TYPE', 'GREYLEVEL',
             '-MAX_TYPE', 'QUANTILE',
             '-COLOUR_SAT', '2.0',
-            '-DESCRIPTION', "'{} RGB'".format(self.tilename),
+            '-DESCRIPTION', "'{} RGB {} {}'".format(self.tilename, minscales,
+                                                    maxscales),
             '-WRITE_XML', 'N',
             '-COPYRIGHT', "'Steven Boada'"]
 
