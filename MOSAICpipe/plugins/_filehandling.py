@@ -32,7 +32,7 @@ def read_assoc(self):
                 continue
 
             vals = line.split()
-            fname = os.path.basename(vals[0])
+            fname = f'tiles/{os.path.basename(vals[0])}'
 
             # hack to deal with compressed files in the association
             if '.fz' in fname:
@@ -45,9 +45,9 @@ def read_assoc(self):
             if 'tu' in fname:
                 i = 1
                 while True:
-                    nid = int(os.path.splitext(fname)[0][2:]) + i
+                    nid = int(os.path.splitext(fname)[0][8:]) + i
                     ext = os.path.splitext(fname)[1]
-                    pre = fname[0:2]
+                    pre = fname[0:8]
                     dqmask = "%s%s%s" % (pre, nid, ext)
                     if os.path.isfile('{}.fz'.format(dqmask)):
                         break
@@ -73,7 +73,7 @@ def read_assoc(self):
                 continue
 
             vals = line.split()
-            fname = os.path.basename(vals[0])
+            fname = f'tiles/{os.path.basename(vals[0])}'
 
             # hack to deal with compressed files in the association
             if '.fz' in fname:
@@ -89,9 +89,9 @@ def read_assoc(self):
             if 'tu' in fname:
                 i = 1
                 while True:
-                    nid = int(os.path.splitext(fname)[0][2:]) + i
+                    nid = int(os.path.splitext(fname)[0][8:]) + i
                     ext = os.path.splitext(fname)[1]
-                    pre = fname[0:2]
+                    pre = fname[0:8]
                     dqmask = "%s%s%s" % (pre, nid, ext)
                     if os.path.isfile('{}.fz'.format(dqmask)):
                         break
