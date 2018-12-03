@@ -21,8 +21,8 @@ dirs = [dirs for _, dirs, _ in os.walk('./')][0] # only want top level
 cwd = os.getcwd()
 for d in dirs:
     os.chdir(cwd)
-    rawdir = './{}'.format(d)
-    outdir = '.'
+    rawdir = './{}/tiles'.format(d)
+    outdir = '..'
 
     pattern = "*.fits.fz"
 
@@ -38,7 +38,7 @@ for d in dirs:
         pattern = '*.fz'
         full_list = glob.glob(pattern)
 
-    filters = ('g', 'r', 'i', 'z', 'I', 'K')
+    filters = ('g', 'r', 'i', 'z')#, 'I', 'K')
     objects = []
     imalist = {}
     FILTER = {}
@@ -86,7 +86,7 @@ for d in dirs:
         # Keep the values
         try:
             OBJECT = header['OBJECT']  # [:-1]
-        except:
+        except KeyError:
             print("OBJECT KEY NOT FOUND FOR:", file)
             OBJECT = header['FILENAME'][0:11]
 
@@ -96,12 +96,12 @@ for d in dirs:
             FNAME = header['FILTER'][0]
             FILTER[file] = header['FILTER'][0]
             AIRMASS[file] = header['AIRMASS']
-        except:
+        except KeyError:
             continue
 
         try:
             EXPTIME[file] = header['EXPTIME']
-        except:
+        except KeyError:
             EXPTIME[file] = "undef"
 
         # TILE list per filter
@@ -111,8 +111,12 @@ for d in dirs:
             for filter in filters:
                 imalist[TILE][filter] = []
 
-        imalist[TILE][FNAME].append(file)
-        header = None
+        try:
+            imalist[TILE][FNAME].append(file)
+            header = None
+        except KeyError:
+            continue
+
 
     # Write them out
     print(" Will write results to: %s" % outdir, file=sys.stderr)
