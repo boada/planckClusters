@@ -84,7 +84,10 @@ def read_assoc(self):
 
             filtername = vals[1]
             self.exptime[fname] = float(vals[2])
-            self.airmass[fname] = float(vals[3])
+            try:
+                self.airmass[fname] = float(vals[3])
+            except ValueError: # catch if undef.
+                self.airmass[fname] = -1.0
 
             # Figure out the dqmask
             if 'tu' in fname:
@@ -104,7 +107,8 @@ def read_assoc(self):
                     #os.system('funpack -v {}.fz'.format(dqmask))
                     #subprocs.append('funpack -v {}.fz'.format(dqmask))
             elif 'k4' in fname:
-                dqmask = fname.replace('opi', 'opd')
+                dqmask = fname.replace('osi', 'osd')
+                dqmask = dqmask.replace('opi', 'opd')
                 if not os.path.isfile(dqmask) and not self.noSWarp:
                     pass
                     #os.system('funpack -v {}.fz'.format(dqmask))
