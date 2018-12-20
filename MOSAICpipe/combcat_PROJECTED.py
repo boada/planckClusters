@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 
 import os
-import sys
-import numpy as np
-from math import log10
+#import sys
+#import numpy as np
+#from math import log10
 import time
-import string
+#import string
 import types
 import imp
 # pipeline specific imports
-from pipe_utils import tableio
-from pipe_utils import deredden
+#from pipe_utils import tableio
+#from pipe_utils import deredden
 from utils import elapsed_time
+
 
 class PluginMeta(type):
     def __new__(cls, name, bases, dct):
