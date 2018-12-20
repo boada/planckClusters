@@ -49,19 +49,20 @@ def read_assoc(self):
                     ext = os.path.splitext(fname)[1]
                     pre = fname[0:8]
                     dqmask = "%s%s%s" % (pre, nid, ext)
-                    if os.path.isfile('{}.fz'.format(dqmask)):
+                    if os.path.isfile(f'{dqmask}.fz'):
                         break
                     else:
                         print('Looking...')
                         i += 1
                 if not os.path.isfile(dqmask) and not self.noSWarp:
                     subprocs.append(subprocess.Popen(
-                        shlex.split('funpack -v {}.fz'.format(dqmask))))
+                        shlex.split(f'funpack -v {dqmask}.fz')))
             elif 'k4' in fname:
-                dqmask = fname.replace('opi', 'opd')
+                dqmask = fname.replace('osi', 'osd')
+                dqmask = dqmask.replace('opi', 'opd')
                 if not os.path.isfile(dqmask) and not self.noSWarp:
                     subprocs.append(subprocess.Popen(
-                        shlex.split('funpack -v {}.fz'.format(dqmask))))
+                        shlex.split(f'funpack -v {dqmask}.fz')))
 
         [p.wait() for p in subprocs]
         [i.kill() for i in subprocs]
