@@ -38,7 +38,7 @@ for d in dirs:
         pattern = '*.fz'
         full_list = glob.glob(pattern)
 
-    filters = ('g', 'r', 'i', 'z')#, 'I', 'K')
+    filters = ('g', 'r', 'i', 'z', 'K')#, 'I', 'K')
     objects = []
     imalist = {}
     FILTER = {}
@@ -50,11 +50,9 @@ for d in dirs:
           len(full_list), file=sys.stderr)
 
     counter = 1
-    for file in full_list:
 
-        # make sure we are only working on mosaic data
-        if not 'mosaic' and 'resampled' in file:
-            continue
+    for file in full_list:
+        print(file)
 
         print("Reading %-45s ... (%4s/%4s)" % (file, counter, len(full_list)),
             file=sys.stderr)
@@ -92,12 +90,12 @@ for d in dirs:
 
         TILE = OBJECT[0:]
 
+        FNAME = header['FILTER'][0]
+        FILTER[file] = header['FILTER'][0]
         try:
-            FNAME = header['FILTER'][0]
-            FILTER[file] = header['FILTER'][0]
             AIRMASS[file] = header['AIRMASS']
         except KeyError:
-            continue
+            AIRMASS[file] = "undef"
 
         try:
             EXPTIME[file] = header['EXPTIME']
