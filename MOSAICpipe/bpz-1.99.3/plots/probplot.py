@@ -21,7 +21,7 @@ from __future__ import division
 #from ksbtools import *
 #htmldir = loadfile('/home/coe/UDF/htmldir.txt')[0]
 
-#import matplotlib
+import matplotlib.pyplot as plt
 #matplotlib.use('TkAgg')
 #from pylab import *
 #from coeplot2 import fillbetween, clear
@@ -65,10 +65,12 @@ def probplot(root,
         if save:
             print('CREATING ' + join(outdir, outimg) + '...')
         if nomargins:
+            plt.close('all')
             figure(1, figsize=(4, 2))
             clf()
             axes([0.03, 0.2, 0.94, 0.8])
         else:
+            plt.close('all')
             figure()
             clf()
         ioff()
