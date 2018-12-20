@@ -49,6 +49,7 @@ def SEx(self, det_filter='Detec', deblend=False):
             zeropt = hdr['MAGZERO']
             if zeropt == 0.0:
                 print('WARNING!: Photometric calibration not set!')
+                sys.exit()
                 try:
                     zeropt = self.magbase
                     self.combcat[filter] = self.combima[filter] + ".cat"
