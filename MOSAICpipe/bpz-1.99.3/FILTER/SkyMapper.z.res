@@ -1,0 +1,1 @@
+SKYMAPPER/SkyMapper.z.res
