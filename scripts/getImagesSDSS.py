@@ -38,20 +38,19 @@ for i, (ra, dec, name) in enumerate(zip(data['RA'], data['Dec'],
     counter = 0
     for HDU, band in zip(imgs, cycle('ugriz')):
         print('.', end='')
-        if os.path.isfile('./%s/%s_sdss_%s_%s.fits' % (name, name, band,
-                                                       counter)):
-            HDU.writeto('./%s/%s_sdss_%s_%s.fits' % (name, name, band,
-                                                     counter + 1), clobber=True)
+        if os.path.isfile(f'./{name}/{name}_sdss_{band}_{counter}.fits'):
+            HDU.writeto(f'./{name}/{name}_sdss_{band}_{counter + 1}.fits',
+                        clobber=True)
             if band == 'z':
                 counter += 1
         else:
-            HDU.writeto('./%s/%s_sdss_%s_%s.fits' % (name, name, band,
-                                                     counter), clobber=True)
+            HDU.writeto(f'./{name}/{name}_sdss_{band}_{counter}.fits',
+                        clobber=True)
 
     # add a little thing to keep track how many we have done. Poor man's
     # persistance
     with open('imagesGot.txt', 'w') as f:
-        f.writelines('%s' % i)
+        f.writelines(f'{i}')
 
     print('')
 
