@@ -1,43 +1,74 @@
-import pandas as pd
+import os
+from astropy import coordinates
 
-base_string_pos = ('http://ps1images.stsci.edu/cgi-bin/ps1cutouts?'
-               'pos={}%3A{}%3A{}{}%2B{}%3A{}%3A{}&'
+def load_PSZcatalog(unconf=False):
+    from astropy.table import Table
+    from numpy import append as npappend
+
+    datapath = f'{os.environ["HOME"]}/Projects/planckClusters/catalogs'
+
+    ps1 = Table.read(f'{datapath}/PSZ1v2.1.fits')
+    ps2 = Table.read(f'{datapath}/PSZ2v1.fits')
+
+    # convert to pandas
+    df1 = ps1.to_pandas()
+    df2 = ps2.to_pandas()
+
+    if unconf:
+        # only get unconfirmed sources
+        df1 = df1.loc[df1['VALIDATION'] <= 3]
+        df2 = df2.loc[df2['VALIDATION'] == -1]
+
+    # clean up strings -- not required
+    df1 = df1.applymap(lambda x: x.decode() if isinstance(x, bytes) else x)
+    df2 = df2.applymap(lambda x: x.decode() if isinstance(x, bytes) else x)
+
+    # merge the catalogs together
+    df_m = df1.merge(df2, how='outer', left_on='INDEX', right_on='PSZ',
+                     suffixes=('_PSZ1', '_PSZ2'))
+
+    # get the columns that we want
+    cols = df_m.columns[[0, 1, 4, 5, 8, 29, 33, 34, 37, 38, 40, 51]]
+    df_final = df_m[cols]
+
+    # remerge to find bits that were missing
+    df_final_bigger = df_final.merge(df2, how='left', left_on='INDEX_PSZ1',
+                                 right_on='PSZ')
+    # fill in nans
+    for col in ['NAME', 'RA', 'DEC', 'SNR', 'REDSHIFT', 'INDEX']:
+        df_final_bigger[col + '_PSZ2'] = \
+            df_final_bigger[col + '_PSZ2'].fillna(df_final_bigger[col])
+    # fill in nans
+    for col in ['NAME', 'RA', 'DEC', 'SNR', 'REDSHIFT', 'INDEX']:
+        df_final_bigger[col + '_PSZ2'] = \
+            df_final_bigger[col + '_PSZ2'].fillna(df_final_bigger[col])
+    for col in ['NAME', 'RA', 'DEC']:
+        df_final_bigger[col] = \
+            df_final_bigger[col + '_PSZ2'].fillna(df_final_bigger[col + '_PSZ1'])
+
+    df_final_bigger = \
+        df_final_bigger[npappend(df_final_bigger.columns[:12].values, ['NAME',
+                                                                   'RA',
+                                                                   'DEC'])]
+
+    return df_final_bigger
+
+
+base_string = ('http://ps1images.stsci.edu/cgi-bin/ps1cutouts?'
+               'pos={}%2C{}&'
                'filter=color&filter=g&filter=r&filter=i&filetypes=stack&'
                'auxiliary=data&size=1200&output_size=0&verbose=0&'
                'autoscale=99.500000&catlist=')
 
-base_string_neg = ('http://ps1images.stsci.edu/cgi-bin/ps1cutouts?'
-               'pos={}%3A{}%3A{}+{}{}%3A{}%3A{}&'
-               'filter=color&filter=g&filter=r&filter=i&filetypes=stack&'
-               'auxiliary=data&size=1200&output_size=0&verbose=0&'
-               'autoscale=99.500000&catlist=')
+data = load_PSZcatalog(True)
+data['PanSTARRS'] = ''
 
-sheet = pd.read_csv('./catalogs/PSZ2_unconfirmed_catalog - Master.csv')
-
-for index, row in sheet.iterrows():
-    print(row['RA_SEX'], row['DEC_SEX'])
-    try:
-        ra_parts = row['RA_SEX'].split(':')
-        dec_parts = row['DEC_SEX'].split(':')
-        if int(dec_parts[0]) > 0:
-            sheet['PanSTARRS'][index] = base_string_pos.format(ra_parts[0],
-                                                    ra_parts[1],
-                                                    ra_parts[2],
-                                                    dec_parts[0][0], # the +/-
-                                                    dec_parts[0][1:],
-                                                    dec_parts[1],
-                                                    dec_parts[2])
-        if int(dec_parts[0]) < 0:
-            sheet['PanSTARRS'][index] = base_string_neg.format(ra_parts[0],
-                                                    ra_parts[1],
-                                                    ra_parts[2],
-                                                    dec_parts[0][0], # the +/-
-                                                    dec_parts[0][1:],
-                                                    dec_parts[1],
-                                                    dec_parts[2])
-    except:
-        pass
-sheet.to_csv('updated_withPS1.csv')
+for index, row in data.iterrows():
+    if row.DEC < -31:
+        continue
+    else:
+        data['PanSTARRS'][index] = base_string.format(row.RA, row.DEC)
+data.to_csv('updated_withPS1.csv', index=False)
 
 
 
