@@ -3,14 +3,16 @@ import time
 import sys
 import os
 
+# get the utils from the parent directory
+try:
+    from utils import (PCircle, PEllipse)
+except ImportError:
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from utils import (PCircle, PEllipse)
+
 # fix large image error
 import PIL
 PIL.Image.MAX_IMAGE_PIXELS = None
-
-# get the utils from the parent directory
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils import (PCircle, PEllipse, color)
-
 
 #######################################
 # This is the loop routine interactive
@@ -350,7 +352,7 @@ def ellipse_members(self, k=0):
         linewidth=0.5)
     ax.add_patch(C)
 
-    r_pixels = 2 *self.rdeg * 3600.0 / self.pixscale
+    r_pixels = 2 * self.rdeg * 3600.0 / self.pixscale
     C = PCircle(
         (Xo, Yo),
         r_pixels,
