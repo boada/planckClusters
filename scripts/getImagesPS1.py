@@ -1,22 +1,62 @@
 from time import sleep
 import subprocess
 import shlex
-from astLib.astCoords import decimal2dms, decimal2hms
+import os
 from astropy.table import Table
 from numpy import append as npappend
+from astLib.astCoords import decimal2hms, decimal2dms
 
-def work(ra, dec, name):
+def check_redo(outpath, name):
+    ''' check to see if we really need to do anything '''
+
+    if not os.path.isdir(f'{outpath}/{name}/'):
+        return 1
+
+    files = [f for f in os.walk(f'{outpath}/{name}/')]
+
+    if not len(files[0][2]) == 5:
+        return 1
+
+    for f in files[0][2]:
+        if 'PSZ' not in f:
+            return 1
+
+    return 0
+
+def work(outpath, ra, dec, name):
 
     ra_sex = decimal2hms(ra, ':')
     dec_sex = decimal2dms(dec, ':')
 
-    cmd = 'panstamps --width=10 '
-    cmd += f'--downloadFolder=./PS1/{name} stack {ra_sex} {dec_sex}'
+    cmd = 'panstamps --width=10 --filters grizy '
+    cmd += f'--downloadFolder={outpath}/{name} stack {ra_sex} {dec_sex}'
     print(cmd)
     p = subprocess.Popen(shlex.split(cmd))
 
     p.wait()
 
+def rename(outpath, name):
+
+    if not os.path.isdir(f'{outpath}/{name}/'):
+        return
+
+    files = [f for f in os.walk(f'{outpath}/{name}/')]
+
+    if not len(files[0][2]):
+        print(f'{name} has no data!')
+        return
+
+    filters = ['g', 'r', 'i', 'z', 'y']
+
+    for filt, f in zip(filters, files[0][2]):
+        if 'PSZ' in f:
+            # don't need to rename
+            continue
+        elif filt in f:
+            os.rename(f'{outpath}/{name}/{f}',
+                      f'{outpath}/{name}/{name}_PS1stack_{filt}.fits')
+        else:
+            print(f'Missing the {filt} filter!')
 
 def load_PSZcatalog():
 
@@ -68,6 +108,8 @@ def load_PSZcatalog():
 
 data = load_PSZcatalog()
 
+outpath = './../data/extern/PS1'
+
 for i, (ra, dec, name) in enumerate(
         zip(data['RA'], data['DEC'], data['NAME'])):
 
@@ -77,5 +119,10 @@ for i, (ra, dec, name) in enumerate(
     if dec < -31:
         continue
 
-    work(ra, dec, f'{name}')
+    if not check_redo(outpath, f'{name}'):
+        continue
+
+    work(outpath, ra, dec, f'{name}')
+    rename(outpath, f'{name}')
     sleep(1)
+
