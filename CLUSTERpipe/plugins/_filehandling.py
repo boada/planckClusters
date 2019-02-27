@@ -285,8 +285,7 @@ def jpg_read(self, dx=1200, dy=1200, RA=None, DEC=None):
             RA = float(RA)
             DEC = float(DEC)
     elif isinstance(RA, float) and isinstance(DEC, float):
-        self.xo = RA
-        self.yo = DEC
+        self.xo, self.yo = astrometry.rd2xy(RA, DEC, self.fitsfile)
         yo_tmp = self.yo
     elif RA is None and DEC is None:
         self.xo = self.nx / 2.0
