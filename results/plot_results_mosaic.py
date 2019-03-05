@@ -107,7 +107,7 @@ for i, cluster in enumerate(confirmed['Cluster']):
     cluster = cluster.replace('PSZ1', 'PSZ2')
 
     fig = plt.gcf()
-    fig.set_size_inches(fig.get_size_inches()/1.5, forward=True)
+    fig.set_size_inches(fig.get_size_inches() / 1.5, forward=True)
 
     plt.tight_layout()
     plt.savefig(r'{}.pdf'.format(cluster), bbox='tight', dpi=150)
