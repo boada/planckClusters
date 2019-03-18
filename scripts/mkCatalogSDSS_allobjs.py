@@ -1,8 +1,8 @@
 from urllib import parse, request
 import sys
 import os
-from astLib import astCoords
-import numpy as np
+sys.path.append(f'{os.environ["HOME"]}/Projects/planckClusters/catalogs')
+from load_catalogs import load_PSZcatalog
 from time import sleep
 
 def filtercomment(sql):
@@ -95,16 +95,13 @@ def work(ra, dec, outfile):
 
 
 # get file data
-data = np.genfromtxt('../catalogs/PSZ2_unconfirmed_catalog - Master.csv',
-                     delimiter=',',
-                     names=True,
-                     dtype=None)
+data = load_PSZcatalog()
 
-for i, (ra, dec,
-        name) in enumerate(zip(data['RA'], data['DEC'], data['Name'])):
-    print(data['Name'][i])
+for i, row in data.iterrows():
+    n = row.NAME.replace(' ', '_')
 
-    ra = astCoords.hms2decimal(ra, ':')
-    dec = astCoords.dms2decimal(dec, ':')
-    work(ra, dec, './SDSS/%s_SDSS_catalog.csv' % (name.decode()))
+    ra = float(row.RA)
+    dec = float(row.DEC)
+
+    work(ra, dec, f'./SDSS/{n}_SDSS_catalog.csv')
     sleep(1)
