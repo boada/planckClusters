@@ -1,6 +1,7 @@
 from astropy.table import Table
 from numpy import append as npappend
 import os
+import pandas as pd
 from pandas import to_numeric
 
 def load_PSZcatalog(unconf=False, full=False, extras=False, **kwargs):
@@ -82,6 +83,7 @@ def load_PSZcatalog(unconf=False, full=False, extras=False, **kwargs):
     return df_final_bigger
 
 def load_extras(df, barrena=False, us=False):
+    datapath = f'{os.environ["HOME"]}/Projects/planckClusters/catalogs'
     if us:
         df['mosaic'] = False
         df['newfirm'] = False
@@ -101,8 +103,13 @@ def load_extras(df, barrena=False, us=False):
                                 f'{df.iloc[i]["NAME_PSZ1"]}K.fits'):
                 df.iloc[i]['newfirm'] = True
 
+        completeness = pd.read_csv(f'{datapath}/completenesses.csv')
+        df = df.merge(completeness, left_on='NAME', right_on='NAME', how='left')
+
+        if not barrena:
+            return df
+
     if barrena:
-        datapath = f'{os.environ["HOME"]}/Projects/planckClusters/catalogs'
         # load Barrena table -- Barrena_tbl3.csv
         t = Table.read(f'{datapath}/Barrena_tbl3.csv')
         df_b = t.to_pandas()
@@ -126,6 +133,6 @@ def load_extras(df, barrena=False, us=False):
                             right_on='ID', suffixes=('', '_Barrena'))
 
         # clean things up a bit
-        df_b.drop(['Planck Name', 'SZ S/N', 'Notes', 'ID'], axis=1,
+        df_extra.drop(['Planck Name', 'SZ S/N', 'Notes', ], axis=1,
                   inplace=True)
     return df_extra
