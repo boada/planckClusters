@@ -47,7 +47,7 @@ def worker(pos, d):
     print(os.getcwd())
     # build the command
     cmd = 'python3 combcat_PROJECTED.py {} ./ ./'.format(assocFile)
-    cmd += ' --swarpextras --astro --photo --sex --bpz --RGB'
+    cmd += ' --sex --newfirm'
 
     print(cmd)
     os.system(cmd)
@@ -64,6 +64,9 @@ def main():
     async_worker = AsyncFactory(worker, cb_func)
     for i, d in enumerate(dirs):
         if 'PSZ' not in d:
+            continue
+
+        if not os.path.isfile(f'./{d}/{d}K.fits'):
             continue
 
         async_worker.call(i, d)
