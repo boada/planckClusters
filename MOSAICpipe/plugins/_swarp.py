@@ -241,6 +241,13 @@ def swarp_extras(self,
         filters["Detec"] = ['i', 'z']
         ir = False
 
+    # check for only K-band
+    try:
+        self.filters.index('i')
+    except ValueError:
+        filters = {}
+        filters['Detec'] = ['K']
+
     for color in list(filters.keys()):
 
         outimage = "%s%s.fits" % (self.tilename, color)
