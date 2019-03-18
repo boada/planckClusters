@@ -162,7 +162,7 @@ def get_zeropt(self, newfirm=False):
             cmd = 'pp_photometry -snr 10 -aprad 16 {}'.format(mosaic)
         elif self.pixscale == 0.2666:
             cmd = 'pp_photometry -snr 10 -aprad 15 {}'.format(mosaic)
-        elif self.pixscale == 0.4:
+        else:
             cmd = 'pp_photometry -snr 10 -aprad 10 {}'.format(mosaic)
 
         if not self.dryrun:
