@@ -39,5 +39,8 @@ pyraf/
 *.pdf
 *.png
 
+### JupyterNotebook ###
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
 
 catalogs/merge_cats_ipy\.py
