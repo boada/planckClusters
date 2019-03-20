@@ -26,8 +26,9 @@ sims/plots_gal/
 sims/plots_gal_small/
 sims/plots_PS/
 sims/plots/
-cluster_search_redo/
-cluster_search/
+analysis_op/cluster_search_redo/
+analysis_op/cluster_search/
+analysis_op/results/*
 
 # iraf stuff
 uparm
