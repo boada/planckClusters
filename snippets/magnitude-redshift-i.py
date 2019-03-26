@@ -44,6 +44,7 @@ def main():
 
     # For the evolution of colors
     BCSPIPE = os.getenv('BCSPIPE')
+    BCSPIPE = '/home/boada/Projects/planckClusters/MOSAICpipe/'
     evolfile = "1_0gyr_hr_m62_salp.color"
     evolfile = os.path.join(BCSPIPE, "LIB/evol", evolfile)
     k, ev, colorZ = KEfit(evolfile)
@@ -158,6 +159,7 @@ def mi_star_evol(z, h=0.7, cosmo=(0.3, 0.7, 0.7)):
 
     # Blanton's number i.e. M* - 1.5 mags
     BCSPIPE = os.getenv('BCSPIPE')
+    BCSPIPE = '/home/boada/Projects/planckClusters/MOSAICpipe/'
     evolfile = "1_0gyr_hr_m62_salp.color"
     evolfile = os.path.join(BCSPIPE, "LIB/evol", evolfile)
 
@@ -180,7 +182,7 @@ def KEfit(modelfile):
     import scipy.interpolate
     import tableio
 
-    print "# Getting K(z) and Ev(z) corrections from file:  %s\n" % modelfile
+    print("# Getting K(z) and Ev(z) corrections from file:  %s\n" % modelfile)
 
     e = {}
     k = {}

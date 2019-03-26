@@ -177,7 +177,7 @@ def KEfit(modelfile):
     import scipy.interpolate
     import tableio
 
-    print "# Getting K(z) and Ev(z) corrections from file:  %s\n" % modelfile
+    print("# Getting K(z) and Ev(z) corrections from file:  %s\n" % modelfile)
 
     e = {}
     k = {}
