@@ -782,8 +782,8 @@ def ABflux(sed, filter, madau='yes'):
             if madau != 'no': ys_z = etau_madau(x_r, z_ab[i]) * ys_z
             f[i] = trapz(ys_z * r, x_r) * const
 
-    ABoutput = ab_dir + split(sed, '/')[-1][:-4] + '.' + split(
-        filter, '/')[-1][:-4] + '.AB'
+    ABoutput = (ab_dir + sed.split('/')[-1][:-4] +
+                '.' + filter.split('/')[-1][:-4] + '.AB')
 
     #print "Clipping the AB file"
     #fmax=max(f)
