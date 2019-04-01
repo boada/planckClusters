@@ -45,3 +45,5 @@ pyraf/
 */.ipynb_checkpoints/*
 
 catalogs/merge_cats_ipy\.py
+
+MOSAICpipe/bpz-1\.99\.3/AB/
