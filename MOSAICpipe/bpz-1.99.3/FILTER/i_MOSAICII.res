@@ -1,1 +1,0 @@
-MOSAIC/k1019.res

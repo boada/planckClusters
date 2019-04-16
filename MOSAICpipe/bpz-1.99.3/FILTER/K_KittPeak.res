@@ -1,1 +1,0 @@
-NEWFIRM/K_KittPeak.res

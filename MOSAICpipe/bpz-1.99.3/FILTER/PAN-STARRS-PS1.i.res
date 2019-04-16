@@ -1,1 +1,0 @@
-PanSTARRS/PAN-STARRS-PS1.i.res

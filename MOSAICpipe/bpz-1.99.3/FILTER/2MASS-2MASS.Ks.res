@@ -1,1 +1,0 @@
-2MASS/2MASS-2MASS.Ks.res

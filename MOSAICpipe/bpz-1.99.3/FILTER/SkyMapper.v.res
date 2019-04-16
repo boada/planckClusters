@@ -1,1 +1,0 @@
-SKYMAPPER/SkyMapper.v.res

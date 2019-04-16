@@ -1,1 +1,0 @@
-MOSAIC/k1017.res

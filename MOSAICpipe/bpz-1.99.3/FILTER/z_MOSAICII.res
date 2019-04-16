@@ -1,1 +1,0 @@
-MOSAIC/c6020.res
