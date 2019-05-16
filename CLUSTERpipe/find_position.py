@@ -6,13 +6,6 @@ from cosmopy import cosmopy
 import imp
 import types
 
-# float32 = numpy.float32
-# float64 = numpy.float64
-# int16 = numpy.int16
-# nstr = numpy.char
-# lge = numpy.greater_equal
-# lle = numpy.less_equal
-
 sout = sys.stderr
 
 class PluginMeta(type):
@@ -31,7 +24,8 @@ class PluginMeta(type):
 
 class finder(metaclass=PluginMeta):
 
-    plugindir = '/home/boada/Projects/planckClusters/CLUSTERpipe/plugins'
+    plugindir = (f'{os.environ["HOME"]}/Projects/'
+                  'planckClusters/CLUSTERpipe/plugins')
 
     def __init__(
             self,

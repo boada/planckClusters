@@ -10,7 +10,8 @@ try:
     import extras
     import astrometry
 except ImportError:
-    sys.path.append('/home/boada/Projects/planckClusters/MOSAICpipe/pipe_utils')
+    sys.path.append(f'{os.environ["HOME"]}/Projects/'
+                    'planckClusters/MOSAICpipe/pipe_utils')
     import tableio
     import extras
     import astrometry
