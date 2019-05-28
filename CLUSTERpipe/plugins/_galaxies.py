@@ -10,7 +10,7 @@ try:
     import astrometry
     import aux
 except ImportError:
-    sys.path.append(f'{os.environ["HOME"}/Projects/'
+    sys.path.append(f'{os.environ["HOME"]}/Projects/'
                     'planckClusters/MOSAICpipe/pipe_utils')
     import cosmology
     import extras
