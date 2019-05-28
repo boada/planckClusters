@@ -13,22 +13,25 @@ legacy/
 *.txt
 *.reg
 *.csv
+
+### Directories ###
 MOSAICpipe/bpz_felipe/
 BCSpipe/
 SOARpipe/
 MOSAICpipe/LIB/
-CasJobs.config
-
-results/*
-!results/*.py
-
 sims/plots_gal/
 sims/plots_gal_small/
 sims/plots_PS/
 sims/plots/
+MOSAICpipe/bpz-1\.99\.3/AB/
+MOSAICpipe/bpz-1\.99\.3/SED/
+MOSAICpipe/bpz-1\.99\.3/FILTER/
+analysis_ir/liuetal/
+analysis_ir/hennig/
 analysis_op/cluster_search_redo/
 analysis_op/cluster_search/
 analysis_op/results/*
+!analysis_op/results/*.py
 
 # iraf stuff
 uparm
@@ -44,12 +47,6 @@ pyraf/
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
 
+### Specific Files ###
 catalogs/merge_cats_ipy\.py
-
-MOSAICpipe/bpz-1\.99\.3/AB/
-
-MOSAICpipe/bpz-1\.99\.3/SED/
-
-MOSAICpipe/bpz-1\.99\.3/FILTER/
-
-analysis_ir/liuetal/
+CasJobs.config
