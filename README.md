@@ -4,10 +4,13 @@ This is all of the source code for the papers associated with the Planck cluster
 
 - [High Confidence Optical Confirmation Among The High Signal-to-Noise Planck Cluster Candidates](https://arxiv.org/abs/1809.06378)
 
-Here is the basic structure of the repo.
+Here is the basic structure of the repo. Also please have a look at the git branches for features not immediately apparent in the master branch.
 
+
+- analysis_op -- all of the analysis associated with the optical cluster search
+- analysis_ir -- all of the analysis associated with the IR cluster search
 - catalogs -- original PSZ catalogs
-- cluster_search -- my searches for clusters
+- CLUSTERpipe -- pipeline for cluster finding
 - data -- all of the original imaging associated with the project
 - legacy -- old code I didn't want to throw away
 - MOSAICpipe -- the main pipeline to process all of the MOSAIC1/2 and NEWFIRM data
@@ -32,12 +35,12 @@ Copyright 2017 Steven Boada (Rutgers University).
 **All rights reserved.**
 
 ## Citation
-If you would like to reference our [paper](http://adsabs.harvard.edu/cgi-bin/bib_query?arXiv:1809.06378), 
-please use the following citation, produced by 
+If you would like to reference our [paper](http://adsabs.harvard.edu/cgi-bin/bib_query?arXiv:1809.06378),
+please use the following citation, produced by
 [NASA ADS](http://adsabs.harvard.edu/cgi-bin/bib_query?arXiv:1810.12913):
 ```
 @ARTICLE{2018arXiv180906378B,
-   author = {{Boada}, S. and {Hughes}, J.~P. and {Menanteau}, F. and {Doze}, P. and 
+   author = {{Boada}, S. and {Hughes}, J.~P. and {Menanteau}, F. and {Doze}, P. and
 	{Barrientos}, L.~F. and {Infante}, L.},
     title = "{High Confidence Optical Confirmation of High Signal-to-Noise Planck Cluster Candidates}",
   journal = {ArXiv e-prints},
