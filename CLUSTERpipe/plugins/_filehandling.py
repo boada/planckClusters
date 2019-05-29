@@ -5,6 +5,11 @@ import re
 import os
 import scipy
 import scipy.misc as sci_misc
+from astropy.table import Table
+from astropy.coordinates import SkyCoord
+from astropy.wcs import WCS
+from astropy import units as u
+
 try:
     import tableio
     import extras
@@ -26,43 +31,42 @@ nstr = numpy.char
 def read_cat(self):
     t1 = time.time()
 
-    cols = (1, 2, 23, 27, 26, 28, 29, 30, 3, 4, 6, 7, 9, 10, 12, 13, 15,
+    cols = (0, 1, 2, 23, 27, 26, 28, 29, 30, 3, 4, 6, 7, 9, 10, 12, 13, 15,
             16, 17, 18, 19, 20, 21, 22, 31, 32, 33, 34, 35, 36)
 
     sout.write("# Reading cols:%s\n# Reading cats from: %s... \n" %
                (cols, self.catsfile))
-    (ra,
-    dec,
-    z_b,
-    odds,
-    t_b,
-    z_ml,
-    t_ml,
-    chi,
-    g,
-    g_err,
-    r,
-    r_err,
-    i,
-    i_err,
-    z,
-    z_err,
-    g_bpz,
-    g_berr,
-    r_bpz,
-    r_berr,
-    i_bpz,
-    i_berr,
-    z_bpz,
-    z_berr,
-    class_star,
-    a_image,
-    b_image,
-    theta,
-    x_image,
-    y_image) = tableio.get_data(self.catsfile, cols=cols)
-
-    (id) = tableio.get_str(self.catsfile, cols=(0, ))
+    (id,
+     ra,
+     dec,
+     z_b,
+     odds,
+     t_b,
+     z_ml,
+     t_ml,
+     chi,
+     g,
+     g_err,
+     r,
+     r_err,
+     i,
+     i_err,
+     z,
+     z_err,
+     g_bpz,
+     g_berr,
+     r_bpz,
+     r_berr,
+     i_bpz,
+     i_berr,
+     z_bpz,
+     z_berr,
+     class_star,
+     a_image,
+     b_image,
+     theta,
+     x_image,
+     y_image) = Table.read(self.catsfile, format='ascii').columns[cols].values()
 
     ############################################
     # Choose the photo-z to use, ml or bayesian
@@ -245,6 +249,7 @@ def jpg_read(self, dx=1200, dy=1200, RA=None, DEC=None):
 
     # The fitsfile with the wcs information
     self.fitsfile = os.path.join(self.datapath, self.ctile + 'i.fits')
+    self.WCS = WCS(self.fitsfile)
     if os.path.isfile(self.datapath + self.ctile + 'irg.tiff'):
         self.jpgfile = os.path.join(self.datapath, self.ctile + 'irg.tiff')
     else:
@@ -274,19 +279,17 @@ def jpg_read(self, dx=1200, dy=1200, RA=None, DEC=None):
 
     if isinstance(RA, str) and isinstance(DEC, str):
         if ':' in RA and ':' in DEC:
-            RA = astrometry.hms2dec(RA)
-            DEC = astrometry.deg2dec(DEC)
-            # pass up
-            self.RA = RA
-            self.DEC = DEC
-            self.xo, self.yo = astrometry.rd2xy(RA, DEC, self.fitsfile)
+            coord = SkyCoord(RA, DEC, frame='icrs', unit=(u.hourangle, u.deg))
+            self.RA = coord.ra.deg
+            self.DEC = coord.dec.deg
+            self.xo, self.yo = self.WCS.wcs_world2pix(self.RA, self.DEC)
             print(self.xo, self.yo)
             yo_tmp = self.yo
         else:
             RA = float(RA)
             DEC = float(DEC)
     elif isinstance(RA, float) and isinstance(DEC, float):
-        self.xo, self.yo = astrometry.rd2xy(RA, DEC, self.fitsfile)
+        self.xo, self.yo = self.WCS.wcs_world2pix(self.RA, self.DEC)
         yo_tmp = self.yo
     elif RA is None and DEC is None:
         self.xo = self.nx / 2.0

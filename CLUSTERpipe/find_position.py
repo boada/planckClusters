@@ -5,6 +5,7 @@ import sys
 from cosmopy import cosmopy
 import imp
 import types
+from astropy.cosmology import LambdaCDM
 
 sout = sys.stderr
 
@@ -53,36 +54,33 @@ class finder(metaclass=PluginMeta):
                                                     'MOSAICpipe')
         self.MOSAICpipe = os.getenv('MOSAICpipe')
 
-        self.zlim = zlim
-        self.cosmo = cosmo
-        self.evolfile = os.path.join(self.MOSAICpipe, "LIB/evol", evolfile)
-        self.dz = dz
-        self.zuse = zuse
+        # set path stuff
+        self.ctile = ctile
         self.outpath = outpath
         self.path = path
-        self.radius = radius
-        self.zo = zo  # Input zo for the BCG
-
-        # Set the cosmology now
-        self.cset = cosmopy.set(self.cosmo)
-        self.Om = cosmo[0]
-        self.OL = cosmo[1]
-        self.h = cosmo[2]
-        self.Ho = self.h * 100.0
-
-        self.ctile = ctile
         self.datapath = path
         self.catsfile = os.path.join(path, ctile, ctile + "_merged.cat")
         self.probsfile = os.path.join(path, ctile, ctile + "_probs.dat")
+        self.evolfile = os.path.join(self.MOSAICpipe, "LIB/evol", evolfile)
+        self.rootname = os.path.join(self.datapath, self.ctile, self.ctile)
 
-        # limits
+        # Set the cosmology now
+        self.cosmo = LambdaCDM(H0=cosmo[2] * 100 , Om0=cosmo[0], Ode0=cosmo[1], Tcmb0=2.725)
+        self.cosmo_init = cosmo
+
+        # limits and other initial values
+        self.zlim = zlim
         self.maglim = maglim
         self.starlim = starlim
-
+        self.dz = dz
+        self.zuse = zuse
+        self.radius = radius
+        self.zo = zo  # Input zo for the BCG
+        self.pixscale = 0.25
+        self.ellipse = {}
         self.verb = verb
         self.ellipse = {}
         self.plot_around = None
-        self.pixscale = pixscale
 
         self.read_cat()  # Read catalogs avoding, faint, high-z and 99 objects
         self.read_probs()  # Read probs function of objects from catalogs

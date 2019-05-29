@@ -3,7 +3,9 @@ import time
 import sys
 import pylab
 import math
-from utils import KEfit
+from utils import KE, KEfit
+from astropy.coordinates import SkyCoord
+
 try:
     import extras
     import astrometry
@@ -22,8 +24,10 @@ def print_info(self):
     gr = self.g_bpz[i] - self.r_bpz[i]
     ri = self.r_bpz[i] - self.i_bpz[i]
 
-    ra = astrometry.dec2deg(self.ra[i] / 15.)
-    dec = astrometry.dec2deg(self.dec[i])
+    coord = SkyCoord(self.ra[i], self.dec[i], frame='icrs', unit='deg')
+    ra = coord.ra.to_string(unit='hour', sep=':')
+    dec = coord.dec.to_string(unit='deg', sep=':')
+
     print("-------------------------------")
     print(" Object:\t%s" % self.ID)
     print(" RA,DEC:\t%s %s" % (ra, dec))
@@ -61,9 +65,10 @@ def click(self, event):
     d = math.sqrt((ximage - xo)**2 + (yimage - yo)**2) * self.pixscale
     self.dist_to_psz = d / 60
 
-    ra, dec = astrometry.xy2rd(ximage, yimage, self.fitsfile)
-    RA = astrometry.dec2deg(ra / 15)
-    DEC = astrometry.dec2deg(dec)
+    ra, dec = self.WCS.wcs_pix2world(ximage, yimage, 0)
+    coord = SkyCoord(ra, dec, frame='icrs', unit='deg')
+    RA = coord.ra.to_string(unit='hour', sep=':')
+    DEC = coord.dec.to_string(unit='deg', sep=':')
     print("ra,dec,filename", RA, DEC, self.fitsfile)
     return ximage, yimage
 
@@ -131,9 +136,9 @@ def ax_to_arcmin(self, ds=1.0):  # ds in arcmin
 def get_absmags(self):
 
     # Distance modulus, dlum and dangular
-    self.dlum = self.cset.dlum(self.z_ph)
-    self.dang = self.cset.dang(self.z_ph)
-    self.DM = 25.0 + 5.0 * numpy.log10(self.dlum)
+    self.dlum = self.cosmo.luminosity_distance(self.z_ph).value
+    self.dang = self.cosmo.angular_diameter_distance(self.z_ph).value
+    self.DM = self.cosmo.distmod(self.z_ph).value
 
     t0 = time.time()
     # Get the absolute magnitudes, *not including evolution*, only Kcorr
@@ -146,12 +151,23 @@ def get_absmags(self):
     sout.write("# Computing absolute magnitudes interpolating "
                "konly from BC03 model \n")
     k, ev = KEfit(self.evolfile)
+    model = KE(self.cosmo)
+
+    self.zf = 3
 
     sout.write("# Computing evolution ev(z) for each galaxy \n")
-    self.ev_g = ev['g'](self.z_ph)
-    self.ev_r = ev['r'](self.z_ph)
-    self.ev_i = ev['i'](self.z_ph)
-    self.ev_z = ev['z'](self.z_ph)
+    self.ev_g = model.get_ecorrects(self.zf, filters='g', zs=self.z_ph)
+    self.ev_r = model.get_ecorrects(self.zf, filters='r', zs=self.z_ph)
+    self.ev_i = model.get_ecorrects(self.zf, filters='i', zs=self.z_ph)
+    self.ev_z = model.get_ecorrects(self.zf, filters='z', zs=self.z_ph)
+    self.ev_K = model.get_ecorrects(self.zf, filters='K', zs=self.z_ph)
+
+    sout.write("# Computing k-correction k(z) for each galaxy \n")
+    self.k_g = model.get_kcorrects(self.zf, filters='g', zs=self.z_ph)
+    self.k_r = model.get_kcorrects(self.zf, filters='r', zs=self.z_ph)
+    self.k_i = model.get_kcorrects(self.zf, filters='i', zs=self.z_ph)
+    self.k_z = model.get_kcorrects(self.zf, filters='z', zs=self.z_ph)
+    self.k_K = model.get_kcorrects(self.zf, filters='K', zs=self.z_ph)
 
     # Also get the luminosities in Msun
     # taken from http://www.ucolick.org/~cnaw/sun.html
@@ -164,21 +180,25 @@ def get_absmags(self):
     # ^^ http://www.astronomy.ohio-state.edu/~martini/usefuldata.html
 
     # Mags k-corrected
-    self.Mg = self.g - self.DM - k['g'](self.z_ph)
-    self.Mr = self.r - self.DM - k['r'](self.z_ph)
-    self.Mi = self.i - self.DM - k['i'](self.z_ph)
-    self.Mz = self.z - self.DM - k['z'](self.z_ph)
+    self.Mg = self.g - self.DM - self.k_g
+    self.Mr = self.r - self.DM - self.k_r
+    self.Mi = self.i - self.DM - self.k_i
+    self.Mz = self.z - self.DM - self.k_z
+    # self.MK = self.K - self.DM - self.k_K
 
-    self.Lg = 10.0**(-0.4 * (self.Mg - self.Msun['g']))
+    # self.Lg = 10.0**(-0.4 * (self.Mg - self.Msun['g']))
     self.Lr = 10.0**(-0.4 * (self.Mr - self.Msun['r']))
-    self.Li = 10.0**(-0.4 * (self.Mi - self.Msun['i']))
-    self.Lz = 10.0**(-0.4 * (self.Mz - self.Msun['z']))
-    self.Lg_err = self.Lg * self.g_err / 1.0857
-    self.Lr_err = self.Lr * self.r_err / 1.0857
-    self.Li_err = self.Li * self.i_err / 1.0857
-    self.Lz_err = self.Lz * self.z_err / 1.0857
+    # self.Li = 10.0**(-0.4 * (self.Mi - self.Msun['i']))
+    # self.Lz = 10.0**(-0.4 * (self.Mz - self.Msun['z']))
+    # self.LK = 10.0**(-0.4 * (self.MK - self.Msun['K']))
+    #
+    # self.Lg_err = self.Lg * self.g_err / 1.0857
+    # self.Lr_err = self.Lr * self.r_err / 1.0857
+    # self.Li_err = self.Li * self.i_err / 1.0857
+    # self.Lz_err = self.Lz * self.z_err / 1.0857
 
     # Pass it up to the class
+    self.evo_model = model
     self.kcorr = k
     self.evf = ev
     sout.write(" \t Done: %s\n" % extras.elapsed_time_str(t0))

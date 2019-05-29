@@ -4,6 +4,8 @@ import os
 import numpy
 import math
 from past.utils import old_div
+from astropy.coordinates import SkyCoord
+
 try:
     import cosmology
     import extras
@@ -34,20 +36,17 @@ def get_BCG_candidates(self, Mr_limit=-22.71, p_lim=1e-4):
     sout.write("# Computing p_BCG probabilities...\n")
 
     # The Abs mag limit @ z=0.1 in the i-band
-    Mi_limit = cosmology.reobs(
-        'El_Benitez2003',
-        m=Mr_limit,
-        oldfilter="r_MOSAICII",
-        newfilter="i_MOSAICII")
+    _evo_model = self.evo_model.copy()
+    _evo_model.set_normalization('r', 0.1, Mr_limit, vega=False)
+    Mi_limit = _evo_model.get_absolute_mags(self.zf, filters='i', zs=0.1)
 
     # Evaluate the genertic mask for BCG only onece
     if not self.BCG_probs:
-
         # We get the limit at the z_ph of each candidate, corrected by z=0.1
-        Mr_BCG_limit = Mr_limit + self.ev_r - self.evf['r'](
-            0.1)  # + self.DM_factor
-        Mi_BCG_limit = Mi_limit + self.ev_i - self.evf['i'](
-            0.1)  # + self.DM_factor
+        Mr_BCG_limit = (Mr_limit + self.ev_r -
+                        self.evo_model.get_ecorrects(self.zf, filters='r', zs=0.1))  # + self.DM_factor
+        Mi_BCG_limit = (Mi_limit + self.ev_i -
+                        self.evo_model.get_ecorrects(self.zf, filters='i', zs=0.1))
 
         # Evaluate the BCG Probability function, we
         # get the limit for each object
@@ -83,24 +82,24 @@ def get_BCG_candidates(self, Mr_limit=-22.71, p_lim=1e-4):
 
         # Model color only once
         #self.zx = numpy.arange(0.01, self.zlim, 0.01)
-        self.gr_model = cosmology.color_z(
-            sed='El_Benitez2003',
-            filter_new='g_MOSAICII',
-            filter_old='r_MOSAICII',
-            z=self.zx,
-            calibration='AB')
-        self.ri_model = cosmology.color_z(
-            sed='El_Benitez2003',
-            filter_new='r_MOSAICII',
-            filter_old='i_MOSAICII',
-            z=self.zx,
-            calibration='AB')
-        self.iz_model = cosmology.color_z(
-            sed='El_Benitez2003',
-            filter_new='i_MOSAICII',
-            filter_old='z_MOSAICII',
-            z=self.zx,
-            calibration='AB')
+        # self.gr_model = cosmology.color_z(
+        #     sed='El_Benitez2003',
+        #     filter_new='g_MOSAICII',
+        #     filter_old='r_MOSAICII',
+        #     z=self.zx,
+        #     calibration='AB')
+        # self.ri_model = cosmology.color_z(
+        #     sed='El_Benitez2003',
+        #     filter_new='r_MOSAICII',
+        #     filter_old='i_MOSAICII',
+        #     z=self.zx,
+        #     calibration='AB')
+        # self.iz_model = cosmology.color_z(
+        #     sed='El_Benitez2003',
+        #     filter_new='i_MOSAICII',
+        #     filter_old='z_MOSAICII',
+        #     z=self.zx,
+        #     calibration='AB')
 
         sout.write(" \tDone: %s\n" % extras.elapsed_time_str(t0))
 
@@ -153,37 +152,45 @@ def get_BCG_candidates(self, Mr_limit=-22.71, p_lim=1e-4):
 # Select galaxies around ID galaxy un redshift range
 ########################################################
 def select_members_radius(self, i, Mi_lim=-20.25, radius=500.0, zo=None):
+    if zo:
+        print("Will use z:%.3f for cluster" % zo)
+    else:
+        zo = self.z_ph[i]
+        print("Will use z:%.3f for cluster" % zo)
+
+    # Get the relevant info for ith BCG
+    ra0 = self.ra[i]
+    dec0 = self.dec[i]
+    Mi_BCG = self.Mi[i]
+    # DM = self.DM[i]
+    ID_BCG = self.id[i]
 
     # Width of the redshift shell
     dz = self.dz
 
     t0 = time.time()
     sout.write("# Selecting Cluster members... Ngal, N200, R200 \n")
-    # Get the relevant info for ith BCG
-    ra0 = self.ra[i]
-    dec0 = self.dec[i]
-    Mi_BCG = self.Mi[i]
-    #DM = self.DM[i]
-    ID_BCG = self.id[i]
-    if zo:
-        print("# Will use z:%.3f for cluster -- from user!" % zo)
-    else:
-        zo = self.z_ph[i]
-        print("# Will use z:%.3f for cluster -- from data!" % zo)
-    # 1 - Select in position around ra0,dec0
+
+    # Calculate the M_star values
+    Mstar = self.evo_model.get_absolute_mags(self.zf, filters='i', zs=zo)
+    Mi_BCG = Mstar - 2.5 * numpy.log10(4.0) # 4L* galaxy at z=zo
+
+    ########
+    ### 1 - Select in position around ra0,dec0
+
     # Define radius in degress @ zo
     R = radius  # in kpc
-    r = astrometry.kpc2arc(zo, R, self.cosmo) / 3600.  # in degrees.
+    r = self.cosmo.arcsec_per_kpc_proper(zo).value / 3600 * R # in degrees
+
     rcore = r / 2.0
-    dist = astrometry.circle_distance(ra0,
-                                      dec0,
-                                      self.ra,
-                                      self.dec,
-                                      units='deg')
+
+    pos0 = SkyCoord(ra0, dec0, unit='deg', frame='icrs')
+    pos1 = SkyCoord(self.ra, self.dec, unit='deg', frame='icrs')
+    dist = pos0.separation(pos1).value
+
     mask_R = numpy.where(dist <= r, 1, 0)
     mask_rcore = numpy.where(dist <= rcore, 1, 0)
-    arcmin2Mpc = astrometry.arc2kpc(
-        zo, 60.0, self.cosmo) / 1000.0  # scale between arcmin and Mpc
+    arcmin2Mpc = self.cosmo.kpc_proper_per_arcmin(zo).value / 1000 # scale between arcmin and Mpc
 
     # 2 - Select in redshift
     z1 = zo - dz

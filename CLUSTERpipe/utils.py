@@ -3,13 +3,39 @@ import math
 import numpy
 import matplotlib.patches
 from past.utils import old_div
+import ezgal # BC03 model maker
+import os
 
 Polygon = matplotlib.patches.Polygon
 sout = sys.stderr
-
 int16 = numpy.int16
 float64 = numpy.float64
 land = numpy.logical_and
+
+def KE(cosmo):
+
+    # check to make sure we have defined the bpz filter path
+    if not os.getenv('EZGAL_FILTERS'):
+        os.environ['EZGAL_FILTERS'] = (f'{os.environ["HOME"]}/'
+                                       'Projects/planckClusters/MOSAICpipe/'
+                                       'bpz-1.99.3/FILTER/')
+
+    model = ezgal.model('bc03_ssp_z_0.02_salp.model')
+    model = model.make_exponential(1)
+    model.set_cosmology(Om=cosmo.Om0, Ol=cosmo.Ode0, h=cosmo.h, w=cosmo.w(0))
+
+    model.add_filter('g_MOSAICII.res', name='g')
+    model.add_filter('r_MOSAICII.res', name='r')
+    model.add_filter('i_MOSAICII.res', name='i')
+    model.add_filter('z_MOSAICII.res', name='z')
+    model.add_filter('K_KittPeak.res', name='K')
+
+    # Blanton 2003 Normalization
+    Mr_star = -20.44 + 5 * numpy.log10(cosmo.h) # abs mag.
+    # set the normalization
+    model.set_normalization('sloan_r', 0.1, Mr_star, vega=False)
+
+    return model
 
 ##################################################################
 # Read both kcorrection k(z) and evolution ev(z) from BC03 model
