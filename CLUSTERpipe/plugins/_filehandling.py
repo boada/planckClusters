@@ -92,12 +92,12 @@ def read_cat(self):
     bpz_mask = g_mask * r_mask * i_mask * z_mask
 
     # Clean up to avoid 99 values and very faint i_mag values
-    sout.write("# Avoiding magnitudes 99 in MAG_AUTO \n")
-    #g_mask = numpy.where( g >= 99,    0 , 1)
-    #r_mask = numpy.where( r >= 99,    0 , 1)
-    #i_mask = numpy.where( i >= i_lim, 0 , 1)
-    #z_mask = numpy.where( z >= 99,    0 , 1)
-    sout.write("# Avoiding magnitudes i > %s in MAG_AUTO \n" % i_lim)
+    # sout.write("# Avoiding magnitudes 99 in MAG_AUTO \n")
+    # g_mask = numpy.where( g >= 99,    0 , 1)
+    # r_mask = numpy.where( r >= 99,    0 , 1)
+    # i_mask = numpy.where( i >= i_lim, 0 , 1)
+    # z_mask = numpy.where( z >= 99,    0 , 1)
+    # sout.write("# Avoiding magnitudes i > %s in MAG_AUTO \n" % i_lim)
 
     # Clean by class_star
     sout.write("# Avoiding CLASS_STAR > %s \n" % star_lim)
