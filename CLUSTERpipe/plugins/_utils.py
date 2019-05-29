@@ -8,11 +8,10 @@ from astropy.coordinates import SkyCoord
 
 try:
     import extras
-    import astrometry
 except ImportError:
-    sys.path.append('/home/boada/Projects/planckClusters/MOSAICpipe/pipe_utils')
+    sys.path.append(
+        '/home/boada/Projects/planckClusters/MOSAICpipe/pipe_utils')
     import extras
-    import astrometry
 
 sout = sys.stderr
 
@@ -49,6 +48,7 @@ def print_info(self):
     print("--------------------------------")
     return
 
+
 # Click for testing x,y recovery
 def click(self, event):
 
@@ -72,6 +72,7 @@ def click(self, event):
     print("ra,dec,filename", RA, DEC, self.fitsfile)
     return ximage, yimage
 
+
 # Get the area inside circle
 def area_in_circle(self, xo, yo, r_pixels):
     (ix, iy) = numpy.indices((self.nx, self.ny))
@@ -82,12 +83,14 @@ def area_in_circle(self, xo, yo, r_pixels):
     self.area_fraction = area_in / area_tot
     return
 
+
 # Get the nearest object in catalog
 def get_nearest(self, x, y):
     distance = numpy.sqrt((self.x_image - x)**2 + (self.y_image - y)**2)
     self.iclose = numpy.argmin(distance)
     self.ID = self.id[self.iclose]
     return
+
 
 ##############################
 # Change the axes to arcmins
@@ -129,6 +132,7 @@ def ax_to_arcmin(self, ds=1.0):  # ds in arcmin
     pylab.xlim(xmin, xmax)
     pylab.ylim(ymin, ymax)
     return
+
 
 ################################################
 # Get the absolute magnitudes for each object

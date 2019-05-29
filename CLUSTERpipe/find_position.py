@@ -2,12 +2,12 @@
 
 import os
 import sys
-from cosmopy import cosmopy
 import imp
 import types
 from astropy.cosmology import LambdaCDM
 
 sout = sys.stderr
+
 
 class PluginMeta(type):
     def __new__(cls, name, bases, dct):
@@ -23,10 +23,11 @@ class PluginMeta(type):
                     dct[function.__name__] = function
         return type.__new__(cls, name, bases, dct)
 
+
 class finder(metaclass=PluginMeta):
 
     plugindir = (f'{os.environ["HOME"]}/Projects/'
-                  'planckClusters/CLUSTERpipe/plugins')
+                 'planckClusters/CLUSTERpipe/plugins')
 
     def __init__(
             self,
@@ -65,7 +66,10 @@ class finder(metaclass=PluginMeta):
         self.rootname = os.path.join(self.datapath, self.ctile, self.ctile)
 
         # Set the cosmology now
-        self.cosmo = LambdaCDM(H0=cosmo[2] * 100 , Om0=cosmo[0], Ode0=cosmo[1], Tcmb0=2.725)
+        self.cosmo = LambdaCDM(H0=cosmo[2] * 100,
+                               Om0=cosmo[0],
+                               Ode0=cosmo[1],
+                               Tcmb0=2.725)
         self.cosmo_init = cosmo
 
         # limits and other initial values
@@ -104,6 +108,7 @@ class finder(metaclass=PluginMeta):
 
         return
 
+
 def cmdline():
 
     from optparse import OptionParser
@@ -114,26 +119,28 @@ def cmdline():
     parser = OptionParser(usage=USAGE)
 
     parser.add_option("--path", dest="path", default='./', help="Path to data")
-    parser.add_option(
-        "--radius", dest="radius", default=1000.0, help="Radius in kpc")
+    parser.add_option("--radius",
+                      dest="radius",
+                      default=1000.0,
+                      help="Radius in kpc")
     parser.add_option("--zo", dest="zo", default=None, help="zo of cluster")
     parser.add_option("--dz", dest="dz", default=0.08, help="dz of shell")
     parser.add_option("--zuse", dest="zuse", default="ZB", help="use ZB or ML")
     parser.add_option("--dx", dest="dx", default=-1, help="cutout width")
     parser.add_option("--dy", dest="dy", default=-1, help="cutout heigth")
-    parser.add_option(
-        "--RA",
-        dest="RA",
-        default=None,
-        help="Center Right Ascension - x pixel or SEX RA")
-    parser.add_option(
-        "--DEC",
-        dest="DEC",
-        default=None,
-        help="Center Declination - y pixel or SEX DEC")
+    parser.add_option("--RA",
+                      dest="RA",
+                      default=None,
+                      help="Center Right Ascension - x pixel or SEX RA")
+    parser.add_option("--DEC",
+                      dest="DEC",
+                      default=None,
+                      help="Center Declination - y pixel or SEX DEC")
 
     # stellarity
-    parser.add_option("--starlim", dest="starlim", default=0.95,
+    parser.add_option("--starlim",
+                      dest="starlim",
+                      default=0.95,
                       help="SExtractor star/gal limit: range 0:1")
 
     # add a bit to figure out Mosaic1/mosaic3
@@ -148,6 +155,7 @@ def cmdline():
         parser.error("Must supply at least one arguments required")
 
     return options, args
+
 
 def main():
 
@@ -202,6 +210,7 @@ def main():
     f.jpg_display()
 
     return
+
 
 if __name__ == '__main__':
     main()

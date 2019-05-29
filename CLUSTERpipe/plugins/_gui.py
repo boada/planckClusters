@@ -7,12 +7,14 @@ import os
 try:
     from utils import (PCircle, PEllipse)
 except ImportError:
-    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    sys.path.append(os.path.dirname(os.path.dirname(
+        os.path.abspath(__file__))))
     from utils import (PCircle, PEllipse)
 
 # fix large image error
 import PIL
 PIL.Image.MAX_IMAGE_PIXELS = None
+
 
 #######################################
 # This is the loop routine interactive
@@ -114,15 +116,18 @@ def get_object(self, event):
 
         xo = 2 * self.dx - 80
         yo = 80
-        self.conf_back = pylab.text(
-            xo + 2,
-            self.ny - yo + 2,
-            text,
-            color='black',
-            fontsize=18,
-            ha='right')
-        self.conf_front = pylab.text(
-            xo, self.ny - yo, text, color='white', fontsize=18, ha='right')
+        self.conf_back = pylab.text(xo + 2,
+                                    self.ny - yo + 2,
+                                    text,
+                                    color='black',
+                                    fontsize=18,
+                                    ha='right')
+        self.conf_front = pylab.text(xo,
+                                     self.ny - yo,
+                                     text,
+                                     color='white',
+                                     fontsize=18,
+                                     ha='right')
         pylab.draw()
         #pylab.show()
         return
@@ -147,10 +152,16 @@ def get_object(self, event):
                                                        self.radius)
         xo = 80
         yo = 80
-        self.txt_back = pylab.text(
-            xo + 2, self.ny - yo + 2, text, color='black', fontsize=18)
-        self.txt_front = pylab.text(
-            xo, self.ny - yo, text, color='white', fontsize=18)
+        self.txt_back = pylab.text(xo + 2,
+                                   self.ny - yo + 2,
+                                   text,
+                                   color='black',
+                                   fontsize=18)
+        self.txt_front = pylab.text(xo,
+                                    self.ny - yo,
+                                    text,
+                                    color='white',
+                                    fontsize=18)
         pylab.draw()
         #pylab.show()
         return
@@ -181,12 +192,11 @@ def get_object(self, event):
             print('Reading Optical Image...')
             self.toggled = True
         print(self.RA, self.DEC)
-        self.jpg_read(
-            dx=self.dx,
-            dy=self.dy,
-            RA=self.RA,
-            DEC=self.DEC,
-            toggle=self.toggled)
+        self.jpg_read(dx=self.dx,
+                      dy=self.dy,
+                      RA=self.RA,
+                      DEC=self.DEC,
+                      toggle=self.toggled)
         self.jpg_display()
 
     # Print info
@@ -198,6 +208,7 @@ def get_object(self, event):
     pylab.show()
 
     return
+
 
 ####################################
 # The loop click-n-display routine
@@ -229,22 +240,30 @@ def jpg_display(self):
     #self.draw_zone(n=8)
     self.mark_PSZ()
     self.draw_zone2()
-    pylab.savefig(
-        self.figAname, transparent=True, dpi=100, bbox_inches='tight')
+    pylab.savefig(self.figAname,
+                  transparent=True,
+                  dpi=100,
+                  bbox_inches='tight')
     # register this function with the event handler
     pylab.connect('button_press_event', self.get_object)
     pylab.show()
     return
 
+
 #####################################
 # Draw the zone where to select
 ######################################
 
+
 def mark_PSZ(self):
     ax = pylab.gca()
     (nx, ny, nz) = self.jpg_region.shape
-    ax.scatter(nx / 2, ny / 2, s=100, marker='*',
-                  facecolor='None', edgecolor='yellow')
+    ax.scatter(nx / 2,
+               ny / 2,
+               s=100,
+               marker='*',
+               facecolor='None',
+               edgecolor='yellow')
 
     return
 
@@ -260,25 +279,24 @@ def draw_zone2(self):
     r1_pixels = 5 * 60.0 / self.pixscale
     r2_pixels = 2 * 60.0 / self.pixscale
     ax = pylab.gca()
-    Cc1 = PCircle(
-        center,
-        r1_pixels,
-        resolution=80,
-        fill=0,
-        edgecolor="white",
-        linestyle='dashed',
-        linewidth=0.5)
-    Cc2 = PCircle(
-        center,
-        r2_pixels,
-        resolution=80,
-        fill=0,
-        edgecolor="white",
-        linestyle='dashed',
-        linewidth=0.5)
+    Cc1 = PCircle(center,
+                  r1_pixels,
+                  resolution=80,
+                  fill=0,
+                  edgecolor="white",
+                  linestyle='dashed',
+                  linewidth=0.5)
+    Cc2 = PCircle(center,
+                  r2_pixels,
+                  resolution=80,
+                  fill=0,
+                  edgecolor="white",
+                  linestyle='dashed',
+                  linewidth=0.5)
     ax.add_patch(Cc1)
     ax.add_patch(Cc2)
     return
+
 
 def draw_zone(self, n=8):
     # Draw the region to select from
@@ -290,6 +308,7 @@ def draw_zone(self, n=8):
     yy = [dy, dy, (n - 1) * dy, (n - 1) * dy, dy]
     pylab.plot(xx, yy, 'w--', linewidth=0.5)
     return
+
 
 #####################################
 # Draw the BGCs and cluster members
@@ -324,13 +343,12 @@ def ellipse_members(self, k=0):
             ec = 'yellow'
         else:
             ec = 'red'
-        E = PEllipse(
-            (xgal, ygal), (a, b),
-            resolution=80,
-            angle=theta,
-            fill=0,
-            edgecolor=ec,
-            linewidth=1.0)
+        E = PEllipse((xgal, ygal), (a, b),
+                     resolution=80,
+                     angle=theta,
+                     fill=0,
+                     edgecolor=ec,
+                     linewidth=1.0)
         self.ellipse[i] = E
         ax.add_patch(E)
 
@@ -342,25 +360,23 @@ def ellipse_members(self, k=0):
     Yo = self.ny - Yo
 
     r_pixels = self.rdeg * 3600.0 / self.pixscale
-    C = PCircle(
-        (Xo, Yo),
-        r_pixels,
-        resolution=80,
-        fill=0,
-        edgecolor="white",
-        linestyle='solid',
-        linewidth=0.5)
+    C = PCircle((Xo, Yo),
+                r_pixels,
+                resolution=80,
+                fill=0,
+                edgecolor="white",
+                linestyle='solid',
+                linewidth=0.5)
     ax.add_patch(C)
 
     r_pixels = 2 * self.rdeg * 3600.0 / self.pixscale
-    C = PCircle(
-        (Xo, Yo),
-        r_pixels,
-        resolution=80,
-        fill=0,
-        edgecolor="yellow",
-        linestyle='solid',
-        linewidth=0.5)
+    C = PCircle((Xo, Yo),
+                r_pixels,
+                resolution=80,
+                fill=0,
+                edgecolor="yellow",
+                linestyle='solid',
+                linewidth=0.5)
     ax.add_patch(C)
 
     # Get the area coverage
@@ -369,6 +385,7 @@ def ellipse_members(self, k=0):
     pylab.draw()
     #pylab.show()
     return
+
 
 #####################################
 # Draw the BGCs candidates
@@ -395,19 +412,19 @@ def ellipse_BCGs(self):
         ygal = self.ny - ygal
 
         ec = 'cyan'
-        E = PEllipse(
-            (xgal, ygal), (a, b),
-            resolution=80,
-            angle=theta,
-            fill=0,
-            edgecolor=ec,
-            linewidth=1)
+        E = PEllipse((xgal, ygal), (a, b),
+                     resolution=80,
+                     angle=theta,
+                     fill=0,
+                     edgecolor=ec,
+                     linewidth=1)
         self.ellipse[i] = E
         ax.add_patch(E)
 
     pylab.draw()
     pylab.show()
     return
+
 
 def handle_ellipses(self, event, figure=1):
 
@@ -431,13 +448,12 @@ def handle_ellipses(self, event, figure=1):
     ygal = self.ny - ygal
 
     ec = 'white'
-    E = PEllipse(
-        (xgal, ygal), (a, b),
-        resolution=80,
-        angle=theta,
-        fill=0,
-        edgecolor=ec,
-        linewidth=1.0)
+    E = PEllipse((xgal, ygal), (a, b),
+                 resolution=80,
+                 angle=theta,
+                 fill=0,
+                 edgecolor=ec,
+                 linewidth=1.0)
     ax.add_patch(E)
     return
 
@@ -450,18 +466,16 @@ def handle_ellipses(self, event, figure=1):
             #print("Ellipse for ID:%s is not defined" % ID)
         current_ell = None
     else:
-        self.ellipse[i] = PEllipse(
-            (xgal, ygal), (a, b),
-            resolution=100,
-            angle=theta,
-            fill=0,
-            edgecolor="yellow")
-        current_ell = PEllipse(
-            (xgal, ygal), (a, b),
-            resolution=100,
-            angle=theta,
-            fill=0,
-            edgecolor="white")
+        self.ellipse[i] = PEllipse((xgal, ygal), (a, b),
+                                   resolution=100,
+                                   angle=theta,
+                                   fill=0,
+                                   edgecolor="yellow")
+        current_ell = PEllipse((xgal, ygal), (a, b),
+                               resolution=100,
+                               angle=theta,
+                               fill=0,
+                               edgecolor="white")
 
     # Draw all ellipses in list
     for id in list(self.ellipse.keys()):
@@ -476,6 +490,7 @@ def handle_ellipses(self, event, figure=1):
     pylab.draw()
     # pylab.show()
     return
+
 
 # Handle the probability functions for the BCG and the core members
 def plot_probs(self):
@@ -511,18 +526,18 @@ def plot_probs(self):
     ytxt = dy - 1.5 * dy / float(n)
     text = "zBCG = %.3f +%.3f/-%.3f)\n" % (zBCG, dz2, dz1)
     text = text + "z_cl = %.3f +/- %.3f" % (self.z_cl, self.z_clerr)
-    pylab.text(
-        xtxt,
-        ytxt,
-        text,
-        color='k',
-        size=size,
-        horizontalalignment='right')
+    pylab.text(xtxt,
+               ytxt,
+               text,
+               color='k',
+               size=size,
+               horizontalalignment='right')
 
     pylab.tight_layout()
     pylab.show()
 
     return
+
 
 # Plot the redshift distribution of the members
 def redshift_members(self):

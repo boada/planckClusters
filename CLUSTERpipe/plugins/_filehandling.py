@@ -11,13 +11,11 @@ from astropy.wcs import WCS
 from astropy import units as u
 
 try:
-    import tableio
     import extras
     import astrometry
 except ImportError:
     sys.path.append(f'{os.environ["HOME"]}/Projects/'
                     'planckClusters/MOSAICpipe/pipe_utils')
-    import tableio
     import extras
     import astrometry
 
@@ -25,48 +23,23 @@ sout = sys.stderr
 lor = numpy.logical_or
 nstr = numpy.char
 
+
 #########################################
 # Read in the big catalog of photometry
 #########################################
 def read_cat(self):
     t1 = time.time()
 
-    cols = (0, 1, 2, 23, 27, 26, 28, 29, 30, 3, 4, 6, 7, 9, 10, 12, 13, 15,
-            16, 17, 18, 19, 20, 21, 22, 31, 32, 33, 34, 35, 36)
+    cols = (0, 1, 2, 23, 27, 26, 28, 29, 30, 3, 4, 6, 7, 9, 10, 12, 13, 15, 16,
+            17, 18, 19, 20, 21, 22, 31, 32, 33, 34, 35, 36)
 
     sout.write("# Reading cols:%s\n# Reading cats from: %s... \n" %
                (cols, self.catsfile))
-    (id,
-     ra,
-     dec,
-     z_b,
-     odds,
-     t_b,
-     z_ml,
-     t_ml,
-     chi,
-     g,
-     g_err,
-     r,
-     r_err,
-     i,
-     i_err,
-     z,
-     z_err,
-     g_bpz,
-     g_berr,
-     r_bpz,
-     r_berr,
-     i_bpz,
-     i_berr,
-     z_bpz,
-     z_berr,
-     class_star,
-     a_image,
-     b_image,
-     theta,
-     x_image,
-     y_image) = Table.read(self.catsfile, format='ascii').columns[cols].values()
+    (id, ra, dec, z_b, odds, t_b, z_ml, t_ml, chi, g, g_err, r, r_err, i,
+     i_err, z, z_err, g_bpz, g_berr, r_bpz, r_berr, i_bpz, i_berr, z_bpz,
+     z_berr, class_star, a_image, b_image, theta, x_image,
+     y_image) = Table.read(self.catsfile,
+                           format='ascii').columns[cols].values()
 
     ############################################
     # Choose the photo-z to use, ml or bayesian
@@ -79,7 +52,6 @@ def read_cat(self):
         z_ph = z_b
         # t = t_b
 
-    i_lim = self.maglim
     odds_lim = 0.80  # not currently used
     star_lim = self.starlim
 
@@ -187,6 +159,7 @@ def read_cat(self):
     sout.write(" \tDone: %s\n" % extras.elapsed_time_str(t1))
     return
 
+
 ####################################
 # Read in the the probabilty file
 ####################################
@@ -241,6 +214,7 @@ def read_probs(self):
 
     sout.write(" \tDone: %s\n" % extras.elapsed_time_str(t1))
     return
+
 
 ##################################################
 # Read in the jpg file and corresponding fitsfile
@@ -329,6 +303,7 @@ def jpg_read(self, dx=1200, dy=1200, RA=None, DEC=None):
 
     return
 
+
 def write_info(self, blank=False):
     ''' This writes out the info for the cluster we found. If we didn't
     find a cluster it still writes out a file with nothing but zeros. That
@@ -357,8 +332,7 @@ def write_info(self, blank=False):
         s.close()
         return
 
-    filename = os.path.join(self.datapath, self.ctile,
-                            self.ctile + ".info")
+    filename = os.path.join(self.datapath, self.ctile, self.ctile + ".info")
     print(" Will write info to %s" % filename)
 
     i = self.iBCG
@@ -383,6 +357,7 @@ def write_info(self, blank=False):
     s.write(format % vars)
     s.close()
     return
+
 
 # Write down all relevant redshift information
 def write_redshift(self):
@@ -419,9 +394,8 @@ def write_redshift(self):
     z2_95 = x[i2]
 
     s = open(filename, "w")
-    head = ("# %-18s " + "%8s " * 7 + "\n") % ('ID_BCG', 'z_cl', 'err',
-                                               'zBCG', 'z1', 'z2', 'z1',
-                                               'z2')
+    head = ("# %-18s " + "%8s " * 7 + "\n") % ('ID_BCG', 'z_cl', 'err', 'zBCG',
+                                               'z1', 'z2', 'z1', 'z2')
     format = ("%20s " + "%8.3f " * 7 + "\n")
     vars = (self.ID_BCG, self.z_cl, self.z_clerr, zo, z1_68, z2_68, z1_95,
             z2_95)
@@ -430,11 +404,11 @@ def write_redshift(self):
     s.close()
     return
 
+
 # Write the members information out
 def write_members(self):
 
-    filename = os.path.join(self.datapath, self.ctile,
-                            self.ctile + ".members")
+    filename = os.path.join(self.datapath, self.ctile, self.ctile + ".members")
     m = open(filename, "w")
     print("Will write members to %s" % filename)
 
@@ -445,10 +419,9 @@ def write_members(self):
     m.write(head)
     for i in self.iRadius[0]:
         format = "%-25s %15f %15f  %6.3f %6.3f %6.3f %6.2f  %6.3f  %6.3f  %6.3f  %6.3f  %6.3f  %6.3f\n"
-        vars = (self.id[i], self.ra[i], self.dec[i], self.z_b[i],
-                self.t_b[i], self.z_ml[i], self.t_ml[i], self.g[i],
-                self.g_err[i], self.r[i], self.r_err[i], self.i[i],
-                self.i_err[i])
+        vars = (self.id[i], self.ra[i], self.dec[i], self.z_b[i], self.t_b[i],
+                self.z_ml[i], self.t_ml[i], self.g[i], self.g_err[i],
+                self.r[i], self.r_err[i], self.i[i], self.i_err[i])
 
         m.write(format % vars)
     m.close()
