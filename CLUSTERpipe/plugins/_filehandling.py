@@ -3,8 +3,7 @@ import sys
 import numpy
 import re
 import os
-import scipy
-import scipy.misc as sci_misc
+from skimage import io
 from astropy.table import Table
 from astropy.coordinates import SkyCoord
 from astropy.wcs import WCS
@@ -230,7 +229,7 @@ def jpg_read(self, dx=1200, dy=1200, RA=None, DEC=None):
         self.jpgfile = os.path.join(self.datapath, self.ctile + '.tiff')
     t0 = time.time()
     print("# Reading %s" % self.jpgfile, file=sys.stderr)
-    self.jpg_array = sci_misc.imread(self.jpgfile)
+    self.jpg_array = io.imread(self.jpgfile)
     print("\tDone in %.3f sec." % (time.time() - t0), file=sys.stderr)
 
     # Get the shape of the array
