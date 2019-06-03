@@ -231,10 +231,6 @@ def select_members_radius(self, i, Mi_lim=-20.25, radius=500.0, zo=None):
             converge = True
         loop += 1
 
-        # Get the average redshift within the core:
-        #z_cl    = self.z_ph[idc].mean()
-        #z_clrms = self.z_ph[idc].std()
-
     #print(idc)
     #print(self.z_ph[idc])
 

@@ -40,19 +40,12 @@ def get_object(self, event):
         sys.exit()
         return
 
-    # Remap to right positions
-    #ximage = event.xdata
-    #yimage = self.ny - event.ydata
-    # Remap to original coordinate system
     try:
         # handle clicking outside the image
         ximage = event.xdata + (self.xo - self.dx)
         yimage = (self.ny - event.ydata) + (self.yo - self.dy)
     except TypeError:
         return
-
-    #print('clicked location: %s, %s' % (event.xdata, self.ny - event.ydata))
-    #print('interp. location: %s, %s' % (ximage, yimage))
 
     # Fins the closest one
     self.get_nearest(ximage, yimage)
@@ -237,7 +230,6 @@ def jpg_display(self):
     # save blank info.
     self.write_info(blank=True)
     # Draw the search zone
-    #self.draw_zone(n=8)
     self.mark_PSZ()
     self.draw_zone2()
     pylab.savefig(self.figAname,
@@ -253,8 +245,6 @@ def jpg_display(self):
 #####################################
 # Draw the zone where to select
 ######################################
-
-
 def mark_PSZ(self):
     ax = pylab.gca()
     (nx, ny, nz) = self.jpg_region.shape
@@ -296,19 +286,6 @@ def draw_zone2(self):
     ax.add_patch(Cc1)
     ax.add_patch(Cc2)
     return
-
-
-def draw_zone(self, n=8):
-    # Draw the region to select from
-    n = float(n)
-    (nx, ny, nz) = self.jpg_region.shape
-    dx = nx / n
-    dy = ny / n
-    xx = [dx, (n - 1) * dx, (n - 1) * dx, dx, dx]
-    yy = [dy, dy, (n - 1) * dy, (n - 1) * dy, dy]
-    pylab.plot(xx, yy, 'w--', linewidth=0.5)
-    return
-
 
 #####################################
 # Draw the BGCs and cluster members
