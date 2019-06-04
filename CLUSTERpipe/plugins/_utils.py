@@ -65,7 +65,7 @@ def click(self, event):
     d = math.sqrt((ximage - xo)**2 + (yimage - yo)**2) * self.pixscale
     self.dist_to_psz = d / 60
 
-    ra, dec = self.WCS.wcs_pix2world(ximage, yimage, 0)
+    ra, dec = self.WCS.wcs_pix2world(ximage, yimage, 1)
     coord = SkyCoord(ra, dec, frame='icrs', unit='deg')
     RA = coord.ra.to_string(unit='hour', sep=':')
     DEC = coord.dec.to_string(unit='deg', sep=':')

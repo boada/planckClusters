@@ -255,14 +255,14 @@ def jpg_read(self, dx=1200, dy=1200, RA=None, DEC=None):
             coord = SkyCoord(RA, DEC, frame='icrs', unit=(u.hourangle, u.deg))
             self.RA = coord.ra.deg
             self.DEC = coord.dec.deg
-            self.xo, self.yo = self.WCS.wcs_world2pix(self.RA, self.DEC)
+            self.xo, self.yo = self.WCS.wcs_world2pix(self.RA, self.DEC, 1)
             print(self.xo, self.yo)
             yo_tmp = self.yo
         else:
             RA = float(RA)
             DEC = float(DEC)
     elif isinstance(RA, float) and isinstance(DEC, float):
-        self.xo, self.yo = self.WCS.wcs_world2pix(self.RA, self.DEC)
+        self.xo, self.yo = self.WCS.wcs_world2pix(self.RA, self.DEC, 1)
         yo_tmp = self.yo
     elif RA is None and DEC is None:
         self.xo = self.nx / 2.0
