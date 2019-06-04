@@ -3,7 +3,7 @@ import time
 import sys
 import pylab
 import math
-from utils import KE, KEfit
+from cluster_utils import KE, KEfit
 from astropy.coordinates import SkyCoord
 
 try:

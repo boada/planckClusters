@@ -16,8 +16,11 @@ except ImportError:
     import aux
 
 # get the utils from the parent directory
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils import (p_BCG, mklogarray, histo, bin_data, color)
+try:
+    from cluster_utils import (p_BCG, mklogarray, histo, bin_data, color)
+except ImportError:
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from cluster_utils import (p_BCG, mklogarray, histo, bin_data, color)
 
 sout = sys.stderr
 land = numpy.logical_and

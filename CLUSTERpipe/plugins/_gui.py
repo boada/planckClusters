@@ -5,11 +5,10 @@ import os
 
 # get the utils from the parent directory
 try:
-    from utils import (PCircle, PEllipse)
+    from cluster_utils import (PCircle, PEllipse)
 except ImportError:
-    sys.path.append(os.path.dirname(os.path.dirname(
-        os.path.abspath(__file__))))
-    from utils import (PCircle, PEllipse)
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from cluster_utils import (PCircle, PEllipse, color)
 
 # fix large image error
 import PIL
