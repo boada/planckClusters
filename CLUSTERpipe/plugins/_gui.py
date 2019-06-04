@@ -71,12 +71,12 @@ def get_object(self, event):
         self.background_map()
         #self.background()
         print("")
-        print("\tNgal: %d" % self.Ngal)
-        print("\tNgal_c: %d" % self.Ngal_c)
-        print("\tz_cl: %.3f +/- %.3f" % (self.z_cl, self.z_clerr))
-        print("\tL   : %.3e [Lsun]" % self.Lsum)
-        print("\tMi  : %6.2f " % self.Mi[iclose])
-        print("\tMr  : %6.2f " % self.Mr[iclose])
+        print(color(f"\tNgal: {self.Ngal}", 36, 1))
+        print(color(f"\tNgal_c: {self.Ngal_c}", 36, 1))
+        print(color(f"\tz_cl: {self.z_cl:.3f} +/- {self.z_clerr:.3f}", 36, 1))
+        print(f"\tL   : {self.Lsum:.3e} [Lsun]")
+        print(f"\tMi  : {self.Mi[iclose]:6.2f}")
+        print(f"\tMr  : {self.Mr[iclose]:6.2f}")
 
         return
 

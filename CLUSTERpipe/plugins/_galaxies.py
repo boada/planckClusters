@@ -253,11 +253,12 @@ def select_members_radius(self, i, Mi_lim=-20.25, radius=500.0, zo=None):
     iRadius = numpy.where(mask_R * mask_L1 * mask_L2 * mask_z * mask_cm == 1)
     iRadius_all = numpy.where(mask_L1 * mask_L2 * mask_z * mask_cm == 1)
     Ngal = len(iRadius[0])
-    sout.write(
-        color(
-            "# Total: %s objects selected in %s [kpc] around %s\n" %
-            (Ngal, radius, self.ID), 36, 1))
-
+    try:
+        sout.write(color(f"# Total: {Ngal} objects selected in "
+                        f"{radius} [kpc] around {self.ID}\n", 36, 1))
+    except AttributeError:
+        sout.write(color(f"# Total: {Ngal} objects selected in "
+                        f"{radius} [kpc] around {ra0:0.5f} {dec0:0.5f}\n", 36, 1))
     # Pass up
     self.iRadius = iRadius
     self.arcmin2Mpc = arcmin2Mpc

@@ -221,12 +221,13 @@ def read_probs(self):
 def jpg_read(self, dx=1200, dy=1200, RA=None, DEC=None):
 
     # The fitsfile with the wcs information
-    self.fitsfile = os.path.join(self.datapath, self.ctile + 'i.fits')
+    self.fitsfile = os.path.join(self.datapath, f'{self.ctile}i.fits')
     self.WCS = WCS(self.fitsfile)
-    if os.path.isfile(self.datapath + self.ctile + 'irg.tiff'):
-        self.jpgfile = os.path.join(self.datapath, self.ctile + 'irg.tiff')
+    print(f'{self.datapath}/{self.ctile}irg.tiff')
+    if os.path.isfile(f'{self.datapath}/{self.ctile}irg.tiff'):
+        self.jpgfile = os.path.join(self.datapath, f'{self.ctile}irg.tiff')
     else:
-        self.jpgfile = os.path.join(self.datapath, self.ctile + '.tiff')
+        self.jpgfile = os.path.join(self.datapath, f'{self.ctile}.tiff')
     t0 = time.time()
     print("# Reading %s" % self.jpgfile, file=sys.stderr)
     self.jpg_array = io.imread(self.jpgfile)
