@@ -30,7 +30,7 @@ def map2numpy(m):
 def asnumpy(x):
     ''' Convert into numpy.most of types'''
 
-    if type(x) is type(numpy.array([1])):
+    if isinstance(x, numpy.ndarray):
         return x
     # Check if list
     if type(x) is list:
@@ -39,9 +39,9 @@ def asnumpy(x):
         return numpy.array([x])
 
     try:
-        if type(x) is type(numpy.array([1])):
+        if isinstance(x, numpy.ndarray):
             return numpy.asarray(x)
-    except:
+    except NameError:
         print("# Numpy not found", file=sys.stderr)
 
     print("# Unknown type cannot convert to numpy.", file=sys.stderr)
@@ -83,11 +83,11 @@ def statsw(x, weight=None):
 
     x = numpy.asarray(x)
     if weight is None:
-        return x.mean(), x.stddev()
+        return x.mean(), x.std()
 
     elif (weight.sum() == 0):
         print("# warning: statsw weight sum is zero", file=sys.stderr)
-        return x.mean(), x.stddev()
+        return x.mean(), x.std()
     else:
         weight = numpy.asarray(weight)
         mean = old_div((weight * x).sum(), weight.sum())
