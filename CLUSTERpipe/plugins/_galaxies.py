@@ -83,27 +83,6 @@ def get_BCG_candidates(self, Mr_limit=-22.71, p_lim=1e-4):
 
         self.BCG_masked = True
 
-        # Model color only once
-        #self.zx = numpy.arange(0.01, self.zlim, 0.01)
-        # self.gr_model = cosmology.color_z(
-        #     sed='El_Benitez2003',
-        #     filter_new='g_MOSAICII',
-        #     filter_old='r_MOSAICII',
-        #     z=self.zx,
-        #     calibration='AB')
-        # self.ri_model = cosmology.color_z(
-        #     sed='El_Benitez2003',
-        #     filter_new='r_MOSAICII',
-        #     filter_old='i_MOSAICII',
-        #     z=self.zx,
-        #     calibration='AB')
-        # self.iz_model = cosmology.color_z(
-        #     sed='El_Benitez2003',
-        #     filter_new='i_MOSAICII',
-        #     filter_old='z_MOSAICII',
-        #     z=self.zx,
-        #     calibration='AB')
-
         sout.write(" \tDone: %s\n" % extras.elapsed_time_str(t0))
 
     # Select the candidates now
@@ -155,29 +134,28 @@ def get_BCG_candidates(self, Mr_limit=-22.71, p_lim=1e-4):
 # Modified/updated from find_clusters_ext_auto.py
 # Select galaxies around ID galaxy un redshift range
 ########################################################
-def select_members_radius(self, i, Mi_lim=-20.25, radius=500.0, zo=None):
+def select_members_radius(self, i=None, ra0=None, dec0=None, radius=500.0, zo=None):
     if zo:
-        print("Will use z:%.3f for cluster" % zo)
+        print(f"Will use z: {zo:.3f} for cluster")
     else:
         zo = self.z_ph[i]
-        print("Will use z:%.3f for cluster" % zo)
+        print("Will use z: %.3f for cluster" % zo)
 
     # Get the relevant info for ith BCG
-    ra0 = self.ra[i]
-    dec0 = self.dec[i]
-    Mi_BCG = self.Mi[i]
-    # DM = self.DM[i]
-    ID_BCG = self.id[i]
+    if not ra0 and not dec0:
+        ra0 = self.ra[i]
+        dec0 = self.dec[i]
+        Mi_BCG = self.Mi[i]
+        # DM = self.DM[i]
+        ID_BCG = self.id[i]
+    else:
+        ID_BCG = -1
 
     # Width of the redshift shell
     dz = self.dz
 
     t0 = time.time()
-    sout.write("# Selecting Cluster members... Ngal, N200, R200 \n")
-
-    # Calculate the M_star values
-    Mstar = self.evo_model.get_absolute_mags(self.zf, filters='i', zs=zo)
-    Mi_BCG = Mstar - 2.5 * numpy.log10(4.0)  # 4L* galaxy at z=zo
+    sout.write(f"# Selecting Cluster members around {ra0:0.5f} {dec0:0.5f}\n")
 
     ########
     ### 1 - Select in position around ra0,dec0
@@ -185,25 +163,32 @@ def select_members_radius(self, i, Mi_lim=-20.25, radius=500.0, zo=None):
     # Define radius in degress @ zo
     R = radius  # in kpc
     r = self.cosmo.arcsec_per_kpc_proper(zo).value / 3600 * R  # in degrees
-
     rcore = r / 2.0
-
     pos0 = SkyCoord(ra0, dec0, unit='deg', frame='icrs')
     pos1 = SkyCoord(self.ra, self.dec, unit='deg', frame='icrs')
     dist = pos0.separation(pos1).value
-
     mask_R = numpy.where(dist <= r, 1, 0)
     mask_rcore = numpy.where(dist <= rcore, 1, 0)
     arcmin2Mpc = self.cosmo.kpc_proper_per_arcmin(
         zo).value / 1000  # scale between arcmin and Mpc
 
-    # 2 - Select in redshift
+    ########
+    ### 2 - Select in redshift
+
     z1 = zo - dz
     z2 = zo + dz
     mask_z = numpy.where(land(self.z_ph >= z1, self.z_ph <= z2), 1, 0)
 
-    # 3 - Select in brightness
+    ########
+    ### 3 - Select in brightness
+
+    # Calculate the M_star values and appropriate limits
+    Mstar = self.evo_model.get_absolute_mags(self.zf, filters='i', zs=zo)
+    Mi_BCG = Mstar - 2.5 * numpy.log10(4.0)  # 4L* galaxy at z=zo
+    Mi_lim_zo = Mstar - 2.5 * numpy.log10(0.4)  # 0.4L* galaxy at z=zo
+    Mi_lim = -20.25
     Mi_lim_zo = Mi_lim + self.evf['i'](zo) - self.evf['i'](0.1)
+
     mask_L1 = numpy.where(self.Mi <= Mi_lim_zo, 1, 0)  # Faint  cut > 0.4L*
     mask_L2 = numpy.where(self.Mi >= Mi_BCG, 1, 0)  # Bright cut < L_BCG
 
@@ -225,8 +210,9 @@ def select_members_radius(self, i, Mi_lim=-20.25, radius=500.0, zo=None):
                        gr[idc].mean()) > Nsigma * numpy.std(gr[idc], ddof=1)
         c2 = numpy.abs(ri[idc] -
                        ri[idc].mean()) > Nsigma * numpy.std(ri[idc], ddof=1)
-        iclip = numpy.where(lor(c1,
-                                c2))[0]  # where any of the conditions fails
+
+        # where any of the conditions fails
+        iclip = numpy.where(lor(c1, c2))[0]
         if len(iclip) > 0:
             idc = numpy.delete(idc, iclip)  # Removed failed ones
             converge = False
@@ -378,14 +364,15 @@ def background(self):
 ##########################################
 # Compute the Background for the clusters
 ##########################################
-def background_map(self):
+def background_map(self, ra0=None, dec0=None):
     ixr = self.ix_radial
 
     # No back substraction
     if self.Ngal <= 2:
         self.Ngal_c = self.Ngal
         print(
-            color('Background -- Not enough galaxies found in cluster', 31, 5))
+            color('Background -- Not enough galaxies found in cluster',
+            'red', 'blink'))
         return
 
     # Store radially ordered
@@ -412,15 +399,14 @@ def background_map(self):
     # for the background
     R1 = 3.0 * self.r1Mpc * 60.0
     R2 = r.max()  # go all the way out
-    print("# Estimating Background @ r > 3mpc -- %.2f - %.2f [arcmin]" %
-          (R1, R2))
+    print(f"# Estimating Background @ r > 3mpc -- {R1:.2f} - {R2:.2f} [arcmin]")
 
     PN_bgr = PN[rcenter > R1]
 
     # Get the mean values for the Ngal and Lr profiles, which will
     # be the correction per arcmin^2
     PN_mean = numpy.mean(PN_bgr)
-    print('\tmean number of BG galaxies -- {}'.format(PN_mean))
+    print(f'\tmean number of BG galaxies -- {PN_mean}')
 
     # Total number in background area
     N_bgr = PN_bgr.sum()
@@ -429,7 +415,12 @@ def background_map(self):
     # our input image and then sum over the pixels that are either in or out of
     # the cluster region.
     # cluster location
-    a, b = round(self.x_image[self.iclose]), round(self.y_image[self.iclose])
+    if not ra0 and not dec0:
+        a, b = round(self.x_image[self.iclose]), round(self.y_image[self.iclose])
+    else:
+        x_ra, y_dec = self.WCS.wcs_world2pix(ra0, dec0, 1)
+        a, b = int(x_ra), int(y_dec)
+
     # size of the image
     n = self.jpg_array.shape[0]
     # cluster radius in arcseconds converted to pixels.
@@ -453,7 +444,7 @@ def background_map(self):
     # R200 value.
     area_r1Mpc = math.pi * (self.r1Mpc * 60.)**2  # in arcmin2
     # use the inverse of the cluster mask to find the cluster area
-    area_r1mpc = (n**2 - img_array.sum()) * self.pixscale / 60
+    # area_r1mpc = (n**2 - img_array.sum()) * self.pixscale / 60
 
     self.Ngal_c = self.Ngal - PN_mean * area_r1Mpc
     if self.Ngal_c < 0:
