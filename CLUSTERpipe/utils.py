@@ -309,4 +309,37 @@ def Mass_calib(N200, L200, LBCG, z, h=1.0):
     return M_N200, M_L200, M_LBCG
 
 def color(s, ncolor, nfont):
+
+    colors = {'red': 31,
+              'green': 32,
+              'yellow': 33,
+              'blue': 34,
+              'purple': 35,
+              'cyan': 36,
+              'white': 37,
+              'smoothgreen': '38;5;42',
+              'magenta': '38;5;55',
+              'turqoise': '38;5;50'}
+
+    fonts = {'normal': 0,
+             'bold': 1,
+             'light': 2,
+             'italic': 3,
+             'underline': 4,
+             'blink': 5}
+
+    if isinstance(ncolor, str):
+        try:
+            ncolor = colors[ncolor]
+        except KeyError:
+            print('Color not understood')
+            return s
+
+    if isinstance(nfont, str):
+        try:
+            nfont = fonts[nfont]
+        except KeyError:
+            print('Font not understood')
+            return s
+
     return "\033[{};{}m{}\033[0m".format(nfont, ncolor, s)
