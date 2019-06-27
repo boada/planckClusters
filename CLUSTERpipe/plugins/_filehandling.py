@@ -262,6 +262,8 @@ def jpg_read(self, dx=1200, dy=1200, RA=None, DEC=None):
         else:
             RA = float(RA)
             DEC = float(DEC)
+            self.xo, self.yo = self.WCS.wcs_world2pix(self.RA, self.DEC, 1)
+            yo_tmp = self.yo
     elif isinstance(RA, float) and isinstance(DEC, float):
         self.xo, self.yo = self.WCS.wcs_world2pix(self.RA, self.DEC, 1)
         yo_tmp = self.yo
