@@ -198,7 +198,6 @@ def main():
         dz=float(opt.dz),
         radius=radius,
         cosmo=(0.3, 0.7, 0.7),
-        #zuse="ZB", # Use ZB (Bayesian) or ML (Max Like)
         zuse=opt.zuse,  # Use ZB (Bayesian) or ML (Max Like)
         outpath='plots',
         path=opt.path,
