@@ -5,7 +5,7 @@ import os
 
 # get the utils from the parent directory
 try:
-    from cluster_utils import (PCircle, PEllipse)
+    from cluster_utils import (PCircle, PEllipse, color)
 except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     from cluster_utils import (PCircle, PEllipse, color)
@@ -289,24 +289,20 @@ def draw_zone2(self):
 #####################################
 # Draw the BGCs and cluster members
 #####################################
-def ellipse_members(self, k=0):
-
-    iclose = self.iclose
+def ellipse_members(self, ra=None, dec=None):
 
     ax = pylab.gca()
+    ax.set_title(f"{self.ctile}")
+
     # Delete all patches, reset ellipses before redraw
     del ax.patches[2:]
     self.ellipses = {}
-    #zo = self.z_ph[iclose]
-    pylab.title("%s" % (self.ctile))
 
     # construct the ellipses for each members
     for i in self.iRadius[0]:
-        #ra = self.ra[i]
-        #dec = self.dec[i]
         a = self.a_image[i]
         b = self.b_image[i]
-        theta = self.theta[i]  # *math.pi/180.0
+        theta = self.theta[i]
 
         # move to cropped reference frame
         xgal = self.x_image[i] - (self.xo - self.dx)
@@ -315,10 +311,15 @@ def ellipse_members(self, k=0):
         # origin is at (0,ny), is the upper left corner
         ygal = self.ny - ygal
 
-        if i == self.iclose:
-            ec = 'yellow'
-        else:
+        # handle autofinding
+        try:
+            if i == self.iclose:
+                ec = 'yellow'
+            else:
+                ec = 'red'
+        except AttributeError:
             ec = 'red'
+
         E = PEllipse((xgal, ygal), (a, b),
                      resolution=80,
                      angle=theta,
@@ -328,12 +329,31 @@ def ellipse_members(self, k=0):
         self.ellipse[i] = E
         ax.add_patch(E)
 
-    ## And a circle of [kpc] in radius
-    Xo = self.x_image[iclose] - (self.xo - self.dx)
-    Yo = self.y_image[iclose] - (self.yo - self.dy)
-    # Change the referece pixel to reflect jpg standards where the
-    # origin is at (0,ny), is the upper left corner
-    Yo = self.ny - Yo
+    if not ra and not dec:
+        ## And a circle of [kpc] in radius
+        Xo = self.x_image[self.iclose] - (self.xo - self.dx)
+        Yo = self.y_image[self.iclose] - (self.yo - self.dy)
+
+        # Change the referece pixel to reflect jpg standards where the
+        # origin is at (0,ny), is the upper left corner
+        Yo = self.ny - Yo
+    else:
+        x_ra, y_dec = self.WCS.wcs_world2pix(ra, dec, 1)
+        Xo = x_ra - (self.xo - self.dx)
+        Yo = y_dec - (self.yo - self.dy)
+        
+        # Change the referece pixel to reflect jpg standards where the
+        # origin is at (0,ny), is the upper left corner
+        Yo = self.ny - Yo
+        r_pixels = 3 / self.pixscale
+        C = PCircle((Xo, Yo),
+                    r_pixels,
+                    resolution=80,
+                    fill=0,
+                    edgecolor="yellow",
+                    linestyle='solid',
+                    linewidth=1)
+        ax.add_patch(C)
 
     r_pixels = self.rdeg * 3600.0 / self.pixscale
     C = PCircle((Xo, Yo),
