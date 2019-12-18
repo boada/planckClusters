@@ -35,22 +35,25 @@ Copyright 2017 Steven Boada (Rutgers University).
 **All rights reserved.**
 
 ## Citation
-If you would like to reference our [paper](http://adsabs.harvard.edu/cgi-bin/bib_query?arXiv:1809.06378),
+If you would like to reference our [paper](https://ui.adsabs.harvard.edu/abs/2019ApJ...871..188B),
 please use the following citation, produced by
-[NASA ADS](http://adsabs.harvard.edu/cgi-bin/bib_query?arXiv:1810.12913):
+[NASA ADS](https://ui.adsabs.harvard.edu/abs/2019ApJ...871..188B):
 ```
-@ARTICLE{2018arXiv180906378B,
-   author = {{Boada}, S. and {Hughes}, J.~P. and {Menanteau}, F. and {Doze}, P. and
-	{Barrientos}, L.~F. and {Infante}, L.},
-    title = "{High Confidence Optical Confirmation of High Signal-to-Noise Planck Cluster Candidates}",
-  journal = {ArXiv e-prints},
-archivePrefix = "arXiv",
-   eprint = {1809.06378},
- keywords = {Astrophysics - Cosmology and Nongalactic Astrophysics, Astrophysics - Astrophysics of Galaxies},
-     year = 2018,
-    month = sep,
-   adsurl = {http://adsabs.harvard.edu/abs/2018arXiv180906378B},
-  adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+@ARTICLE{2019ApJ...871..188B,
+       author = {{Boada}, Steven and {Hughes}, John P. and {Menanteau}, Felipe and
+         {Doze}, Peter and {Barrientos}, L. Felipe and {Infante}, L.},
+        title = "{High Confidence Optical Confirmations among the High Signal-to-noise Planck Cluster Candidates}",
+      journal = {\apj},
+     keywords = {cosmology: observations, galaxies: clusters: general},
+         year = "2019",
+        month = "Feb",
+       volume = {871},
+       number = {2},
+          eid = {188},
+        pages = {188},
+          doi = {10.3847/1538-4357/aaf3a0},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/2019ApJ...871..188B},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
 }
 ```
 
